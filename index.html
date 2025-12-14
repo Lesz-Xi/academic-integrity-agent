@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Academic Integrity Agent - Anti-Detection Writing Assistant</title>
+    <link rel="icon" type="image/png" href="/app-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Outfit', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background-color: #F5F3EE;
+        color: #2D2D2D;
+        font-family: 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      h1, h2, h3, h4, h5, h6 {
+        font-family: 'Outfit', sans-serif;
+      }
+      
+      code, pre {
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #D1D5DB;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #9CA3AF;
+      }
+      /* Dark mode scrollbar logic */
+      .dark ::-webkit-scrollbar-thumb {
+        background: #4B5563;
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #6B7280;
+      }
+
+      @keyframes spin-slow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      .animate-spin-slow {
+        animation: spin-slow 4s linear infinite;
+      }
+      .animate-spin-fast {
+        animation: spin-slow 2s linear infinite;
+      }
+      
+      /* New Animations */
+      @keyframes pop-up {
+        0% { transform: scale(0.95) translateY(10px); opacity: 0; }
+        100% { transform: scale(1) translateY(0); opacity: 1; }
+      }
+      .animate-pop-up {
+        animation: pop-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @keyframes fade-in-up {
+        0% { transform: translateY(20px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+      }
+      .animate-fade-in-up {
+        animation: fade-in-up 0.7s ease-out forwards;
+      }
+
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+        100% { transform: translateY(0px); }
+      }
+      .animate-float {
+        animation: float 6s ease-in-out infinite;
+      }
+      .animate-float-delayed {
+        animation: float 8s ease-in-out infinite;
+        animation-delay: 2s;
+      }
+
+      @keyframes pulse-slow {
+        0% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 0.15; transform: scale(1.05); }
+        100% { opacity: 0.3; transform: scale(1); }
+      }
+      .animate-pulse-slow {
+        animation: pulse-slow 4s ease-in-out infinite;
+      }
+
+      @keyframes shimmer {
+        0% { background-position: 200% center; }
+        100% { background-position: -200% center; }
+      }
+      .animate-shimmer {
+        animation: shimmer 8s linear infinite;
+      }
+
+      /* Utility for relative positioning without the pseudo-element conflict */
+      .gradient-border-container {
+        position: relative;
+        overflow: hidden;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0"
+  }
+}
+</script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
