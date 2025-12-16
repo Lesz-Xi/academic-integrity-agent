@@ -32,15 +32,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
       </div>
 
       {/* Header */}
-      <header className="relative z-50 px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between max-w-7xl mx-auto">
+      <header className="relative z-50 pl-4 pr-6 sm:px-6 py-4 sm:py-6 flex items-center justify-between max-w-7xl mx-auto">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#F2E8CF] rounded-xl flex items-center justify-center text-[#2D2D2D] font-bold text-lg sm:text-xl shadow-lg flex-shrink-0">
             A
           </div>
-          <span className="font-bold text-sm sm:text-lg tracking-tight whitespace-nowrap">Academic Integrity Agent</span>
+          <span className="font-bold text-xs sm:text-lg tracking-tight whitespace-nowrap">Academic Integrity Agent</span>
         </div>
         
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-4">
              <button
               onClick={toggleTheme}
               className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
@@ -49,11 +49,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
             >
               {theme === 'dark' ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
-            <div className={`h-5 sm:h-6 w-px ${theme === 'dark' ? 'bg-[#444]' : 'bg-gray-300'}`}></div>
+            <div className={`h-4 sm:h-6 w-px ${theme === 'dark' ? 'bg-[#444]' : 'bg-gray-300'}`}></div>
 
             <button 
                 onClick={onLoginClick}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all relative group whitespace-nowrap ${
+                className={`px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all relative group whitespace-nowrap ${
                 theme === 'dark' ? 'text-gray-300 hover:text-[#F2E8CF]' : 'text-gray-600 hover:text-[#85683F]'
             }`}>
                 Login
