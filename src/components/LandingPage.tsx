@@ -32,28 +32,28 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
       </div>
 
       {/* Header */}
-      <header className="relative z-50 px-6 py-6 flex items-center justify-between max-w-7xl mx-auto">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#F2E8CF] rounded-xl flex items-center justify-center text-[#2D2D2D] font-bold text-xl shadow-lg">
+      <header className="relative z-50 px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between max-w-7xl mx-auto">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#F2E8CF] rounded-xl flex items-center justify-center text-[#2D2D2D] font-bold text-lg sm:text-xl shadow-lg flex-shrink-0">
             A
           </div>
-          <span className="font-bold text-lg tracking-tight">Academic Integrity Agent</span>
+          <span className="font-bold text-sm sm:text-lg tracking-tight whitespace-nowrap">Academic Integrity Agent</span>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
              <button
               onClick={toggleTheme}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                 theme === 'dark' ? 'text-yellow-400 hover:bg-[#333]' : 'text-slate-600 hover:bg-[#E5E3DD]'
               }`}
             >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {theme === 'dark' ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
-            <div className={`h-6 w-px ${theme === 'dark' ? 'bg-[#444]' : 'bg-gray-300'}`}></div>
+            <div className={`h-5 sm:h-6 w-px ${theme === 'dark' ? 'bg-[#444]' : 'bg-gray-300'}`}></div>
 
             <button 
                 onClick={onLoginClick}
-                className={`px-4 py-2 text-sm font-medium transition-all relative group ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all relative group whitespace-nowrap ${
                 theme === 'dark' ? 'text-gray-300 hover:text-[#F2E8CF]' : 'text-gray-600 hover:text-[#85683F]'
             }`}>
                 Login
@@ -64,9 +64,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
 
             <button 
                 onClick={onSignUpClick}
-                className="px-5 py-2 text-sm font-bold bg-[#F2E8CF] text-[#2D2D2D] rounded-lg shadow-lg hover:shadow-[#F2E8CF]/30 hover:scale-105 transition-all duration-300 active:scale-95 flex items-center gap-2">
+                className="px-3 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-bold bg-[#F2E8CF] text-[#2D2D2D] rounded-lg shadow-lg hover:shadow-[#F2E8CF]/30 hover:scale-105 transition-all duration-300 active:scale-95 flex items-center gap-1 sm:gap-2 whitespace-nowrap">
                 Sign Up
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
         </div>
       </header>
