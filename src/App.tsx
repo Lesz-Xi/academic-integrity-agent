@@ -67,7 +67,7 @@ function AppContent() {
   // Usage Limit State
   const [limitModalOpen, setLimitModalOpen] = useState(false);
   const [usageCount, setUsageCount] = useState(0);
-  const MONTHLY_LIMIT = 1; // Free tier: 1 generation before requiring subscription
+  const MONTHLY_LIMIT = 20; // Free tier: 20 generations before requiring subscription
 
   const outputContainerRef = useRef<HTMLDivElement>(null);
 
