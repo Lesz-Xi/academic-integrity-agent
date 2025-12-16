@@ -1,9 +1,10 @@
-import { forwardRef } from 'react';
-import { Copy, CheckCircle, AlertTriangle } from 'lucide-react';
+import { forwardRef, useState } from 'react';
+import { Copy, CheckCircle, AlertTriangle, FileDown } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { markdownToHtml } from '../utils/markdownRenderer';
 import { cleanLatex } from '../utils/latexCleaner';
 import { linkifySources } from '../utils/sourceLinkifier';
+import { exportToDocx, exportToPdf } from '../utils/documentExporter';
 
 interface OutputPanelProps {
   text: string;
@@ -13,10 +14,34 @@ interface OutputPanelProps {
 }
 
 const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnings, onCopy, copied }, ref) => {
+  const [isExporting, setIsExporting] = useState<'docx' | 'pdf' | null>(null);
+
+  const handleExportDocx = async () => {
+    setIsExporting('docx');
+    try {
+      await exportToDocx(text, 'generated-content');
+    } catch (error) {
+      console.error('DOCX export failed:', error);
+    } finally {
+      setIsExporting(null);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    setIsExporting('pdf');
+    try {
+      await exportToPdf(text, 'generated-content');
+    } catch (error) {
+      console.error('PDF export failed:', error);
+    } finally {
+      setIsExporting(null);
+    }
+  };
+
   if (!text) {
     return (
-      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6">
-        <div className="bg-gray-50 rounded-xl border-2 border-gray-200 p-8 text-center">
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="bg-white/5 dark:bg-white/5 backdrop-blur-md rounded-3xl shadow-xl overflow-hidden border border-white/20 dark:border-white/10">
           <p className="text-gray-600">Generated content will appear here</p>
         </div>
       </div>
@@ -31,38 +56,67 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
   const htmlContent = DOMPurify.sanitize(rawHtml, {
     ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'hr', 'ul', 'ol', 'li', 
                    'strong', 'em', 'code', 'pre', 'blockquote', 'a', 'table', 'tr', 'td', 'th', 'thead', 'tbody'],
-    ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'style'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
   });
 
   return (
 
-    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
       <div 
         ref={ref}
-        className="bg-white dark:bg-[#252525] rounded-xl border border-[#E5E3DD] dark:border-[#444] shadow-sm p-6 transition-colors duration-300"
+        className="bg-white/5 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/10 shadow-lg p-6 transition-colors duration-300"
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-bold text-[#2D2D2D] dark:text-white">Generated Content</h3>
-          <button
-            onClick={onCopy}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all font-medium border ${
-              copied 
-                ? 'bg-[#D2B48C] dark:bg-[#D2B48C] border-[#D2B48C] text-[#2D2D2D]' 
-                : 'bg-white dark:bg-[#333] border-[#D2B48C] text-[#D2B48C] hover:bg-[#D2B48C] hover:text-[#2D2D2D] dark:hover:bg-[#D2B48C] dark:hover:text-[#2D2D2D]'
-            }`}
-          >
-            {copied ? (
-              <>
-                <CheckCircle className="w-4 h-4" />
-                Copied to Clipboard
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                Copy Output
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Export DOCX Button */}
+            <button
+              onClick={handleExportDocx}
+              disabled={isExporting !== null}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all font-medium border text-xs 
+                bg-white dark:bg-claude-input border-[#5B9BD5] text-[#5B9BD5] hover:bg-[#5B9BD5] hover:text-white dark:hover:bg-[#5B9BD5] dark:hover:text-white
+                disabled:opacity-50 disabled:cursor-not-allowed`}
+              title="Download as Word Document"
+            >
+              <FileDown className="w-3 h-3" />
+              {isExporting === 'docx' ? 'Exporting...' : 'DOCX'}
+            </button>
+
+            {/* Export PDF Button */}
+            <button
+              onClick={handleExportPdf}
+              disabled={isExporting !== null}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all font-medium border text-xs 
+                bg-white dark:bg-claude-input border-[#E74C3C] text-[#E74C3C] hover:bg-[#E74C3C] hover:text-white dark:hover:bg-[#E74C3C] dark:hover:text-white
+                disabled:opacity-50 disabled:cursor-not-allowed`}
+              title="Download as PDF"
+            >
+              <FileDown className="w-3 h-3" />
+              {isExporting === 'pdf' ? 'Exporting...' : 'PDF'}
+            </button>
+
+            {/* Copy Button */}
+            <button
+              onClick={onCopy}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all font-medium border text-xs ${
+                copied 
+                  ? 'bg-[#D2B48C] dark:bg-[#D2B48C] border-[#D2B48C] text-white' 
+                  : 'bg-white dark:bg-claude-input border-[#D2B48C] text-[#D2B48C] hover:bg-[#D2B48C] hover:text-white dark:hover:bg-[#D2B48C] dark:hover:text-white'
+              }`}
+            >
+              {copied ? (
+                <>
+                  <CheckCircle className="w-3 h-3" />
+                  Copied
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3 h-3" />
+                  Copy
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Warnings */}
@@ -86,7 +140,7 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
         )}
 
         {/* Content - Rendered as HTML */}
-        <div className="p-6 bg-[#FAF9F6] dark:bg-[#333] rounded-lg border border-[#D2B48C] dark:border-[#444] max-h-[600px] overflow-y-auto prose prose-sm max-w-none dark:prose-invert">
+        <div className="p-6 bg-transparent rounded-lg border-none max-h-[600px] overflow-y-auto prose prose-sm max-w-none dark:prose-invert">
           <div 
             className="markdown-content"
             dangerouslySetInnerHTML={{ __html: htmlContent }}

@@ -18,6 +18,7 @@ export class GenerationService {
         .from('generations')
         .select('id, user_id, mode, input, output, metrics, created_at')
         .eq('user_id', userId)
+        .is('deleted_at', null)  // Only show non-deleted items
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1)
 
@@ -91,27 +92,84 @@ export class GenerationService {
   }
 
   /**
-   * Delete generation by ID
+   * Soft delete generation by ID (sets deleted_at timestamp)
+   * This preserves the record for usage counting but hides it from history
    */
   static async deleteGeneration(id: string, userId: string): Promise<void> {
-    const { error } = await supabase
+    console.log('[GenerationService] Soft deleting generation:', { id, userId });
+    
+    const { data, error } = await supabase
       .from('generations')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
       .eq('user_id', userId)
+      .select();
+
+    console.log('[GenerationService] Soft delete result:', { data, error });
+
+    if (error) {
+      console.error('[GenerationService] Soft delete error:', error);
+      throw error;
+    }
+    
+    if (!data || data.length === 0) {
+      console.warn('[GenerationService] No rows updated - check if record exists and RLS policies allow update');
+    } else {
+      console.log('[GenerationService] Successfully soft deleted:', data[0]?.id);
+    }
+  }
+
+  /**
+   * Soft delete all generations for a user
+   * This preserves records for usage counting but hides them from history
+   */
+  static async clearHistory(userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('generations')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .is('deleted_at', null)  // Only soft-delete items not already deleted
 
     if (error) throw error
   }
 
   /**
-   * Delete all generations for a user
+   * Get total generations count for the current month
    */
-  static async clearHistory(userId: string): Promise<void> {
-    const { error } = await supabase
-      .from('generations')
-      .delete()
-      .eq('user_id', userId)
+  static async getMonthlyUsage(userId: string): Promise<number> {
+    const now = new Date();
+    // Get first day of current month in UTC ISO string
+    const startOfMonth = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1)).toISOString();
 
-    if (error) throw error
+    console.log('[GenerationService] Checking monthly usage since:', startOfMonth);
+
+    try {
+      // Create a timeout promise - increased to 10s
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Usage check timed out')), 10000);
+      });
+
+      // Execute query with timeout
+      const { count, error } = await Promise.race([
+        supabase
+          .from('generations')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .gte('created_at', startOfMonth),
+        timeoutPromise
+      ]);
+
+      if (error) {
+        console.error('[GenerationService] Failed to get usage count:', error);
+        throw error;
+      }
+
+      console.log('[GenerationService] Monthly usage count:', count);
+      return count || 0;
+    } catch (error) {
+      console.error('[GenerationService] Usage check error (failing closed):', error);
+      // Fail closed - if we can't verify usage, assume limit reached for security
+      throw error;
+    }
   }
 }

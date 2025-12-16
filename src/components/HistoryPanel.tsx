@@ -53,21 +53,21 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ history, activeMode, onDele
   }
 
   // Dynamic theme colors
-  const containerClasses = "bg-white dark:bg-[#2D2D2D] border-[#E5E3DD] dark:border-[#444]";
-  const itemClasses = "bg-white/50 dark:bg-[#333] hover:bg-gray-50 dark:hover:bg-[#3d3d3d] border-[#E5E3DD] dark:border-[#444]";
+  // Dynamic theme colors
+  const containerClasses = "bg-white/5 dark:bg-white/5 backdrop-blur-md border-white/20 dark:border-white/10 shadow-lg";
+  const itemClasses = "bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 border-white/20 dark:border-white/5 transition-all focus:outline-none focus:ring-2 focus:ring-[#F2E8CF]/50";
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
       <div className={`gradient-border-container relative p-[1px] rounded-xl overflow-hidden`}>
-         {/* Circulating Light Animation Layer - Always Visible */}
-         <div className={`absolute inset-[-50%] w-[200%] h-[200%] bg-[conic-gradient(from_0deg,transparent_0_340deg,#D2B48C_360deg)] animate-spin-slow opacity-100`} />
+
          
          {/* Main Content Card */}
          <div className={`relative h-full rounded-xl p-3 border transition-colors duration-300 ${containerClasses}`}>
         
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
           <div className="flex items-center gap-2">
-             <Clock className={`w-5 h-5 text-[#D2B48C]`} /> {/* Unified Brand Color */}
+             <Clock className={`w-5 h-5 text-[#F2E8CF]`} /> {/* Unified Brand Color */}
             <h3 className={`text-base font-bold text-[#2D2D2D] dark:text-white`}>
               Recent {getModeLabel(activeMode)} Generations
             </h3>
@@ -77,32 +77,32 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ history, activeMode, onDele
           </div>
         </div>
 
-        <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
+        <div className="space-y-4 max-h-[240px] overflow-y-auto pr-2 custom-scrollbar p-1">
           {filteredHistory.map((item) => (
             <div
               key={item.id}
-              className={`group flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border ${itemClasses}`}
+              className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border shadow-sm hover:shadow-md ${itemClasses}`}
               onClick={() => onRestore(item)}
             >
               <div className="flex w-full items-center gap-4">
                 {/* Mode Icon */}
-                <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-[#FAF9F6] dark:bg-yellow-400/10 text-[#D2B48C] dark:text-yellow-400 border border-[#E5E3DD] dark:border-transparent`}> 
+                <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-[#FAF9F6] dark:bg-yellow-400/10 text-[#F2E8CF] dark:text-yellow-400 border border-[#E5E3DD] dark:border-transparent transition-transform group-hover:scale-110`}> 
                   {getModeIcon(item.mode)}
                 </div>
 
                 {/* Content Preview */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400`}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className={`text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400`}>
                       {getModeLabel(item.mode)}
                     </span>
-                    <span className="text-gray-300 dark:text-gray-500">•</span>
-                    <span className={`text-xs text-gray-400 dark:text-gray-500`}>
+                    <span className="text-gray-300 dark:text-gray-600">•</span>
+                    <span className={`text-xs font-medium text-gray-400 dark:text-gray-500`}>
                       {formatTimestamp(item.timestamp)}
                     </span>
                   </div>
-                  <p className={`text-sm truncate font-medium text-[#2D2D2D] dark:text-gray-200`}>
-                    {item.input.substring(0, 80)}{item.input.length > 80 ? '...' : ''}
+                  <p className={`text-sm font-medium text-[#2D2D2D] dark:text-gray-200 line-clamp-2 leading-relaxed`}>
+                    {item.input}
                   </p>
                 </div>
 

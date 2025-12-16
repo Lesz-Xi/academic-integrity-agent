@@ -1,3 +1,4 @@
+import Anthropic from '@anthropic-ai/sdk';
 import { GoogleGenAI } from '@google/genai';
 import { Mode, GenerationResponse, DetectionMetrics, ChatMessage } from '../types';
 import { ESSAY_MODE_PROMPT } from '../prompts/modeA_essay';
@@ -5,108 +6,22 @@ import { CS_MODE_PROMPT } from '../prompts/modeB_cs';
 import { PARAPHRASE_MODE_PROMPT } from '../prompts/modeC_paraphrase';
 import { analyzeBurstiness } from './burstinessAnalyzer';
 import { estimatePerplexity, detectForbiddenPhrases } from './perplexityEstimator';
-import { geminiRateLimiter, checkRateLimit } from '../utils/rateLimiter';
 
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY });
+// Initialize Claude client (for Essay & CS modes)
+const anthropic = new Anthropic({
+  apiKey: import.meta.env.VITE_CLAUDE_API_KEY,
+  dangerouslyAllowBrowser: true
+});
 
-/**
- * Classify API errors for better error handling
- */
-function classifyApiError(error: any): {
-  type: 'quota' | 'auth' | 'network' | 'server' | 'unknown';
-  message: string;
-  retryable: boolean;
-  retryAfter?: number;
-} {
-  const errorStr = JSON.stringify(error);
-  const errorMessage = error?.message || errorStr;
+// Initialize Gemini clients (for Paraphrase mode - with failover support)
+const GEMINI_API_KEYS = [
+  import.meta.env.VITE_GEMINI_API_KEY,
+  import.meta.env.VITE_GEMINI_API_KEY_BACKUP,
+].filter(key => key && key !== 'YOUR_THIRD_KEY_HERE');
 
-  // Check for 429 rate limit
-  if (errorStr.includes('"code":429') || errorMessage.includes('429')) {
-    // Try to extract retry delay
-    let retryAfter: number | undefined;
-    const retryMatch = errorStr.match(/"retryDelay":"(\d+)s"/);
-    if (retryMatch) {
-      retryAfter = parseInt(retryMatch[1]);
-    }
+// Primary Gemini API key (used as fallback reference)
+const _primaryGeminiKey = GEMINI_API_KEYS[0] || '';
 
-    return {
-      type: 'quota',
-      message: 'Rate limit exceeded. Please wait before retrying.',
-      retryable: true,
-      retryAfter
-    };
-  }
-
-  // Check for auth errors
-  if (errorStr.includes('"code":401') || errorStr.includes('"code":403') ||
-      errorMessage.includes('401') || errorMessage.includes('403')) {
-    return {
-      type: 'auth',
-      message: 'Invalid API key. Please check your .env.local file.',
-      retryable: false
-    };
-  }
-
-  // Check for server errors (500s)
-  if (errorStr.includes('"code":5') || errorMessage.includes('500')) {
-    return {
-      type: 'server',
-      message: 'Gemini API server error. Please try again.',
-      retryable: true
-    };
-  }
-
-  // Network errors
-  if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
-    return {
-      type: 'network',
-      message: 'Network error. Please check your connection.',
-      retryable: true
-    };
-  }
-
-  return {
-    type: 'unknown',
-    message: 'An unexpected error occurred. Please try again.',
-    retryable: false
-  };
-}
-
-/**
- * Retry function with exponential backoff
- */
-async function retryWithBackoff<T>(
-  fn: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelay: number = 1000
-): Promise<T> {
-  let lastError: any;
-
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error;
-      const errorInfo = classifyApiError(error);
-
-      // Don't retry if not retryable or on last attempt
-      if (!errorInfo.retryable || attempt === maxRetries) {
-        throw new Error(errorInfo.message);
-      }
-
-      // Calculate delay with exponential backoff
-      const delay = errorInfo.retryAfter
-        ? errorInfo.retryAfter * 1000
-        : baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
-
-      console.log(`Retry attempt ${attempt + 1}/${maxRetries} after ${Math.round(delay)}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-
-  throw lastError;
-}
 
 const MODE_PROMPTS: Record<Mode, string> = {
   essay: ESSAY_MODE_PROMPT,
@@ -117,17 +32,16 @@ const MODE_PROMPTS: Record<Mode, string> = {
 /**
  * Generate academic content using mode-specific prompts
  * @param searchEnabled - If true, search web for sources and inject into context
+ * @param length - Target essay length (short/medium/long)
  */
 export async function generateContent(
   mode: Mode,
   input: string,
   additionalInstructions: string = '',
   onChunk?: (text: string) => void,
-  searchEnabled: boolean = false
+  searchEnabled: boolean = false,
+  length: 'short' | 'medium' | 'long' = 'medium'
 ): Promise<GenerationResponse> {
-  
-  // Check rate limit before making API call
-  checkRateLimit(geminiRateLimiter, 'Gemini API');
   
   let systemPrompt = MODE_PROMPTS[mode];
   let searchContext = '';
@@ -136,7 +50,7 @@ export async function generateContent(
   if (searchEnabled && (mode === 'essay' || mode === 'cs')) {
     try {
       const { searchAndSelectSources } = await import('./searchService');
-      const searchResult = await searchAndSelectSources(input, 10, 5, 100);
+      const searchResult = await searchAndSelectSources(input, 10, 5);
       
       if (searchResult && searchResult.sources.length > 0) {
         searchContext = searchResult.formattedContext;
@@ -147,22 +61,31 @@ export async function generateContent(
     }
   }
   
-  const chat = ai.chats.create({
-    model: 'gemini-2.5-flash-lite-preview-09-2025',
-    config: {
-      systemInstruction: systemPrompt,
-      temperature: 1.1, // Model 2.0: Increased for higher perplexity/variance
-      topK: 80,         // Model 2.0: Wider vocabulary selection (long-tail words)
-      topP: 0.95,
-      maxOutputTokens: 4096
-    }
-  });
+  // Claude will be called directly with streaming
+  const systemInstruction = systemPrompt;
   
   // Build user message with search context if available
   let userMessage = input;
   
   if (searchContext) {
     userMessage = `${searchContext}\n\n---\n\nUSER REQUEST:\n${input}`;
+  }
+  
+  // Inject length instructions (only for content generation modes, not paraphrase)
+  if (mode !== 'paraphrase') {
+    const lengthTargets = {
+      short: '400-600 words',      // Optimized: shorter for better humanization
+      medium: '800-1,000 words',   // Optimized: reduced from 1,200-1,800
+      long: '1,500-2,000 words'    // Optimized: reduced from 2,500-3,500
+    };
+    userMessage += `\n\nIMPORTANT: Target length is ${lengthTargets[length]}. Ensure the response meets this requirement.`;
+  } else {
+    // For paraphrase mode: output length should match input length, and output ONLY the result
+    userMessage += `\n\nCRITICAL OUTPUT RULES:
+1. Output ONLY the paraphrased/humanized text. No explanations, no reasoning, no commentary.
+2. Do NOT include phrases like "Here is the paraphrased text" or "The user has requested..."
+3. Output length should be similar to the input length (this is paraphrase, not expansion).
+4. Start directly with the transformed content.`;
   }
   
   if (additionalInstructions) {
@@ -173,22 +96,96 @@ export async function generateContent(
   let fullResponse = '';
 
   try {
-    await retryWithBackoff(async () => {
-      const result = await chat.sendMessageStream({
-        message: userMessage
-      });
-
-      for await (const chunk of result) {
-        if (chunk.text) {
-          fullResponse += chunk.text;
-          if (onChunk) onChunk(chunk.text);
+    // HYBRID MODEL SELECTION: Gemini for paraphrase, Claude for essay/CS
+    if (mode === 'paraphrase') {
+      // Use Gemini for paraphrase mode with automatic failover
+      let lastError: Error | null = null;
+      
+      for (let keyIndex = 0; keyIndex < GEMINI_API_KEYS.length; keyIndex++) {
+        const apiKey = GEMINI_API_KEYS[keyIndex];
+        console.log(`[AcademicIntegrityService] Using Gemini 2.5 Flash Lite (Paraphrase Mode) - Key ${keyIndex + 1}/${GEMINI_API_KEYS.length}`);
+        
+        try {
+          const geminiClient = new GoogleGenAI({ apiKey });
+          const chat = geminiClient.chats.create({
+            model: 'gemini-2.5-flash-lite-preview-09-2025',
+            config: {
+              systemInstruction: systemInstruction,
+              temperature: 1.1,
+              topK: 80,
+              topP: 0.95,
+              maxOutputTokens: 4096
+            }
+          });
+          
+          const result = await chat.sendMessageStream({ message: userMessage });
+          
+          for await (const chunk of result) {
+            if (chunk.text) {
+              fullResponse += chunk.text;
+              if (onChunk) onChunk(chunk.text);
+            }
+          }
+          
+          // Success - break out of retry loop
+          lastError = null;
+          break;
+        } catch (error: any) {
+          lastError = error;
+          
+          // Check if rate limited (429)
+          if (error.status === 429 || error.message?.includes('429') || error.message?.includes('quota')) {
+            console.warn(`[AcademicIntegrityService] Key ${keyIndex + 1} rate limited, trying next key...`);
+            fullResponse = ''; // Reset for retry
+            continue;
+          }
+          
+          // For other errors, don't retry
+          throw error;
         }
       }
-    });
-  } catch (error) {
-    console.error('Gemini API Error:', error);
-    // Error message already classified by retryWithBackoff
-    throw error;
+      
+      // If all keys failed with rate limit
+      if (lastError && fullResponse === '') {
+        throw new Error('All API keys exhausted. Please try again later.');
+      }
+    } else {
+      // Use Claude Sonnet 4.5 for essay and CS modes (better quality)
+      console.log('[AcademicIntegrityService] Using Claude Sonnet 4.5 (Essay/CS Mode)');
+      
+      const stream = await anthropic.messages.stream({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4096,
+        system: systemInstruction,
+        messages: [
+          { role: 'user', content: userMessage }
+        ],
+        temperature: 1.0
+      });
+
+      for await (const event of stream) {
+        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+          const text = event.delta.text;
+          fullResponse += text;
+          if (onChunk) onChunk(text);
+        }
+      }
+    }
+  } catch (error: any) {
+    console.error('API Error:', error);
+    
+    // Handle errors from both providers
+    if (error.status === 401 || error.message?.includes('401')) {
+      throw new Error('Invalid API key. Please check your .env.local file.');
+    }
+    if (error.status === 429 || error.message?.includes('429')) {
+      throw new Error('Rate limit exceeded. Please wait and try again.');
+    }
+    if (error.status === 402) {
+      throw new Error('Insufficient Claude credits. Please add more credits at console.anthropic.com');
+    }
+    
+    throw new Error(`API error: ${error.message || 'Unknown error'}`);
   }
   
   // Analyze the generated text
@@ -266,41 +263,33 @@ export async function streamChat(
   
   const systemPrompt = MODE_PROMPTS[mode];
   
-  const chat = ai.chats.create({
-    model: 'gemini-2.5-flash-lite',
-    config: {
-      systemInstruction: systemPrompt,
-      temperature: 1.1, // Model 2.0: Increased for higher perplexity/variance
-      topK: 80,         // Model 2.0: Wider vocabulary selection
-      topP: 0.95,
-      maxOutputTokens: 4096
-    },
-    history: history.slice(0, -1).map(msg => ({
-      role: msg.role,
-      parts: [{ text: msg.text }]
-    }))
-  });
+  // Convert history to Claude message format
+  const messages = history.map(msg => ({
+    role: msg.role as 'user' | 'assistant',
+    content: msg.text
+  }));
   
-  const currentMessage = history[history.length - 1];
   let fullResponse = '';
 
   try {
-    await retryWithBackoff(async () => {
-      const result = await chat.sendMessageStream({
-        message: currentMessage.text
-      });
-
-      for await (const chunk of result) {
-        if (chunk.text) {
-          fullResponse += chunk.text;
-          onChunk(chunk.text);
-        }
-      }
+    const stream = await anthropic.messages.stream({
+      model: 'claude-opus-4-20250514',
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: messages,
+      temperature: 1.0
     });
-  } catch (error) {
-    console.error('Gemini API Error:', error);
-    const errorInfo = classifyApiError(error);
-    onChunk(`I apologize, but I encountered an error: ${errorInfo.message}`);
+
+    for await (const event of stream) {
+      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+        const text = event.delta.text;
+        fullResponse += text;
+        onChunk(text);
+      }
+    }
+  } catch (error: any) {
+    console.error('Claude API Error:', error);
+    onChunk(`I apologize, but I encountered an error: ${error.message || 'Unknown error'}`);
   }
 
   return fullResponse;

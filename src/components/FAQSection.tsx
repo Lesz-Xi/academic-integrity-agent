@@ -6,16 +6,24 @@ interface FAQSectionProps {
 }
 
 const FAQSection: React.FC<FAQSectionProps> = ({ theme }) => {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const faqs = [
     {
-      question: "Is the output detectable by AI detectors like Turnitin?",
-      answer: "Our agent is specifically engineered to maximize 'burstiness' and 'perplexity' metrics. By varying sentence structures and choosing semantically rich vocabulary, it creates content that mimics natural human writing patterns, significantly reducing the likelihood of AI detection."
+      question: "How does the agent preserve my academic voice?",
+      answer: "Our system is engineered for 'Ethical Synthesis', prioritizing your original intent. By enhancing your existing drafts with varied sentence structures and precise vocabulary, it helps clarify your arguments without replacing your unique perspective or critical thinking."
     },
     {
-      question: "Is using this tool considered academic misconduct?",
-      answer: "This tool is designed as an educational writing assistant to help you improve your syntax and vocabulary. We strictly advise against submitting AI-generated content as your own work without citation. Always use it to refine your own ideas and follow your institution's academic integrity policies."
+      question: "How does this tool foster the learning process?",
+      answer: "Think of it as an intelligent writing mentor. It helps you overcome writer's block and understand advanced syntactic patterns. You maintain full control over the output, using the suggestions to learn how to articulate complex ideas more effectively."
+    },
+    {
+      question: "How does the Essay mode differ from standard AI?",
+      answer: "Unlike generic chatbots, our Essay engine is grounded in academic rigor. It prioritizes logical argumentation and structural depth over surface-level fluency, ensuring your essays have the weight and complexity of a researched paper."
+    },
+    {
+      question: "Will paraphrasing change the meaning of my work?",
+      answer: "Our 'Semantic Fidelity' technology ensures your original meaning is perfectly preserved. The agent focuses on enhancing flow, vocabulary, and 'burstiness' (sentence variation) without altering your core arguments or factual data."
     },
     {
       question: "Does it work for technical CS assignments?",
@@ -32,7 +40,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ theme }) => {
   };
 
   return (
-    <section id="faq" className={`py-24 px-6 transition-colors duration-500 ${
+    <section id="faq" className={`py-16 px-6 transition-colors duration-500 ${
       theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-[#F9F9F9]'
     }`}>
       <div className="max-w-3xl mx-auto">
@@ -47,8 +55,10 @@ const FAQSection: React.FC<FAQSectionProps> = ({ theme }) => {
             <div
               key={index}
               className={`border rounded-2xl overflow-hidden transition-all duration-300 ${
-                theme === 'dark' ? 'border-[#333] bg-[#222]' : 'border-gray-200 bg-white'
-              } ${openIndex === index ? 'shadow-lg ring-1 ring-[#D2B48C]/50' : ''}`}
+                openIndex === index
+                  ? `border-[#F2E8CF] ${theme === 'dark' ? 'bg-[#222]' : 'bg-white'}`
+                  : (theme === 'dark' ? 'border-[#333] bg-[#222]' : 'border-gray-200 bg-white')
+              } ${openIndex === index ? 'shadow-lg shadow-[#F2E8CF]/10' : ''}`}
             >
               <button
                 onClick={() => toggleAccordion(index)}
@@ -61,7 +71,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ theme }) => {
                 </span>
                 <div className={`p-1 rounded-full border transition-colors duration-300 ${
                     openIndex === index 
-                        ? 'bg-[#D2B48C] border-[#D2B48C] text-white' 
+                        ? 'bg-[#F2E8CF] border-[#F2E8CF] text-[#2D2D2D]' 
                         : (theme === 'dark' ? 'border-[#444] text-gray-400' : 'border-gray-200 text-gray-400')
                 }`}>
                     {openIndex === index ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
@@ -87,7 +97,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ theme }) => {
         
         {/* Support Link */}
         <div className={`mt-12 text-center text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            Still have questions? <button className="text-[#D2B48C] font-medium hover:underline">Chat with us</button>
+            Still have questions? <a href="mailto:support@academicintegrityagent.com" className="text-[#F2E8CF] font-medium hover:underline">Chat with us</a>
         </div>
 
       </div>

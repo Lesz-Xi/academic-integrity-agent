@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Code, RefreshCw, CheckCircle } from 'lucide-react';
+import { Feather, Terminal, RefreshCw, CheckCircle, Code } from 'lucide-react';
 
 interface FeatureShowcaseProps {
   theme: 'light' | 'dark';
@@ -24,15 +24,15 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
     {
       id: 0,
       title: "Essay & Research",
-      description: "Generate original arguments with high semantic richness. Our agent mimics natural variation in sentence structure to bypass detection.",
-      icon: BookOpen,
+      description: "Generate original arguments with high semantic richness. Our agent helps develop critical thinking through structured academic writing.",
+      icon: Feather,
       color: "#D2B48C",
-      metric: "98% Human Score",
+       metric: "92% Writing Clarity",
       preview: (
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-2">
-             <div className="px-2 py-1 bg-[#D2B48C]/10 text-[#D2B48C] rounded text-xs font-bold">Passing</div>
-             <div className="text-xs opacity-60">Turnitin • GPTZero • Originality.ai</div>
+             <div className="px-2 py-1 bg-[#D2B48C]/10 text-[#D2B48C] rounded text-xs font-bold">Quality</div>
+             <div className="text-xs opacity-60">Writing Clarity • Citation Flow</div>
           </div>
           <div className={`p-4 rounded-lg text-sm leading-relaxed border-l-2 border-[#D2B48C] ${theme === 'dark' ? 'bg-[#333]' : 'bg-gray-50'}`}>
             <span className="opacity-50">Input: </span>
@@ -51,7 +51,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
       id: 1,
       title: "Computer Science",
       description: "Technical documentation and explanation with a conversational, developer-friendly tone. Perfect for logic explanation without the robotic feel.",
-      icon: Code,
+      icon: Terminal,
       color: "#D2B48C",
       metric: "Syntax Optimized",
       preview: (
@@ -71,7 +71,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
           </div>
            <div className="grid grid-cols-2 gap-2 mt-2">
              <div className={`p-2 rounded text-xs text-center ${theme === 'dark' ? 'bg-[#333]' : 'bg-gray-100'}`}>
-                Perplexity: <span className="text-[#D2B48C]">Low</span>
+               Clarity: <span className="text-[#D2B48C]">High</span>
              </div>
              <div className={`p-2 rounded text-xs text-center ${theme === 'dark' ? 'bg-[#333]' : 'bg-gray-100'}`}>
                 Tone: <span className="text-[#D2B48C]">Casual</span>
@@ -86,12 +86,12 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
       description: "Deep syntactic restructuring for existing text. We don't just swap synonyms; we rebuild the sentence logic entirely.",
       icon: RefreshCw,
       color: "#E5AA70",
-      metric: "Structure Rebuilt",
+      metric: "85% Clarity Improvement",
       preview: (
          <div className="space-y-4">
            {/* "Bad" / AI State - Using Stone/Gray to contrast with Creme */}
            <div className={`relative p-4 rounded-lg text-sm border dashed border-gray-300/50 ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'}`}>
-             <div className={`absolute -top-2 -right-2 text-[10px] px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'}`}>AI Pattern</div>
+              <div className={`absolute -top-2 -right-2 text-[10px] px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'}`}>Stiff Writing</div>
              <p className="opacity-60 line-through decoration-gray-400">In conclusion, it can be stated that the evidence supports the hypothesis.</p>
            </div>
            
@@ -101,7 +101,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
 
            {/* "Good" / Humanized State - Using Brand Creme */}
            <div className={`relative p-4 rounded-lg text-sm border border-[#D2B48C]/30 ${theme === 'dark' ? 'bg-[#D2B48C]/5' : 'bg-[#D2B48C]/10'}`}>
-              <div className="absolute -top-2 -right-2 bg-[#D2B48C] text-[#2D2D2D] text-[10px] px-2 py-0.5 rounded-full font-bold">Humanized</div>
+               <div className="absolute -top-2 -right-2 bg-[#D2B48C] text-[#2D2D2D] text-[10px] px-2 py-0.5 rounded-full font-bold">Natural Flow</div>
               <p className="font-medium">All things considered, the data backs up our initial guess quite nicely.</p>
            </div>
          </div>
@@ -110,8 +110,8 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
   ];
 
   return (
-    <section className={`py-20 px-6 relative overflow-hidden transition-colors duration-500 ${
-      theme === 'dark' ? 'bg-[#111]' : 'bg-[#fff]' // Slightly different background to stand out
+    <section id="features" className={`py-20 px-6 relative overflow-hidden transition-colors duration-500 ${
+      theme === 'dark' ? 'bg-[#111]' : 'bg-[#F5F3EE]' // Seamless blend with global background
     }`}>
       
       <div className="max-w-7xl mx-auto">
@@ -197,8 +197,14 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                    </div>
                 </div>
 
+                {/* Background Glow - Moved behind content */}
+                <div 
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full blur-[100px] opacity-10 pointer-events-none transition-colors duration-1000 z-0"
+                  style={{ backgroundColor: features[activeTab].color }}
+                />
+
                 {/* Content Area */}
-                <div className="p-8 h-full flex flex-col">
+                <div className="p-8 h-full flex flex-col relative z-10">
                    <div className="flex-grow flex items-center justify-center">
                       <div key={activeTab} className="w-full animate-fade-in-up">
                          {features[activeTab].preview}
@@ -222,17 +228,10 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                       </button>
                    </div>
                 </div>
-                
-                {/* Background Glow */}
-                <div 
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full blur-[100px] opacity-10 pointer-events-none transition-colors duration-1000"
-                  style={{ backgroundColor: features[activeTab].color }}
-                />
-
              </div>
 
-             {/* floating badge */}
-            <div className={`absolute -right-4 top-10 p-3 rounded-xl shadow-lg border backdrop-blur-md animate-float ${
+             {/* floating badge - Hidden on mobile */}
+            <div className={`hidden md:block absolute -right-4 top-10 p-3 rounded-xl shadow-lg border backdrop-blur-md animate-float ${
                 theme === 'dark' ? 'bg-[#252525]/90 border-[#444]' : 'bg-white/90 border-gray-200'
             }`}>
                 <div className="flex items-center gap-3">

@@ -6,10 +6,31 @@ const STORAGE_KEY = 'generationHistory'
 export class SyncService {
   /**
    * Migrate localStorage history to Supabase on first login
-   * Now merges local items that don't exist in Supabase (instead of skipping)
+   * IMPORTANT: Only migrates if the user has NO existing data in Supabase
+   * This prevents data from anonymous sessions being assigned to wrong users
    */
   static async migrateLocalStorageToSupabase(userId: string): Promise<number> {
     try {
+      // First, check if user already has ANY data in Supabase
+      const { data: existingData, error: fetchError } = await supabase
+        .from('generations')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1)
+
+      if (fetchError) {
+        console.error('Error checking existing data:', fetchError)
+        return 0
+      }
+
+      // If user already has data, DON'T migrate localStorage (could be another user's data)
+      if (existingData && existingData.length > 0) {
+        console.log('[SyncService] User already has data, skipping localStorage migration')
+        // Clear localStorage to prevent it showing mixed data
+        localStorage.removeItem(STORAGE_KEY)
+        return 0
+      }
+
       // Get localStorage history
       const localHistoryJson = localStorage.getItem(STORAGE_KEY)
       if (!localHistoryJson) {
@@ -23,35 +44,9 @@ export class SyncService {
         return 0
       }
 
-      // Get existing Supabase data
-      const { data: existingData, error: fetchError } = await supabase
-        .from('generations')
-        .select('input, output')
-        .eq('user_id', userId)
-
-      if (fetchError) {
-        console.error('Error fetching existing data:', fetchError)
-        return 0
-      }
-
-      // Create a set of existing items (by input+output combo to avoid duplicates)
-      const existingSet = new Set(
-        (existingData || []).map(item => `${item.input.substring(0, 100)}|${item.output.substring(0, 100)}`)
-      )
-
-      // Filter out items that already exist in Supabase
-      const newItems = localHistory.filter(item => {
-        const key = `${item.input.substring(0, 100)}|${item.output.substring(0, 100)}`
-        return !existingSet.has(key)
-      })
-
-      if (newItems.length === 0) {
-        console.log('All localStorage items already exist in Supabase')
-        return 0
-      }
-
-      // Batch insert new items only
-      const inserts = newItems.map((item) => ({
+      // Only migrate if this is the user's FIRST login (no existing data)
+      // Batch insert items
+      const inserts = localHistory.map((item) => ({
         user_id: userId,
         mode: item.mode,
         input: item.input,
@@ -70,13 +65,19 @@ export class SyncService {
         return 0
       }
 
-      console.log(`✅ Successfully migrated ${data.length} NEW items to Supabase`)
+      console.log(`✅ Successfully migrated ${data.length} items to Supabase`)
+      
+      // Clear localStorage after successful migration to prevent re-migration
+      localStorage.removeItem(STORAGE_KEY)
+      console.log('[SyncService] Cleared localStorage after migration')
+      
       return data.length
     } catch (error) {
       console.error('Unexpected error during migration:', error)
       return 0
     }
   }
+
 
   /**
    * Sync theme preference from localStorage to Supabase

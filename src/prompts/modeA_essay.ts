@@ -15,6 +15,81 @@ Generate content that:
 
 ---
 
+## 0.5 OUTPUT STRUCTURE FOR OPTIMAL HUMANIZATION (CRITICAL)
+
+Structure your essay to enable better downstream humanization:
+
+### PARAGRAPH LENGTH RULES
+- Keep paragraphs under 100 words - shorter chunks humanize better
+- Vary paragraph length: mix short (2-3 sentences) with longer (4-5 sentences)
+- Never have 3 paragraphs of similar length in a row
+- Add a blank line between logical sections to create natural break points
+
+### AVOID FORMAL SECTION HEADERS
+- Do NOT use bold headers like **Introduction** or **Conclusion**
+- Use transitional sentences instead: "Turning now to..." / "The question becomes..."
+- Headers trigger AI detection; flowing prose does not
+
+### HUMANIZATION ANCHORS (Insert every 80-100 words)
+Include these elements ABUNDANTLY to aid later humanization:
+- Rhetorical questions: "But does this hold up?" / "And what about...?"
+- Self-corrections: "—or rather—" / "—well, sort of—" / "—actually, no—"
+- Casual asides: "(though this is debatable)" / "(at least in theory)" / "(honestly)"
+- Short fragments: "Remarkable." / "Not quite." / "A fair point." / "Interesting."
+- MANDATORY contractions: "it's", "don't", "can't", "won't", "that's", "there's"
+
+### BREAK SMOOTH FLOW (Anti-Coherence)
+Human writing has natural "friction". Include:
+- Start at least 2 paragraphs with direct questions
+- Use em-dash interruptions: "—and this is key—" / "—crucially—"
+- Add hedging: "honestly," / "frankly," / "to be fair," / "I'd argue"
+- Start sentences with "And" or "But" at least 3 times per essay
+
+---
+
+## 0.6 CLAUDE-SPECIFIC TONE CALIBRATION (CRITICAL FOR DETECTION EVASION)
+
+Claude tends toward formal academic language. ACTIVELY COUNTERACT THIS:
+
+### FORCE CONTRACTIONS (MANDATORY)
+You MUST use contractions. Never write:
+- "It is" → Write "It's"
+- "Do not" → Write "Don't"  
+- "Cannot" → Write "Can't"
+- "Will not" → Write "Won't"
+- "That is" → Write "That's"
+- "There is" → Write "There's"
+- "We are" → Write "We're"
+- "I would" → Write "I'd"
+
+A paragraph without at least one contraction is INCORRECT. Fix it.
+
+### REDUCE VOCABULARY SOPHISTICATION
+These words are AI markers. AVOID:
+- "multifaceted" → Use "complex" or "messy"
+- "paradigm" → Use "model" or "approach"
+- "synergistic" → Use "combined" or "working together"
+- "elucidate" → Use "explain" or "show"
+- "subsequently" → Use "then" or "after that"
+- "utilization" → Use "use"
+- "implementation" → Use "putting into practice" or just "doing"
+- "methodology" → Use "method" or "approach"
+
+### ADD MICRO-IMPERFECTIONS
+Perfect prose = AI prose. Include deliberately:
+- One sentence fragment per 200 words: "Interesting." / "Not so fast."
+- One self-questioning: "—but is that really true?"
+- One casual interjection: "honestly," / "look," / "here's the thing"
+- One slightly informal transition: "So then what?" / "But wait."
+
+### CHUNKING FOR TWO-PASS HUMANIZATION
+Structure your output to be easily split into 400-word chunks:
+- Insert a clear paragraph break every 350-400 words
+- Each chunk should be self-contained but connected
+- Use transitional phrases that work independently: "Moving on..." / "Another angle..."
+
+---
+
 ## 0. ACADEMIC INTEGRITY SAFEGUARDS (CRITICAL - READ FIRST)
 
 ### NEVER FABRICATE EXPERIENCE
@@ -151,12 +226,37 @@ AI writing is objective; human writing includes perspective. Include:
 - NEVER: $x$, \\mathbf{W}, \\frac{}{}
 - USE: x, W, →, ≈, ×, ÷, ², ³, ₁, ₂
 
-### Pure Academic Prose (NO Markdown)
+### Pure Academic Prose (NO Markdown Formatting)
 Academic submissions DO NOT use markdown. NEVER output:
 - **Bold with asterisks** - just write naturally
+- *Italics with asterisks* or _underscores_ - NEVER use for emphasis
 - Headings with hashtags (# ##) - use transitional prose
 - Bullet points or numbered lists - integrate into flowing sentences
 - Tables in markdown format - describe comparisons in prose
+
+For emphasis, use word choice and sentence structure instead of formatting.
+
+### BANNED STRUCTURAL PATTERNS (CRITICAL - Causes AI Detection)
+These patterns trigger tutorial/listicle detection. NEVER use them:
+
+❌ ALL-CAPS HEADERS or TITLES:
+- NEVER start with an uppercase title like "TOPIC NAME: SUBTITLE"
+- Instead: Begin with a natural opening sentence that introduces the topic
+
+❌ COLON-LABELED SECTIONS (Topic: explanation format):
+- NEVER: "Autonomy vs. Reliability:" followed by explanation
+- NEVER: "First Issue:" or "Key Point:" as section starters
+- Instead: Use natural prose transitions like "The first challenge involves..."
+
+❌ LISTICLE/TUTORIAL FORMATTING:
+- NEVER: Consistent "Topic:" + "Explanation" pattern across paragraphs
+- NEVER: Structure that looks like an outline or study guide
+- Instead: Flow naturally from one idea to the next with varied transitions
+
+✅ CORRECT APPROACH:
+- Start paragraphs with natural transitions: "Another consideration is...", "What's often overlooked is...", "This leads to..."
+- Write as continuous academic prose, not as a structured outline
+- Avoid any pattern that looks like section headers or topic labels
 
 ### Citation Style
 - If RESEARCH SOURCES are provided above, use the [1], [2], [3] format to cite them

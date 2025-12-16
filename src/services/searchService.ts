@@ -1,9 +1,11 @@
-// Search Service with MCTS Source Selection
-// Uses Serper.dev API for web search and Monte Carlo Tree Search for intelligent source selection
+// Search Service with Intelligent Source Selection
+// Uses Serper.dev API for web search and Gemini 2.5 Flash Lite for LLM-based source reranking
 
 import { serperRateLimiter, checkRateLimit } from '../utils/rateLimiter';
+import { GoogleGenAI } from '@google/genai';
 
 const SERPER_API_KEY = import.meta.env.VITE_SERPER_API_KEY;
+const GEMINI_RERANK_API_KEY = import.meta.env.VITE_GEMINI_RERANK_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
 const SERPER_API_URL = 'https://google.serper.dev/search';
 
 export interface SearchResult {
@@ -227,13 +229,91 @@ export function mctsSelectSources(
 }
 
 /**
- * Full search pipeline: search → MCTS select → format context
+ * LLM-based source reranking using Gemini 2.5 Flash Lite
+ * More semantically aware than UCB1
+ */
+async function llmRerankSources(
+  sources: SearchResult[],
+  query: string,
+  topK: number = 5
+): Promise<ScoredSource[]> {
+  if (!GEMINI_RERANK_API_KEY || sources.length === 0) {
+    console.warn('[SearchService] LLM reranking unavailable, falling back to UCB1');
+    return mctsSelectSources(sources, query, 100, topK);
+  }
+
+  try {
+    const ai = new GoogleGenAI({ apiKey: GEMINI_RERANK_API_KEY });
+    
+    // Build source list for prompt
+    const sourceList = sources.map((s, i) => 
+      `[${i + 1}] Title: "${s.title}" | Domain: ${s.domain} | Snippet: ${s.snippet.substring(0, 150)}...`
+    ).join('\n');
+
+    const prompt = `You are ranking research sources for academic citation.
+
+Query: "${query}"
+
+Sources:
+${sourceList}
+
+Rank the sources by relevance and authority for this academic query.
+Return ONLY the source numbers in order of relevance (best first), comma-separated.
+Example response: 3,7,1,5,2
+
+Your ranking (${topK} sources):`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-lite',
+      contents: prompt,
+    });
+
+    const rankingText = response.text?.trim() || '';
+    console.log('[SearchService] LLM ranking response:', rankingText);
+
+    // Parse the comma-separated ranking
+    const rankedIndices = rankingText
+      .split(/[,\s]+/)
+      .map(s => parseInt(s.trim(), 10) - 1) // Convert to 0-indexed
+      .filter(i => !isNaN(i) && i >= 0 && i < sources.length);
+
+    // If parsing failed, fall back to UCB1
+    if (rankedIndices.length < topK) {
+      console.warn('[SearchService] LLM ranking parse failed, falling back to UCB1');
+      return mctsSelectSources(sources, query, 100, topK);
+    }
+
+    // Build scored sources from LLM ranking
+    const scoredSources: ScoredSource[] = rankedIndices.slice(0, topK).map((idx, rank) => {
+      const source = sources[idx];
+      const scores = evaluateSource(source, query);
+      return {
+        ...source,
+        score: 1 - (rank / topK), // Higher score for better rank
+        visits: 1,
+        ...scores,
+      };
+    });
+
+    console.log('[SearchService] LLM selected sources:', scoredSources.map(s => ({
+      title: s.title.substring(0, 50),
+      score: s.score.toFixed(3),
+    })));
+
+    return scoredSources;
+  } catch (error) {
+    console.error('[SearchService] LLM reranking failed:', error);
+    return mctsSelectSources(sources, query, 100, topK);
+  }
+}
+
+/**
+ * Full search pipeline: search → LLM rerank → format context
  */
 export async function searchAndSelectSources(
   query: string,
   numResults: number = 10,
-  topK: number = 5,
-  mctsIterations: number = 100
+  topK: number = 5
 ): Promise<SearchContext | null> {
   if (!isSearchAvailable()) {
     return null;
@@ -245,8 +325,8 @@ export async function searchAndSelectSources(
     return null;
   }
 
-  // MCTS selection
-  const selectedSources = mctsSelectSources(results, query, mctsIterations, topK);
+  // LLM-based reranking (with UCB1 fallback)
+  const selectedSources = await llmRerankSources(results, query, topK);
 
   // Format context for prompt injection
   const formattedContext = formatSourcesForPrompt(selectedSources);

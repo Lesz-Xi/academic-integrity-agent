@@ -14,13 +14,17 @@ export type Updates<T extends keyof Database['public']['Tables']> =
 export type DbUser = Tables<'users'>
 export type DbGeneration = Tables<'generations'>
 export type DbSavedFile = Tables<'saved_files'>
+export type DbSubscription = Tables<'subscriptions'>
 
 // Insert types
 export type DbUserInsert = Inserts<'users'>
 export type DbGenerationInsert = Inserts<'generations'>
 export type DbSavedFileInsert = Inserts<'saved_files'>
+export type DbSubscriptionInsert = Inserts<'subscriptions'>
 
 // Update types
 export type DbUserUpdate = Updates<'users'>
 export type DbGenerationUpdate = Updates<'generations'>
 export type DbSavedFileUpdate = Updates<'saved_files'>
+export type DbSubscriptionUpdate = Updates<'subscriptions'>
+

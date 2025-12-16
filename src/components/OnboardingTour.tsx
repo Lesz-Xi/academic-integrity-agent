@@ -19,9 +19,16 @@ const TOUR_STEPS: Step[] = [
     yOffset: 120
   },
   {
+    targetId: 'length-selector',
+    title: 'Set Your Target Length',
+    description: 'Choose Short, Medium, or Long output. This auto-adjusts when you use quick actions like Expand.',
+    position: 'top',
+    yOffset: 80
+  },
+  {
     targetId: 'input-panel',
-    title: 'Input Your Content',
-    description: 'Enter your topic, prompts, or upload files. Then click "Generate" to produce undetectable AI content.',
+    title: 'Upload or Type Content',
+    description: 'Upload a file or paste text. After uploading, quick-action buttons appear: Humanize, Expand, Shorten, or Custom.',
     position: 'top',
     yOffset: 230
   },

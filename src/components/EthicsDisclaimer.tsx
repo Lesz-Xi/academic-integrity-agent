@@ -49,15 +49,23 @@ const EthicsDisclaimer: React.FC<EthicsDisclaimerProps> = ({ isOpen, onClose, on
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-emerald-500">•</span>
-                  Brainstorming phrasing for ideas
+                  Generating first-draft outlines for personal revision
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-emerald-500">•</span>
-                  Paraphrasing one's own writing
+                  Improving clarity in your own drafts
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-emerald-500">•</span>
-                  Researching AI detection mechanisms
+                  Understanding AI writing patterns for research
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-500">•</span>
+                  ESL/ELL learners practicing natural English
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-500">•</span>
+                  Personal blog or creative writing (non-academic)
                 </li>
               </ul>
             </div>
@@ -70,7 +78,7 @@ const EthicsDisclaimer: React.FC<EthicsDisclaimerProps> = ({ isOpen, onClose, on
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                 <li className="flex items-start gap-2">
                   <span className="text-red-500">•</span>
-                  Submitting generated text as original work
+                  Submitting AI-generated text without attribution
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-red-500">•</span>
@@ -82,7 +90,15 @@ const EthicsDisclaimer: React.FC<EthicsDisclaimerProps> = ({ isOpen, onClose, on
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-red-500">•</span>
-                  Plagiarism or academic dishonesty
+                  Contract cheating or submitting work for others
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-500">•</span>
+                  Violating your institution's AI usage policies
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-500">•</span>
+                  Using for standardized tests or certifications
                 </li>
               </ul>
             </div>

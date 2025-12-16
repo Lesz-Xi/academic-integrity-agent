@@ -13,9 +13,13 @@ const ScrollReveal: React.FC<ScrollRevealProps> = ({ children, width = 'full', d
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
+        // Update state based on visibility to allow re-triggering
         if (entry.isIntersecting) {
           setIsVisible(true);
-          observer.unobserve(entry.target); // Only animate once
+        } else if (entry.boundingClientRect.top > 0) {
+           // Only reset if we've scrolled back up past the element (it's below viewport)
+           // avoiding annoying flickering when scrolling past it to bottom
+           setIsVisible(false);
         }
       },
       {

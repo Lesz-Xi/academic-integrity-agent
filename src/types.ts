@@ -2,10 +2,20 @@
 
 export type Mode = 'essay' | 'cs' | 'paraphrase';
 
+export type EssayLength = 'short' | 'medium' | 'long';
+
+export interface LengthConfig {
+  id: EssayLength;
+  label: string;
+  wordRange: string;
+  targetWords: number;
+  description: string;
+}
+
 export interface ModeConfig {
   id: Mode;
   title: string;
-  icon: string;
+  icon: any;
   description: string;
   color: string;
   promptFile: string;

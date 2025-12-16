@@ -89,24 +89,24 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, theme, initialIsSi
       }`}>
         {/* Background Patterns */}
         <div className={`absolute top-[-20%] left-[-10%] w-[80%] h-[80%] rounded-full blur-[100px] opacity-20 pointer-events-none ${
-           theme === 'dark' ? 'bg-[#D2B48C]' : 'bg-[#CC785C]'
+           theme === 'dark' ? 'bg-[#F2E8CF]' : 'bg-[#CC785C]'
         }`} />
         
         <div className="relative z-10">
-          <div className="w-10 h-10 bg-[#D2B48C] rounded-xl flex items-center justify-center text-[#2D2D2D] font-bold text-xl shadow-lg mb-6">
+          <div className="w-10 h-10 bg-[#F2E8CF] rounded-xl flex items-center justify-center text-[#2D2D2D] font-bold text-xl shadow-lg mb-6">
             A
           </div>
           <h1 className="text-3xl font-bold tracking-tight">ACADEMIC INTELLIGENCE</h1>
         </div>
 
         <div className="relative z-10 max-w-lg">
-          <div className="text-6xl text-[#D2B48C] font-serif mb-4">"</div>
+          <div className="text-6xl text-[#F2E8CF] font-serif mb-4">"</div>
           <p className="text-2xl font-light leading-relaxed mb-6">
             Integrity is not just what you write, but how you synthesize it. 
             Our intelligent infrastructure powers the future of ethical academic research.
           </p>
           <div className="flex items-center gap-4">
-             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#D2B48C] to-[#E5AA70] flex items-center justify-center text-[#1a1a1a] font-bold">
+             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#F2E8CF] to-[#E5AA70] flex items-center justify-center text-[#1a1a1a] font-bold">
                 JD
              </div>
              <div>
@@ -160,8 +160,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, theme, initialIsSi
                         onChange={(e) => setEmail(e.target.value)}
                         className={`w-full px-4 py-3 rounded-lg outline-none transition-all border ${
                             theme === 'dark' 
-                                ? 'bg-[#252525] border-[#444] focus:border-[#D2B48C] text-white placeholder-gray-600' 
-                                : 'bg-white border-gray-300 focus:border-[#D2B48C] text-[#2D2D2D]'
+                                ? 'bg-[#252525] border-[#444] focus:border-[#F2E8CF] text-white placeholder-gray-600' 
+                                : 'bg-white border-gray-300 focus:border-[#F2E8CF] text-[#2D2D2D]'
                         }`}
                     />
                 </div>

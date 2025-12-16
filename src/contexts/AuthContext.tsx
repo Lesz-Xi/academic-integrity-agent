@@ -112,6 +112,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/`,
+        queryParams: {
+          prompt: 'select_account',
+        },
       },
     })
 
@@ -119,8 +122,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    console.log('[AuthContext] Signing out...')
+    // Use scope: 'global' to sign out from all sessions
+    const { error } = await supabase.auth.signOut({ scope: 'global' })
+    if (error) {
+      console.error('[AuthContext] Sign out error:', error)
+      throw error
+    }
+    // Clear local state
+    setUser(null)
+    setSession(null)
+    console.log('[AuthContext] Signed out successfully')
   }
 
   const value: AuthContextType = {

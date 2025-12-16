@@ -1,28 +1,41 @@
 import React, { memo } from 'react';
+import { Terminal, RefreshCw, Feather } from 'lucide-react';
 import { ModeConfig, Mode } from '../types';
 
 const MODE_CONFIGS: ModeConfig[] = [
   {
     id: 'essay',
     title: 'Essay & Research',
-    icon: '📝',
-    description: 'Generate original academic arguments with high semantic richness and varied structure',
+    icon: (
+      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#F2E8CF] to-[#C19A6B] flex items-center justify-center shadow-lg border border-[#F2E8CF]/30 group-hover:scale-110 transition-transform duration-300">
+        <Feather className="w-6 h-6 text-white" strokeWidth={2} />
+      </div>
+    ),
+    description: 'Generate original academic arguments with high semantic richness and varied structure. Specify focus or tone in Additional Instructions.',
     color: 'creme',
     promptFile: 'modeA_essay'
   },
   {
     id: 'cs',
     title: 'Computer Science',
-    icon: '💻',
-    description: 'Technical documentation with conversational tone in code explanations',
+    icon: (
+      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center shadow-lg border border-gray-600/30 group-hover:scale-110 transition-transform duration-300">
+        <Terminal className="w-6 h-6 text-white" strokeWidth={2} />
+      </div>
+    ),
+    description: 'Technical documentation with conversational tone in code explanations. Specify languages or frameworks in Additional Instructions.',
     color: 'charcoal',
     promptFile: 'modeB_cs'
   },
   {
     id: 'paraphrase',
     title: 'Paraphrase & Humanize',
-    icon: '🔄',
-    description: 'Restructure existing text with deep syntactic transformation',
+    icon: (
+      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#E69F88] to-[#CE796B] flex items-center justify-center shadow-lg border border-[#E69F88]/30 group-hover:scale-110 transition-transform duration-300">
+        <RefreshCw className="w-6 h-6 text-white" strokeWidth={2} />
+      </div>
+    ),
+    description: 'Restructure existing text with deep syntactic transformation. Use Additional Instructions for summarization or custom rewrites.',
     color: 'terracotta',
     promptFile: 'modeC_paraphrase'
   }
@@ -34,24 +47,15 @@ interface ModeSelectorProps {
 }
 
 const ModeSelector: React.FC<ModeSelectorProps> = ({ selectedMode, onSelectMode }) => {
-  const getColorClasses = (mode: ModeConfig, isSelected: boolean) => {
+  const getColorClasses = (isSelected: boolean) => {
     // These need to look good in both light and dark mode
-    switch (mode.color) {
-      case 'terracotta':
-        return isSelected 
-          ? 'bg-[#CC785C] border-[#CC785C] text-white shadow-lg scale-105' 
-          : 'bg-white dark:bg-[#252525] border-[#E5E3DD] dark:border-[#444] text-[#2D2D2D] dark:text-[#e5e5e5] hover:border-[#CC785C] dark:hover:border-[#CC785C] hover:shadow-md';
-      case 'charcoal':
-        return isSelected 
-          ? 'bg-[#2D2D2D] dark:bg-[#404040] border-[#2D2D2D] dark:border-[#404040] text-white shadow-lg scale-105' 
-          : 'bg-white dark:bg-[#252525] border-[#E5E3DD] dark:border-[#444] text-[#2D2D2D] dark:text-[#e5e5e5] hover:border-[#2D2D2D] dark:hover:border-[#999] hover:shadow-md';
-      case 'creme':
-        return isSelected 
-          ? 'bg-[#D2B48C] border-[#D2B48C] text-[#2D2D2D] shadow-lg scale-105' 
-          : 'bg-white dark:bg-[#252525] border-[#E5E3DD] dark:border-[#444] text-[#2D2D2D] dark:text-[#e5e5e5] hover:border-[#D2B48C] dark:hover:border-[#C1A87D] hover:shadow-md';
-      default:
-        return 'bg-white dark:bg-[#252525] border-[#E5E3DD] dark:border-[#444]';
+    // Active style is always Creme (#F2E8CF) as requested
+    if (isSelected) {
+      return 'bg-[#F2E8CF] border-[#F2E8CF] text-[#2D2D2D] shadow-lg scale-105';
     }
+
+    // Glassmorphism style for unselected cards
+    return 'bg-white/5 dark:bg-white/5 backdrop-blur-md border border-black/5 dark:border-white/10 text-[#2D2D2D] dark:text-gray-200 hover:border-[#F2E8CF] dark:hover:border-[#F2E8CF] hover:shadow-xl hover:bg-white/10 dark:hover:bg-white/10';
   };
 
   return (
@@ -72,16 +76,16 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({ selectedMode, onSelectMode 
               onClick={() => onSelectMode(mode.id)}
               aria-label={`Select ${mode.title} mode: ${mode.description}`}
               aria-pressed={isSelected}
-              className={`p-8 rounded-xl border-2 transition-all duration-300 transform text-left ${getColorClasses(mode, isSelected)}`}
+              className={`relative p-6 rounded-2xl border-2 transition-all duration-200 ease-out transform text-left active:scale-95 ${getColorClasses(isSelected)}`}
             >
-              <div className="text-5xl mb-6">{mode.icon}</div>
-              <h3 className="text-xl font-bold mb-3">{mode.title}</h3>
-              <p className={`text-sm leading-relaxed ${isSelected ? 'text-white/90' : 'text-gray-500 dark:text-gray-400'}`}>
+              <div className="mb-4">{mode.icon}</div>
+              <h3 className="text-lg font-bold mb-2">{mode.title}</h3>
+              <p className={`text-sm leading-relaxed ${isSelected ? 'text-[#2D2D2D]/90' : 'text-gray-500 dark:text-gray-400'}`}>
                 {mode.description}
               </p>
               
               {isSelected && (
-                <div className="mt-6 pt-6 border-t border-white/20 flex items-center gap-2">
+                <div className="mt-6 pt-6 border-t border-[#2D2D2D]/20 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
                   <span className="text-xs font-semibold uppercase tracking-widest">Active Mode</span>
                 </div>
@@ -90,19 +94,6 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({ selectedMode, onSelectMode 
           );
         })}
       </div>
-
-      {selectedMode && (
-        <div className={`mt-8 p-4 rounded-xl border flex items-center gap-3 transition-colors ${
-        selectedMode 
-          ? 'bg-[#FAF9F6] border-[#D2B48C] text-[#2D2D2D]' 
-          : 'bg-gray-50 border-gray-200 text-gray-500'
-      }`}>
-          <p className="text-sm">
-            <strong>Mode selected:</strong> {MODE_CONFIGS.find(m => m.id === selectedMode)?.title}. 
-            Scroll down to enter your topic or text.
-          </p>
-        </div>
-      )}
     </div>
   );
 };

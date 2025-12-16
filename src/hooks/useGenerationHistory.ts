@@ -75,16 +75,22 @@ export function useGenerationHistory() {
     // Track if we've timed out
     let hasTimedOut = false
     
-    // Safety timeout: if Supabase hangs, use localStorage
+    // Safety timeout: if Supabase hangs, don't use localStorage for auth users
     const timeoutId = setTimeout(() => {
       hasTimedOut = true
-      console.warn('[useGenerationHistory] Loading timed out, using localStorage')
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        setHistory(JSON.parse(stored))
+      console.warn('[useGenerationHistory] Loading timed out')
+      // For authenticated users: just show empty (don't leak other user's data)
+      // For guests: use localStorage
+      if (!isAuthenticated) {
+        const stored = localStorage.getItem(STORAGE_KEY)
+        if (stored) {
+          setHistory(JSON.parse(stored))
+        }
+      } else {
+        setHistory([])
       }
       setLoading(false)
-    }, 8000)
+    }, 15000) // 15s timeout for slower connections
 
     try {
       if (isAuthenticated && user) {
@@ -99,22 +105,12 @@ export function useGenerationHistory() {
         
         console.log('[useGenerationHistory] Fetched', data.length, 'items from Supabase')
         
-        // Only update localStorage if Supabase has data
-        // This prevents overwriting local data with empty results
-        if (data.length > 0) {
-          setHistory(data)
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-        } else {
-          // Supabase empty - merge with existing localStorage
-          const stored = localStorage.getItem(STORAGE_KEY)
-          if (stored) {
-            const localData = JSON.parse(stored)
-            console.log('[useGenerationHistory] Supabase empty, using', localData.length, 'localStorage items')
-            setHistory(localData)
-          } else {
-            setHistory([])
-          }
-        }
+        // For authenticated users: ONLY use Supabase data
+        // Don't fall back to localStorage to prevent cross-account data leakage
+        setHistory(data)
+        
+        // Clear localStorage to prevent data from being shown to other users
+        localStorage.removeItem(STORAGE_KEY)
       } else {
         console.log('[useGenerationHistory] Not authenticated, using localStorage')
         const stored = localStorage.getItem(STORAGE_KEY)
@@ -130,11 +126,16 @@ export function useGenerationHistory() {
       console.error('[useGenerationHistory] Failed to load history:', err)
       setError(err instanceof Error ? err.message : 'Unknown error')
       
-      // Fallback to localStorage on error
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        console.log('[useGenerationHistory] Error, falling back to localStorage')
-        setHistory(JSON.parse(stored))
+      // For authenticated users: don't fall back to localStorage (prevents data leakage)
+      // For unauthenticated users: try localStorage
+      if (!isAuthenticated) {
+        const stored = localStorage.getItem(STORAGE_KEY)
+        if (stored) {
+          console.log('[useGenerationHistory] Error (guest), falling back to localStorage')
+          setHistory(JSON.parse(stored))
+        }
+      } else {
+        setHistory([])
       }
     } finally {
       if (!hasTimedOut) {
