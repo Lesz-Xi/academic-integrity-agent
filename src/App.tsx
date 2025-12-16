@@ -202,6 +202,14 @@ function AppContent() {
     setView('app');
     setShowDisclaimer(false); // Ensure disclaimer is closed before tour starts
 
+    // Check for pending subscription intent
+    const pendingSubscription = localStorage.getItem('pendingSubscription');
+    if (pendingSubscription === 'premium') {
+      console.log('[App] Found pending subscription intent, opening upgrade modal');
+      setShowUpgradeModal(true);
+      localStorage.removeItem('pendingSubscription');
+    }
+
     // Pre-populate UI for the tour so all steps are visible
     if (!selectedMode) {
       setSelectedMode('cs');

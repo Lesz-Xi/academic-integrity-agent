@@ -83,8 +83,12 @@ const PricingSection: React.FC<PricingSectionProps> = ({ theme, onSelectPlan, on
     
     // Premium plan - check if user is logged in
     if (!user) {
-      // User not logged in - prompt to sign in
+      // User not logged in - prompt to sign in and save intent
       console.log('[PricingSection] User not logged in, prompting login');
+      
+      // Save intent to subscribe after login
+      localStorage.setItem('pendingSubscription', 'premium');
+      
       if (onLoginRequired) {
         onLoginRequired();
       } else {
