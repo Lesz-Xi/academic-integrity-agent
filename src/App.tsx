@@ -458,20 +458,27 @@ function AppContent() {
                     )}
                     
                     {isPremium && (
-                      <button
-                        onClick={handleCancelSubscription}
-                        disabled={isCanceling}
-                        className={`flex items-center gap-2 px-2 sm:px-3 py-2 text-sm rounded-lg transition-colors ${
-                          theme === 'dark'
-                            ? 'text-orange-400 hover:bg-orange-400/10'
-                            : 'text-orange-600 hover:bg-orange-50'
-                        } ${isCanceling ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        title="Cancel Subscription"
-                        aria-label="Cancel Subscription"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        <span className="hidden sm:inline">{isCanceling ? 'Canceling...' : 'Cancel Plan'}</span>
-                      </button>
+                      <>
+                        <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg bg-gradient-to-r from-[#F2E8CF] to-[#CC785C] text-white shadow-sm">
+                          <Crown className="w-4 h-4" />
+                          <span className="hidden sm:inline">Premium</span>
+                        </div>
+                        
+                        <button
+                          onClick={handleCancelSubscription}
+                          disabled={isCanceling}
+                          className={`flex items-center gap-2 px-2 sm:px-3 py-2 text-sm rounded-lg transition-colors ${
+                            theme === 'dark'
+                              ? 'text-orange-400 hover:bg-orange-400/10'
+                              : 'text-orange-600 hover:bg-orange-50'
+                          } ${isCanceling ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          title="Cancel Subscription"
+                          aria-label="Cancel Subscription"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          <span className="hidden sm:inline">{isCanceling ? 'Canceling...' : 'Cancel Plan'}</span>
+                        </button>
+                      </>
                     )}
                     
                     <button
