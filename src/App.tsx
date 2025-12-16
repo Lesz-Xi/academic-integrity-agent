@@ -374,15 +374,15 @@ function AppContent() {
           }`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-8 h-8 md:w-10 md:h-10 bg-[#F2E8CF] rounded-lg flex items-center justify-center text-[#2D2D2D] font-bold text-lg md:text-xl shadow-sm">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-[#F2E8CF] rounded-lg flex items-center justify-center text-[#2D2D2D] font-bold text-lg md:text-xl shadow-sm flex-shrink-0">
                   A
                 </div>
-                <div>
-                  <h1 className={`text-lg md:text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-[#2D2D2D]'}`}>
-                    Academic Integrity <span className={theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}>Agent</span>
+                <div className="min-w-0">
+                  <h1 className={`text-sm sm:text-lg md:text-xl font-bold tracking-tight whitespace-nowrap ${theme === 'dark' ? 'text-white' : 'text-[#2D2D2D]'}`}>
+                    Academic <span className={theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}>Agent</span>
                   </h1>
-                  <p className={`text-xs hidden sm:block ${theme === 'dark' ? 'text-claude-subtext' : 'text-gray-500'}`}>
-                    {isAuthenticated ? `${user?.email}` : 'Anti-Detection Writing Assistant'}
+                  <p className={`text-xs hidden sm:block truncate ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {isAuthenticated ? `${user?.email}` : 'AI Writing Assistant'}
                   </p>
                 </div>
               </div>
