@@ -47,7 +47,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   onSubmit,
   isProcessing,
   planPrice,
-  planName
+  // planName,
 }) => {
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');

@@ -2,7 +2,7 @@ import React from 'react';
 import { Sun, Moon, ArrowRight, Sparkles, CheckCircle, BookOpen } from 'lucide-react';
 import FeatureShowcase from './FeatureShowcase';
 import AlgorithmArchitecture from './AlgorithmArchitecture';
-import TestimonialsSection from './TestimonialsSection';
+
 import PricingSection from './PricingSection';
 import FAQSection from './FAQSection';
 import FooterSection from './FooterSection';

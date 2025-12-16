@@ -2,8 +2,7 @@ import { supabase } from '../lib/supabase'
 import type { Database } from '../types/database.types'
 
 type SubscriptionRow = Database['public']['Tables']['subscriptions']['Row']
-type SubscriptionInsert = Database['public']['Tables']['subscriptions']['Insert']
-type SubscriptionUpdate = Database['public']['Tables']['subscriptions']['Update']
+
 
 export type SubscriptionPlan = 'free' | 'premium'
 export type BillingCycle = 'monthly' | 'quarterly' | 'annual'

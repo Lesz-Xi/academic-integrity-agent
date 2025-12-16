@@ -79,7 +79,7 @@ function detectCitations(text: string): { count: number; style: ContentAnalysis[
   // If counts are close, mark as Unknown
   const secondBest = counts
     .filter(c => c.style !== best.style)
-    .reduce((max, curr) => curr.count > max.count ? curr : max, { style: 'Unknown' as const, count: 0 });
+    .reduce<{ style: ContentAnalysis['citationStyle']; count: number }>((max, curr) => curr.count > max.count ? curr : max, { style: 'Unknown', count: 0 });
 
   if (secondBest.count > 0 && best.count - secondBest.count < 2) {
     return { count: best.count, style: 'Unknown' };

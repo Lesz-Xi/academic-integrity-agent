@@ -20,8 +20,6 @@ const GEMINI_API_KEYS = [
 ].filter(key => key && key !== 'YOUR_THIRD_KEY_HERE');
 
 // Primary Gemini API key (used as fallback reference)
-const _primaryGeminiKey = GEMINI_API_KEYS[0] || '';
-
 
 const MODE_PROMPTS: Record<Mode, string> = {
   essay: ESSAY_MODE_PROMPT,

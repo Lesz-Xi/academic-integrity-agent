@@ -2,7 +2,7 @@
 // Handles PayPal order creation and payment processing
 
 const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID
-const PAYPAL_MODE = 'live' // Production mode
+// Production mode configured via client ID
 
 export interface PayPalOrderData {
   planId: string
@@ -54,7 +54,7 @@ export const createPayPalOrder = async (orderData: PayPalOrderData): Promise<str
 
     // Create order using PayPal SDK
     const order = await window.paypal.Buttons({
-      createOrder: (data: any, actions: any) => {
+      createOrder: (_data: any, actions: any) => {
         return actions.order.create({
           purchase_units: [{
             description: `${orderData.planName} - ${orderData.billingCycle}`,
@@ -87,7 +87,7 @@ export const capturePayPalPayment = async (orderId: string): Promise<any> => {
     }
 
     const details = await window.paypal.Buttons({
-      onApprove: async (data: any, actions: any) => {
+      onApprove: async (_data: any, actions: any) => {
         return actions.order.capture()
       }
     }).onApprove({ orderID: orderId }, {
@@ -163,7 +163,7 @@ export const renderPayPalButton = (
       shape: 'rect',
       label: 'paypal'
     },
-    createOrder: (data: any, actions: any) => {
+    createOrder: (_data: any, actions: any) => {
       return actions.order.create({
         purchase_units: [{
           description: `${orderData.planName} - ${orderData.billingCycle}`,
@@ -174,7 +174,7 @@ export const renderPayPalButton = (
         }]
       })
     },
-    onApprove: async (data: any, actions: any) => {
+    onApprove: async (_data: any, actions: any) => {
       try {
         const details = await actions.order.capture()
         console.log('[PayPal] Payment successful:', details)

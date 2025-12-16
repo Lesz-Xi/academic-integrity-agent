@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Check, Sparkles, Wallet, CreditCard } from 'lucide-react';
 import { loadPayPalScript } from '../services/paypalService';
-import { SubscriptionService } from '../services/subscriptionService';
+
 import { useAuth } from '../contexts/AuthContext';
 import { createPaymentLink, calculateAmountCentavos, getPlanDescription } from '../services/paymongoService';
 
@@ -33,7 +33,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
   
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('gcash');
   const [isProcessingGcash, setIsProcessingGcash] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [_isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [paypalLoaded, setPaypalLoaded] = useState(false);
