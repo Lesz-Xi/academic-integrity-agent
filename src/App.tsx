@@ -399,7 +399,7 @@ function AppContent() {
                   {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                 </button>
 
-                <div className={`h-6 w-px mx-1 sm:mx-2 ${theme === 'dark' ? 'bg-[#444]' : 'bg-gray-200'}`}></div>
+                <div className={`h-6 w-px mx-1 sm:mx-2 hidden sm:block ${theme === 'dark' ? 'bg-[#444]' : 'bg-gray-200'}`}></div>
 
                 <button
                   onClick={handleReset}
@@ -413,7 +413,7 @@ function AppContent() {
                   <span className="hidden sm:inline">Start Over</span>
                 </button>
 
-                <div className={`h-6 w-px mx-1 sm:mx-2 ${theme === 'dark' ? 'bg-[#444]' : 'bg-gray-200'}`}></div>
+                <div className={`h-6 w-px mx-1 sm:mx-2 hidden sm:block ${theme === 'dark' ? 'bg-[#444]' : 'bg-gray-200'}`}></div>
 
                 <button
                   onClick={() => setShowTour(true)}
@@ -443,12 +443,12 @@ function AppContent() {
 
                 {isAuthenticated && (
                   <>
-                    <div className={`h-6 w-px mx-1 sm:mx-2 ${theme === 'dark' ? 'bg-[#444]' : 'bg-gray-200'}`}></div>
+                    <div className={`h-6 w-px mx-1 sm:mx-2 hidden sm:block ${theme === 'dark' ? 'bg-[#444]' : 'bg-gray-200'}`}></div>
                     
                     {!isPremium && (
                       <button
                         onClick={() => setShowUpgradeModal(true)}
-                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors bg-gradient-to-r from-[#F2E8CF] to-[#CC785C] text-white hover:opacity-90 shadow-sm"
+                        className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors bg-gradient-to-r from-[#F2E8CF] to-[#CC785C] text-white hover:opacity-90 shadow-sm"
                         title="Upgrade to Premium"
                         aria-label="Upgrade to Premium"
                       >

@@ -244,12 +244,12 @@ const InputPanel: React.FC<InputPanelProps> = ({
                     : 'bg-gray-50 border-gray-200'
                 }`}>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <FileUp className={`w-4 h-4 ${theme === 'dark' ? 'text-[#D2B48C]' : 'text-[#CC785C]'}`} />
-                      <span className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <FileUp className={`w-4 h-4 flex-shrink-0 ${theme === 'dark' ? 'text-[#D2B48C]' : 'text-[#CC785C]'}`} />
+                      <span className={`text-sm font-medium truncate max-w-[200px] sm:max-w-[300px] ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                         {uploadedFile.fileName}
                       </span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
                         theme === 'dark' ? 'bg-white/10 text-gray-400' : 'bg-gray-200 text-gray-600'
                       }`}>
                         {uploadedFile.characterCount.toLocaleString()} chars
