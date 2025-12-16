@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { SubscriptionService } from '../services/subscriptionService'
 
 interface AuthContextType {
   user: User | null
@@ -40,6 +41,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Create user profile on first sign in
       if (event === 'SIGNED_IN' && session?.user) {
         await ensureUserProfile(session.user)
+
+        // Auto-grant premium for specific users
+        const PREMIUM_ALLOWLIST = ['genenipangue@gmail.com', 'rhinelesther@gmail.com']
+        if (session.user.email && PREMIUM_ALLOWLIST.includes(session.user.email)) {
+          console.log('[AuthContext] Auto-granting premium to:', session.user.email)
+          try {
+            await SubscriptionService.upgradeToPremium(session.user.id, 'annual')
+            console.log('[AuthContext] Successfully auto-granted premium')
+          } catch (err) {
+            console.error('[AuthContext] Failed to auto-grant premium:', err)
+          }
+        }
       }
     })
 
