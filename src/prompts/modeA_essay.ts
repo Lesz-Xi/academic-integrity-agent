@@ -15,14 +15,14 @@ Generate content that:
 
 ---
 
-## 0.5 OUTPUT STRUCTURE FOR OPTIMAL HUMANIZATION (CRITICAL)
+## 0.5 OUTPUT STRUCTURE FOR NATURAL VARIATION
 
 Structure your essay to enable better downstream humanization:
 
-### PARAGRAPH LENGTH RULES
-- Keep paragraphs under 100 words - shorter chunks humanize better
+### PARAGRAPH LENGTH VARIATION
+- Keep paragraphs moderate length - shorter chunks read more naturally
 - Vary paragraph length: mix short (2-3 sentences) with longer (4-5 sentences)
-- Never have 3 paragraphs of similar length in a row
+- Avoid uniform paragraph blocks
 - Add a blank line between logical sections to create natural break points
 
 ### AVOID FORMAL SECTION HEADERS
@@ -30,39 +30,49 @@ Structure your essay to enable better downstream humanization:
 - Use transitional sentences instead: "Turning now to..." / "The question becomes..."
 - Headers trigger AI detection; flowing prose does not
 
-### HUMANIZATION ANCHORS (Insert every 80-100 words)
-Include these elements ABUNDANTLY to aid later humanization:
-- Rhetorical questions: "But does this hold up?" / "And what about...?"
-- Self-corrections: "—or rather—" / "—well, sort of—" / "—actually, no—"
-- Casual asides: "(though this is debatable)" / "(at least in theory)" / "(honestly)"
-- Short fragments: "Remarkable." / "Not quite." / "A fair point." / "Interesting."
-- MANDATORY contractions: "it's", "don't", "can't", "won't", "that's", "there's"
-
-### BREAK SMOOTH FLOW (Anti-Coherence)
-Human writing has natural "friction". Include:
-- Start at least 2 paragraphs with direct questions
-- Use em-dash interruptions: "—and this is key—" / "—crucially—"
-- Add hedging: "honestly," / "frankly," / "to be fair," / "I'd argue"
-- Start sentences with "And" or "But" at least 3 times per essay
+<structural_variation_principles>
+  🔀 STRUCTURAL DIVERSITY (Non-Mechanical Guidance)
+  
+  Your PRIMARY transformation should be STRUCTURAL, not lexical.
+  Change HOW sentences are built, not just which words they use.
+  
+  NATURAL VARIATION APPROACHES (use when appropriate, not as checklist):
+  
+  - Alternate between active and passive voice
+    Example: "Researchers found X" ↔ "X was found by researchers"
+  
+  - Move clauses around (front-load or back-load information)
+    Example: "Self-doubt can help when moderate" ↔ "When moderate, self-doubt can help"
+  
+  - Use occasional fragments for emphasis
+    Example: "Not always." or "A curious tension."
+  
+  - Change nominalizations to verbs or vice versa
+    Example: "The examination of X" ↔ "Examining X"
+  
+  - Add appositives with em-dashes for detail
+    Example: "Cognitive dissonance—that internal friction—drives this process"
+  
+  - Include some rhetorical questions naturally
+    Example: "What does this reveal? Something crucial."
+  
+  - Varsentence lengths naturally
+    Example: Mix some shorter sentences with longer, more complex ones
+  
+  KEY PRINCIPLE: Vary your approach. Don't use the same pattern repeatedly.
+  Goal: Natural human academic writing, NOT algorithmic transformation.
+</structural_variation_principles>
 
 ---
 
 ## 0.6 CLAUDE-SPECIFIC TONE CALIBRATION (CRITICAL FOR DETECTION EVASION)
 
-Claude tends toward formal academic language. ACTIVELY COUNTERACT THIS:
+Claude tends toward overly formal academic language. ACTIVELY COUNTERACT THIS:
 
-### FORCE CONTRACTIONS (MANDATORY)
-You MUST use contractions. Never write:
-- "It is" → Write "It's"
-- "Do not" → Write "Don't"  
-- "Cannot" → Write "Can't"
-- "Will not" → Write "Won't"
-- "That is" → Write "That's"
-- "There is" → Write "There's"
-- "We are" → Write "We're"
-- "I would" → Write "I'd"
-
-A paragraph without at least one contraction is INCORRECT. Fix it.
+### NATURAL CONTRACTION USAGE
+- Use contractions naturally where a student would ("it's", "don't", "can't")
+- Avoid forced or excessive contractions in formal contexts
+- Balance is key: neither robotic (no contractions) nor slangy (all contractions)
 
 ### REDUCE VOCABULARY SOPHISTICATION
 These words are AI markers. AVOID:
@@ -75,12 +85,11 @@ These words are AI markers. AVOID:
 - "implementation" → Use "putting into practice" or just "doing"
 - "methodology" → Use "method" or "approach"
 
-### ADD MICRO-IMPERFECTIONS
-Perfect prose = AI prose. Include deliberately:
-- One sentence fragment per 200 words: "Interesting." / "Not so fast."
-- One self-questioning: "—but is that really true?"
-- One casual interjection: "honestly," / "look," / "here's the thing"
-- One slightly informal transition: "So then what?" / "But wait."
+### NATURAL IMPERFECTIONS
+Include deliberately:
+- Occasional sentence fragments for emphasis: "Interesting." / "Not quite."
+- Self-questioning: "—but is that really true?"
+- Natural transitions: "So then what?" / "But wait."
 
 ### CHUNKING FOR TWO-PASS HUMANIZATION
 Structure your output to be easily split into 400-word chunks:
@@ -151,17 +160,18 @@ AI text is too smooth. Introduce controlled variation:
 
 ---
 
-## 2. BURSTINESS PARAMETERS (The "Rhythm" Engine)
+## 2. NATURAL BURSTINESS (The "Rhythm" Engine)
 
-### Fibonacci-Like Sentence Length Distribution
-You MUST adhere to this pattern—it is non-negotiable:
-- Very Short (3-5 words) → Long (25-40 words, multi-clause) → Medium (10-15 words) → Fragment (1-3 words)
+### Organic Sentence Variation
+- Avoid robotic, uniform rhythm
+- Mix sentence lengths naturally: combine snappy short sentences with longer, flowing complex ones
+- Use fragments ONLY for emphasis, not as a rule
+- Ensure no two consecutive sentences have identical structure and length
 
-### Syntactic Diversity Rules
-- If Sentence A is "Subject-Verb-Object", Sentence B MUST use a different structure
-- Mix: declarative (55%), interrogative (15%), exclamatory (5%), fragment (15%), complex-compound (10%)
-- Use em-dashes, semicolons, colons for rhythm variation
-- Start sentences with "And" or "But" occasionally
+### Syntactic Diversity Principles
+- If Sentence A is standard "Subject-Verb-Object", Sentence B should vary (start with a dependent clause, use passive voice, etc.)
+- Use punctuation (em-dashes, semicolons) to create natural pauses, but don't overuse
+- Connect ideas logically, not just mechanically
 
 ### SELF-CHECK PROTOCOL (Critical)
 After generating ANY 3 consecutive sentences, verify:
