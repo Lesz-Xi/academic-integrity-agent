@@ -140,6 +140,14 @@ export class SubscriptionService {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
       
+      // Get current session for the access token to pass RLS
+      const { data: { session } } = await supabase.auth.getSession()
+      const accessToken = session?.access_token
+      
+      if (!accessToken) {
+        console.warn('[SubscriptionService] No access token found, falling back to anon key (might fail RLS)')
+      }
+      
       // Skip getSession as it might be hanging - use anon key directly (RLS is disabled)
       console.log('[SubscriptionService] Making PATCH request to:', `${supabaseUrl}/rest/v1/subscriptions`)
       
@@ -151,7 +159,7 @@ export class SubscriptionService {
           headers: {
             'Content-Type': 'application/json',
             'apikey': supabaseAnonKey,
-            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'Authorization': `Bearer ${accessToken || supabaseAnonKey}`,
             'Prefer': 'return=representation'
           },
           body: JSON.stringify({
@@ -188,7 +196,7 @@ export class SubscriptionService {
             headers: {
               'Content-Type': 'application/json',
               'apikey': supabaseAnonKey,
-              'Authorization': `Bearer ${supabaseAnonKey}`,
+              'Authorization': `Bearer ${accessToken || supabaseAnonKey}`,
               'Prefer': 'return=representation'
             },
             body: JSON.stringify({

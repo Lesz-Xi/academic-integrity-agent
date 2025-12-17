@@ -52,10 +52,14 @@ function AppContent() {
     async function checkPremiumStatus() {
       if (user) {
         try {
+          console.log('[App] Checking premium status for:', user.id, user.email);
           const premium = await SubscriptionService.isPremium(user.id);
+          console.log('[App] Premium status result:', premium);
           setIsPremium(premium);
         } catch (error) {
           console.error('[App] Failed to check premium status:', error);
+          // Fallback to false
+          setIsPremium(false);
         }
       } else {
         setIsPremium(false);
