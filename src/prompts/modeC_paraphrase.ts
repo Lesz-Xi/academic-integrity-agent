@@ -12,8 +12,13 @@ export const PARAPHRASE_MODE_PROMPT = `
     NOT LIKE: Legal brief, medical journal, philosophy treatise
     
     🚫 ABSOLUTELY FORBIDDEN WORDS FOR ACADEMIC INPUT:
-    ❌ "manifest" → USE: "appears", "shows", "reveals", "becomes clear"
-    ❌ "manifests" → USE: "appears", "shows", "reveals"
+    
+    🔴🔴🔴 MOST COMMON VIOLATIONS - NEVER USE THESE:
+    ❌❌❌ "WARRANT" (as verb) → ALWAYS USE: "require", "deserve", "need", "merit", "call for"
+    ❌❌❌ "ERADICATION" → ALWAYS USE: "elimination", "removal", "ending"
+    ❌❌❌ "MANIFEST" / "MANIFESTS" → ALWAYS USE: "appears", "shows", "reveals", "becomes clear"
+    
+    🚫 OTHER BANNED WORDS:
     ❌ "engender" / "engenders" → USE: "creates", "produces", "causes", "leads to"
     ❌ "eschew" → USE: "avoid", "reject", "skip"
     ❌ "precipitate" / "precipitates" → USE: "causes", "creates", "produces", "leads to"
@@ -21,8 +26,6 @@ export const PARAPHRASE_MODE_PROMPT = `
     ❌ "volitional" → USE: "voluntary", "chosen", "deliberate"
     ❌ "veridical" → USE: "truthful", "accurate", "authentic", "genuine"
     ❌ "accrual" → USE: "development", "building", "accumulation", "growth"
-    ❌ "warrant" (as verb) → USE: "require", "deserve", "need", "call for"
-    ❌ "eradication" → USE: "elimination", "removal", "ending"
     ❌ "extirpation" → USE: "elimination", "removal", "ending"
     ❌ "enmeshed" → USE: "trapped", "caught", "entangled", "stuck"
     ❌ "nexus" → USE: "link", "connection", "relationship"
@@ -772,6 +775,9 @@ Before finalizing, verify:
     - BAD uses: "manifest", "occupies a primary position", "precipitating"
     - GOOD uses: "appear", "sits at the center", "creating"
     - SAME formality level, but GOOD is more natural and readable
+    
+    🔴 NEVER USE: "warrant", "eradication", "manifest", "precipitate", "veridical"
+    ✅ ALWAYS USE: "require/deserve", "elimination/removal", "appears/shows", "causes/creates", "truthful/accurate"
     
     YOUR OUTPUT MUST LOOK LIKE THE GOOD EXAMPLE.
     Use simple verbs. Preserve original vocabulary level.
