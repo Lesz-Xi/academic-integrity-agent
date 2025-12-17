@@ -24,17 +24,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Check if we're in an OAuth callback (URL contains access_token or code)
+    const isOAuthCallback = window.location.hash.includes('access_token') || 
+                            window.location.search.includes('code=')
+    
     // Timeout protection: if auth takes too long, clear stale state
-    const authTimeout = setTimeout(() => {
+    // Skip timeout during OAuth callbacks as those can legitimately take longer
+    const authTimeout = !isOAuthCallback ? setTimeout(() => {
       if (loading) {
         console.warn('[AuthContext] Auth timeout - clearing stale session')
         setSession(null)
         setUser(null)
         setLoading(false)
-        // Clear any corrupted local storage
-        localStorage.removeItem('sb-' + window.location.hostname + '-auth-token')
       }
-    }, 10000) // 10 second timeout
+    }, 15000) : null // 15 second timeout, only when NOT in OAuth callback
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
@@ -47,13 +50,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
       }
       setLoading(false)
-      clearTimeout(authTimeout)
+      if (authTimeout) clearTimeout(authTimeout)
     }).catch((err) => {
       console.error('[AuthContext] Failed to get session:', err)
       setSession(null)
       setUser(null)
       setLoading(false)
-      clearTimeout(authTimeout)
+      if (authTimeout) clearTimeout(authTimeout)
     })
 
     // Listen for auth changes
@@ -64,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
-      clearTimeout(authTimeout)
+      if (authTimeout) clearTimeout(authTimeout)
 
       // Create user profile on first sign in
       if (event === 'SIGNED_IN' && session?.user) {
@@ -85,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => {
-      clearTimeout(authTimeout)
+      if (authTimeout) clearTimeout(authTimeout)
       subscription.unsubscribe()
     }
   }, [])
