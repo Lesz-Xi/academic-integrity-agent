@@ -28,16 +28,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isOAuthCallback = window.location.hash.includes('access_token') || 
                             window.location.search.includes('code=')
     
-    // Timeout protection: if auth takes too long, clear stale state
-    // Skip timeout during OAuth callbacks as those can legitimately take longer
-    const authTimeout = !isOAuthCallback ? setTimeout(() => {
+    // Timeout protection: ensure loading state never gets stuck
+    // Shorter timeout for regular loads, longer for OAuth callbacks
+    const timeoutDuration = isOAuthCallback ? 30000 : 5000 // 30s for OAuth, 5s for normal
+    const authTimeout = setTimeout(() => {
       if (loading) {
-        console.warn('[AuthContext] Auth timeout - clearing stale session')
+        console.warn('[AuthContext] Auth timeout after', timeoutDuration, 'ms - clearing stale session')
         setSession(null)
         setUser(null)
         setLoading(false)
       }
-    }, 15000) : null // 15 second timeout, only when NOT in OAuth callback
+    }, timeoutDuration)
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
@@ -50,13 +51,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
       }
       setLoading(false)
-      if (authTimeout) clearTimeout(authTimeout)
+      clearTimeout(authTimeout)
     }).catch((err) => {
       console.error('[AuthContext] Failed to get session:', err)
       setSession(null)
       setUser(null)
       setLoading(false)
-      if (authTimeout) clearTimeout(authTimeout)
+      clearTimeout(authTimeout)
     })
 
     // Listen for auth changes
@@ -67,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
-      if (authTimeout) clearTimeout(authTimeout)
+      clearTimeout(authTimeout)
 
       // Create user profile on first sign in
       if (event === 'SIGNED_IN' && session?.user) {
@@ -88,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => {
-      if (authTimeout) clearTimeout(authTimeout)
+      clearTimeout(authTimeout)
       subscription.unsubscribe()
     }
   }, [])
