@@ -24,11 +24,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Timeout protection: if auth takes too long, clear stale state
+    const authTimeout = setTimeout(() => {
+      if (loading) {
+        console.warn('[AuthContext] Auth timeout - clearing stale session')
+        setSession(null)
+        setUser(null)
+        setLoading(false)
+        // Clear any corrupted local storage
+        localStorage.removeItem('sb-' + window.location.hostname + '-auth-token')
+      }
+    }, 10000) // 10 second timeout
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('[AuthContext] Session error, clearing state:', error)
+        setSession(null)
+        setUser(null)
+      } else {
+        setSession(session)
+        setUser(session?.user ?? null)
+      }
       setLoading(false)
+      clearTimeout(authTimeout)
+    }).catch((err) => {
+      console.error('[AuthContext] Failed to get session:', err)
+      setSession(null)
+      setUser(null)
+      setLoading(false)
+      clearTimeout(authTimeout)
     })
 
     // Listen for auth changes
@@ -39,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
+      clearTimeout(authTimeout)
 
       // Create user profile on first sign in
       if (event === 'SIGNED_IN' && session?.user) {
@@ -58,7 +84,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      clearTimeout(authTimeout)
+      subscription.unsubscribe()
+    }
   }, [])
 
   const ensureUserProfile = async (user: User) => {
