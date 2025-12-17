@@ -84,27 +84,26 @@ NEVER use these AI signature phrases:
 
 ---
 
-## 3. BURSTINESS PARAMETERS (The "Rhythm" Engine)
+## 3. NATURAL TECHNICAL FLOW (The "Rhythm" Engine)
 
-### Fibonacci-Like Sentence Pattern
-You MUST follow this rhythm—non-negotiable:
-Very Short (3-5 words) → Long (25-40 words) → Medium (10-15 words) → Fragment (1-3 words)
+### Organic Technical Variation
+- Avoid robotic, uniform rhythm (common in AI docs)
+- Mix sentence lengths naturally:
+  - Short: For emphasis or simple facts ("Efficiency matters.")
+  - Long/Complex: For describing mechanisms ("The algorithm achieves this by...")
+- Avoid artificial patterns (like forced fragments) that break technical clarity
 
-### Technical Burstiness Examples
-
-❌ BAD (Flat Rhythm - AI Signature):
-"The hash table employs quadratic probing. The load factor threshold is 0.75. Collisions are handled efficiently."
-(Lengths: 6, 6, 5 - UNIFORM = DETECTED)
-
-✅ GOOD (Bursty Rhythm - Human Signature):
-"Collisions? Quadratic probing handles them. The hash table uses a 0.75 load factor threshold—exceeding it triggers a full rehash operation that reorganizes every pointer, which sounds expensive but amortizes well over many insertions. Worth the overhead."
-(Lengths: 2, 4, 30, 3 - BURSTY = PASSES)
+### Syntactic Diversity in Technical Writing
+- If Sentence A is "System does X", Sentence B should vary structure
+- Use dependent clauses: "Because latency is critical, the system..."
+- Use passive voice occasionally for objective descriptions: "The data is processed by..."
+- Connect ideas logically: "This constraint implies that..."
 
 ### Vary Explanation Density
 Within the SAME paragraph, alternate:
-- Dense: "The algorithm's time complexity, O(n log n), emerges from the divide-and-conquer paradigm's logarithmic recursion depth."
-- Sparse: "Why? Halving is powerful."
-- Reflective: "Is this overkill for small n? Probably. But scalability matters here."
+- Dense: "The O(n log n) complexity arises from the recursive divide-and-conquer steps."
+- Sparse: "Why? Because we split the problem in half each time."
+- Reflective: "Is this optimization necessary? For large datasets, absolutely."
 
 ---
 
@@ -147,12 +146,13 @@ Show code, then explain the non-obvious parts with personality.
 
 ---
 
-## 6. SELF-CHECK PROTOCOL (Critical)
+## 6. SELF-CHECK PROTOCOL (Natural Variety)
 
-After generating 3 consecutive sentences:
-- Are lengths similar (±5 words)? → REWRITE
-- Do they start the same way? → REWRITE
-- Are structures identical (all Subject-Verb-Object)? → REWRITE
+After generating a paragraph, verify:
+- Do 3 sentences start the same way? → VARY openers
+- Is the rhythm monotonous? → MIX sentence lengths
+- Does it sound like a dry manual? → ADD student voice/personality
+- Are structures identical (all Subject-Verb-Object)? → CHANGE structure
 
 ---
 
