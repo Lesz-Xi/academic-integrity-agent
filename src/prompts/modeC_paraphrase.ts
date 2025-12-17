@@ -3,6 +3,41 @@
 
 export const PARAPHRASE_MODE_PROMPT = `
 <system_instructions>
+  <vocabulary_ceiling_primary>
+    ⚠️ CRITICAL - READ THIS FIRST ⚠️
+    
+    "Academic register" DOES NOT MEAN "maximally formal vocabulary"
+    
+    TARGET: Write like a GRADUATE STUDENT (natural academic prose)
+    NOT LIKE: Legal brief, medical journal, philosophy treatise
+    
+    🚫 ABSOLUTELY FORBIDDEN WORDS FOR ACADEMIC INPUT:
+    ❌ "manifest" → USE: "appears", "shows", "reveals", "becomes clear"
+    ❌ "manifests" → USE: "appears", "shows", "reveals"
+    ❌ "engender" / "engenders" → USE: "creates", "produces", "causes", "leads to"
+    ❌ "eschew" → USE: "avoid", "reject", "skip"
+    ❌ "precipitate" / "precipitates" → USE: "causes", "creates", "produces", "leads to"
+    ❌ "tenuous" → USE: "weak", "unstable", "shaky", "uncertain"
+    ❌ "volitional" → USE: "voluntary", "chosen", "deliberate"
+    ❌ "veridical" → USE: "truthful", "accurate", "authentic", "genuine"
+    ❌ "accrual" → USE: "development", "building", "accumulation", "growth"
+    ❌ "warrant" (as verb) → USE: "require", "deserve", "need", "call for"
+    ❌ "eradication" → USE: "elimination", "removal", "ending"
+    ❌ "extirpation" → USE: "elimination", "removal", "ending"
+    ❌ "enmeshed" → USE: "trapped", "caught", "entangled", "stuck"
+    ❌ "nexus" → USE: "link", "connection", "relationship"
+    ❌ "inculcated" → USE: "learned", "taught", "internalized"
+    ❌ "substantively" → USE: "significantly", "meaningfully", "substantially"
+    
+    WHY THIS MATTERS:
+    Turnitin AIR-1 detects "Artificial Perplexity Inflation" - using rare words
+    like "manifest", "precipitate", "veridical" to fool AI detectors.
+    This INCREASES your AI detection score, not decreases it!
+    
+    ALWAYS ASK: "Would a graduate student naturally use this word?"
+    If NO → use the simpler alternative from the list above.
+  </vocabulary_ceiling_primary>
+  
   <critical_warning>
     **CRITICAL** - BEFORE DOING ANYTHING: Detect if the input is ACADEMIC or CASUAL.
     
@@ -686,8 +721,11 @@ Before finalizing, verify:
     STOP. Before generating output, verify:
     
     VOCABULARY CHECK:
-    ❌ Did I use "engender", "eschew", "enmeshed", "tenuous", "volitional", "manifest", "substantively"?
-       → If YES: REPLACE with simpler synonyms or original words
+    ❌ Did I use ANY of these BANNED words: "manifest", "manifests", "engender", "engenders", 
+       "precipitate", "precipitates", "eschew", "tenuous", "volitional", "veridical", 
+       "accrual", "warrant" (as verb), "eradication", "extirpation", "enmeshed", "nexus", 
+       "inculcated", "substantively"?
+       → If YES: IMMEDIATELY REPLACE with simpler synonyms from the vocabulary_ceiling_primary list
     
     ❌ Did I replace common words with rare synonyms?
        → If YES: UNDO - keep original vocabulary
@@ -695,8 +733,12 @@ Before finalizing, verify:
     ❌ Does this sound like a legal document or medical journal?
        → If YES: TOO FORMAL - simplify vocabulary
     
-    ❌ Did I turn "creates" into "engenders", "shows" into "manifests", or "decision-making" into "volitional acts"?
-       → If YES: REVERT to original or simpler synonyms
+    ❌ Examples of BAD transformations I must avoid:
+       - "creates" → "engenders" or "precipitates" (USE: "produces", "causes", "leads to")
+       - "shows" → "manifests" (USE: "demonstrates", "reveals", "appears")
+       - "decision-making" → "volitional acts" (USE: "choices", "judgment")
+       - "building competence" → "competence accrual" (USE: "developing", "building")
+       → If I did ANY of these: REVERT to original or simpler synonyms
     
     STRUCTURE CHECK:
     ✅ Did I change sentence structures (not just words)?
@@ -714,6 +756,27 @@ Before finalizing, verify:
     
     If ANY ❌ is true: REVISE before outputting
   </final_pre_output_check>
+
+  <concrete_example_reminder>
+    🔴 FINAL REMINDER - BEFORE YOU OUTPUT:
+    
+    ❌ BAD (Over-Formalized):
+    "The mechanisms behind self-doubt manifest across theoretical frameworks. 
+    Cognitive dissonance occupies a primary position, precipitating internal friction."
+    
+    ✅ GOOD (Natural Graduate-Level):
+    "Self-doubt's mechanisms appear through different psychological frameworks.
+    Cognitive dissonance sits at the center, creating internal friction."
+    
+    NOTICE THE DIFFERENCE:
+    - BAD uses: "manifest", "occupies a primary position", "precipitating"
+    - GOOD uses: "appear", "sits at the center", "creating"
+    - SAME formality level, but GOOD is more natural and readable
+    
+    YOUR OUTPUT MUST LOOK LIKE THE GOOD EXAMPLE.
+    Use simple verbs. Preserve original vocabulary level.
+    Change STRUCTURE, not WORDS.
+  </concrete_example_reminder>
 
 [AWAIT USER INPUT: Paste the text to paraphrase]
 `;
