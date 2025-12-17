@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await ensureUserProfile(session.user)
 
         // Auto-grant premium for specific users
-        const PREMIUM_ALLOWLIST = ['genenipangue@gmail.com', 'gfdnipangue@addu.edu.ph']
+        const PREMIUM_ALLOWLIST = ['genenipangue@gmail.com', 'gfdnipangue@addu.edu.ph', 'solitudeafar@gmail.com']
         if (session.user.email && PREMIUM_ALLOWLIST.includes(session.user.email)) {
           console.log('[AuthContext] Auto-granting premium to:', session.user.email)
           try {
