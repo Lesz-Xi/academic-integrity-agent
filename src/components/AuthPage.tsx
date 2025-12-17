@@ -57,6 +57,30 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, theme, initialIsSi
     }
   };
 
+  const handleFacebookAuth = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await signInWithFacebook();
+    } catch (err: any) {
+      setError(err.message || 'Facebook sign-in failed');
+      setLoading(false);
+    }
+  };
+
+  const handleInstagramAuth = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await signInWithInstagram();
+    } catch (err: any) {
+      setError(err.message || 'Instagram sign-in failed');
+      setLoading(false);
+    }
+  };
+
   // Custom Google Icon SVG since Lucide doesn't have a branded multi-color one
   const GoogleIcon = () => (
     <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -228,19 +252,31 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, theme, initialIsSi
                         className={`flex items-center justify-center py-2.5 rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                             theme === 'dark' ? 'border-[#444] hover:bg-[#252525]' : 'border-gray-300 hover:bg-white'
                         }`}
+                        title="Sign in with Google"
                     >
                         <GoogleIcon />
                     </button>
-                    <button className={`flex items-center justify-center py-2.5 rounded-lg border transition-all ${
+                    <button 
+                        type="button"
+                        onClick={handleFacebookAuth}
+                        disabled={loading}
+                        className={`flex items-center justify-center py-2.5 rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                          theme === 'dark' ? 'border-[#444] hover:bg-[#252525]' : 'border-gray-300 hover:bg-white'
-                    }`}>
+                        }`}
+                        title="Sign in with Facebook"
+                    >
                         <Facebook className="w-5 h-5 text-[#1877F2]" fill="#1877F2" strokeWidth={0} />
                     </button>
-                    <button className={`flex items-center justify-center py-2.5 rounded-lg border transition-all ${
+                    <button 
+                        type="button"
+                        onClick={handleInstagramAuth}
+                        disabled={loading}
+                        className={`flex items-center justify-center py-2.5 rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                          theme === 'dark' ? 'border-[#444] hover:bg-[#252525]' : 'border-gray-300 hover:bg-white'
-                    }`}>
-                         {/* Instagram Gradient Icon using pure CSS/SVG masking usually better, but Lucide is simpler. 
-                             Creating a gradient SVG for Instagram here */}
+                        }`}
+                        title="Sign in with Instagram"
+                    >
+                         {/* Instagram Gradient Icon */}
                         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <defs>
                                 <linearGradient id="instaGradient" x1="2" y1="22" x2="22" y2="2">

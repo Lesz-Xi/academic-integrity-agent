@@ -10,6 +10,8 @@ interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<void>
   signUpWithEmail: (email: string, password: string) => Promise<{ needsConfirmation: boolean }>
   signInWithGoogle: () => Promise<void>
+  signInWithFacebook: () => Promise<void>
+  signInWithInstagram: () => Promise<void>
   signOut: () => Promise<void>
   isAuthenticated: boolean
 }
@@ -134,6 +136,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error
   }
 
+  const signInWithFacebook = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    })
+
+    if (error) throw error
+  }
+
+  const signInWithInstagram = async () => {
+    // Note: Instagram Basic Display API is being deprecated/moved. 
+    // This uses the Supabase 'instagram' provider which usually maps to "Instagram Basic Display".
+    // For many apps, "Login with Facebook" is enough as it covers Instagram users too.
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'instagram', // Requires specific Instagram setup in Supabase
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    })
+
+    if (error) throw error
+  }
+
   const signOut = async () => {
     console.log('[AuthContext] Signing out...')
     // Use scope: 'global' to sign out from all sessions
@@ -155,6 +182,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithEmail,
     signUpWithEmail,
     signInWithGoogle,
+    signInWithFacebook,
+    signInWithInstagram,
     signOut,
     isAuthenticated: !!user,
   }
