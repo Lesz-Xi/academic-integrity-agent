@@ -148,17 +148,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signInWithInstagram = async () => {
-    // Note: Instagram Basic Display API is being deprecated/moved. 
-    // This uses the Supabase 'instagram' provider which usually maps to "Instagram Basic Display".
-    // For many apps, "Login with Facebook" is enough as it covers Instagram users too.
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'instagram', // Requires specific Instagram setup in Supabase
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
-    })
-
-    if (error) throw error
+    // Note: Supabase does NOT support Instagram as an OAuth provider directly.
+    // Instagram login is available through Facebook Login (users can link their accounts).
+    // Showing an alert to inform the user.
+    throw new Error('Instagram login is available through Facebook. Please use Facebook to sign in with your Instagram-linked account.')
   }
 
   const signOut = async () => {
