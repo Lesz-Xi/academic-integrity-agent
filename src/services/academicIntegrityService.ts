@@ -101,12 +101,12 @@ export async function generateContent(
       
       for (let keyIndex = 0; keyIndex < GEMINI_API_KEYS.length; keyIndex++) {
         const apiKey = GEMINI_API_KEYS[keyIndex];
-        console.log(`[AcademicIntegrityService] Using Gemini 2.5 Flash (Paraphrase Mode) - Key ${keyIndex + 1}/${GEMINI_API_KEYS.length}`);
+        console.log(`[AcademicIntegrityService] Using Gemini 2.5 Flash Lite (Paraphrase Mode) - Key ${keyIndex + 1}/${GEMINI_API_KEYS.length}`);
         
         try {
           const geminiClient = new GoogleGenAI({ apiKey });
           const chat = geminiClient.chats.create({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-flash-lite-preview-09-2025',
             config: {
               systemInstruction: systemInstruction,
               temperature: 1.1,
