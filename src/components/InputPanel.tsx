@@ -226,7 +226,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
                 }}
                 placeholder={getPlaceholder()}
                 aria-label="Content input area"
-                className="w-full h-[500px] p-6 pb-32 bg-transparent border-none resize-none focus:ring-0 focus:outline-none text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-lg font-sans tracking-wide leading-relaxed scrollbar-hide"
+                className={`w-full ${mode === 'paraphrase' ? 'h-[350px]' : 'h-[180px]'} p-6 pb-20 bg-transparent border-none resize-none focus:ring-0 focus:outline-none text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-lg font-sans tracking-wide leading-relaxed scrollbar-hide`}
                 onKeyDown={(e) => {
                   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !isGenerating && !isProcessingFile) {
                     e.preventDefault();

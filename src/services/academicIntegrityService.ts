@@ -130,22 +130,31 @@ export async function generateContent(
           break;
         } catch (error: any) {
           lastError = error;
-          
-          // Check if rate limited (429)
-          if (error.status === 429 || error.message?.includes('429') || error.message?.includes('quota')) {
-            console.warn(`[AcademicIntegrityService] Key ${keyIndex + 1} rate limited, trying next key...`);
+          const status = error.status || (error.response ? error.response.status : null);
+          const isRetryable = 
+            status === 429 || // Rate limit
+            status >= 500 || // Server errors
+            error.message?.includes('429') || 
+            error.message?.includes('quota') ||
+            error.message?.includes('network') ||
+            error.message?.includes('fetch failed');
+
+          if (isRetryable) {
+            console.warn(`[AcademicIntegrityService] Key ${keyIndex + 1} failed (Status: ${status}), trying next key... Error:`, error.message);
             fullResponse = ''; // Reset for retry
             continue;
           }
           
-          // For other errors, don't retry
+          // For client errors (400, 401, etc), fail immediately
+          console.error(`[AcademicIntegrityService] Non-retryable error on Key ${keyIndex + 1}:`, error);
           throw error;
         }
       }
       
-      // If all keys failed with rate limit
+      // If all keys failed
       if (lastError && fullResponse === '') {
-        throw new Error('All API keys exhausted. Please try again later.');
+        console.error('[AcademicIntegrityService] All API keys exhausted.');
+        throw lastError; // Throw the last error encountered
       }
     } else {
       // Use Claude Sonnet 4.5 for essay and CS modes (better quality)

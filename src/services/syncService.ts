@@ -23,12 +23,10 @@ export class SyncService {
         return 0
       }
 
-      // If user already has data, DON'T migrate localStorage (could be another user's data)
+      // If user already has data, we still migrate local storage to MERGE it
+      // This ensures guest work isn't lost when logging into an existing account
       if (existingData && existingData.length > 0) {
-        console.log('[SyncService] User already has data, skipping localStorage migration')
-        // Clear localStorage to prevent it showing mixed data
-        localStorage.removeItem(STORAGE_KEY)
-        return 0
+        console.log('[SyncService] User has existing data, merging local history...')
       }
 
       // Get localStorage history
@@ -44,8 +42,9 @@ export class SyncService {
         return 0
       }
 
-      // Only migrate if this is the user's FIRST login (no existing data)
-      // Batch insert items
+      // Batch insert items (Supabase will generate new IDs)
+      // Note: This might create duplicates if the exact same generation exists,
+      // but it's safer than losing data.
       const inserts = localHistory.map((item) => ({
         user_id: userId,
         mode: item.mode,
