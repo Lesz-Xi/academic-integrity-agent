@@ -25,17 +25,17 @@ const PricingSection: React.FC<PricingSectionProps> = ({ theme, onSelectPlan, on
   // Pricing: Monthly = $12, Quarterly = $10/mo, Annual = $8/mo
   const getPremiumPrice = () => {
     switch (billingCycle) {
-      case 'monthly': return 12;
-      case 'quarterly': return 10;
-      case 'annual': return 8;
+      case 'monthly': return 9;
+      case 'quarterly': return 8;
+      case 'annual': return 7;
     }
   };
 
   const getSavingsText = () => {
     switch (billingCycle) {
       case 'monthly': return null;
-      case 'quarterly': return 'Save 17%';
-      case 'annual': return 'Save 33%';
+      case 'quarterly': return 'Save 11%';
+      case 'annual': return 'Save 22%';
     }
   };
 
