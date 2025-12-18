@@ -143,6 +143,25 @@ function AppContent() {
 
   const outputContainerRef = useRef<HTMLDivElement>(null);
 
+  const getGreeting = () => {
+    const hours = new Date().getHours();
+    
+    // Morning: 5 AM - 11:59 AM (French)
+    if (hours >= 5 && hours < 12) {
+      return "Bonjour";
+    }
+    // Afternoon: 12 PM - 5:59 PM (German)
+    if (hours >= 12 && hours < 18) {
+      return "Guten Tag";
+    }
+    // Evening: 6 PM - 10:59 PM (Korean)
+    if (hours >= 18 && hours < 23) {
+      return "Annyeonghaseyo";
+    }
+    // Midnight: 11 PM - 4:59 AM (Filipino)
+    return "Magandang madaling araw";
+  };
+
   useEffect(() => {
     if (generatedContent && outputContainerRef.current) {
       setTimeout(() => {
@@ -440,7 +459,7 @@ function AppContent() {
                     <div className="flex-1 flex flex-col items-center justify-center px-4 w-full min-h-[75vh] sm:min-h-[85vh] animate-in fade-in duration-700">
                         <div className="text-center mb-6 sm:mb-12">
                              <h1 className="text-3xl sm:text-5xl font-serif text-[#2D2D2D] dark:text-[#EAEAEA] mb-3">
-                                Ready to create, <span className="text-[#C1A87D] dark:text-[#F2E8CF] italic">{user?.email?.split('@')[0] || 'Academic Agent'}?</span>
+                                {getGreeting()}, <span className="text-[#C1A87D] dark:text-[#F2E8CF] italic">{user?.email?.split('@')[0] || 'Academic Agent'}</span>
                              </h1>
                         </div>
 
