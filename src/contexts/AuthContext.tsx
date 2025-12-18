@@ -178,16 +178,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     console.log('[AuthContext] Signing out...')
-    // Use scope: 'global' to sign out from all sessions
-    const { error } = await supabase.auth.signOut({ scope: 'global' })
-    if (error) {
-      console.error('[AuthContext] Sign out error:', error)
-      throw error
+    try {
+      // Use scope: 'global' to sign out from all sessions
+      // Add a 3s timeout to prevent hanging UI
+      const signOutPromise = supabase.auth.signOut({ scope: 'global' })
+      const timeoutPromise = new Promise<{error: any}>((resolve) => {
+        setTimeout(() => resolve({ error: new Error('Sign out timed out') }), 3000)
+      })
+
+      const { error } = await Promise.race([signOutPromise, timeoutPromise])
+      if (error) {
+        console.warn('[AuthContext] Sign out API issue (continuing with local clear):', error)
+      }
+    } catch (err) {
+      console.error('[AuthContext] Sign out error:', err)
+    } finally {
+      // ALWAYS clear local state regardless of API success
+      setUser(null)
+      setSession(null)
+      
+      // Clear all potential auth-related keys from localStorage
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && (
+            key.includes('supabase') || 
+            key.includes('sb-') || 
+            key.includes('auth-token') ||
+            key.includes('supabase.auth.token')
+          )) {
+            keysToRemove.push(key)
+          }
+        }
+        
+        // Remove them all
+        keysToRemove.forEach(k => {
+          console.log('[AuthContext] Purging security key:', k)
+          localStorage.removeItem(k)
+        })
+
+        // Also clear any other app-specific auth state
+        localStorage.removeItem('hasSyncedToSupabase')
+        
+      } catch (e) {
+        console.warn('[AuthContext] Failed to clear localStorage keys:', e)
+      }
+      console.log('[AuthContext] Signed out successfully (local state cleared)')
     }
-    // Clear local state
-    setUser(null)
-    setSession(null)
-    console.log('[AuthContext] Signed out successfully')
   }
 
   const value: AuthContextType = {

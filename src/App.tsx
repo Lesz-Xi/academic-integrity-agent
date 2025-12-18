@@ -43,6 +43,8 @@ function AppContent() {
   const [showTour, setShowTour] = useState(false);
   const [searchEnabled, setSearchEnabled] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  // Track sign-out to prevent race conditions
+  const isSigningOutRef = useRef(false);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
 
   // Check subscription status with Realtime and Polling
@@ -51,6 +53,12 @@ function AppContent() {
     let channel: any = null;
 
     async function checkPremiumStatus(retries = 0) {
+      // Abort if signing out or unmounted
+      if (isSigningOutRef.current || !mounted) {
+        console.log('[App] Aborting premium check (signing out or unmounted)');
+        return;
+      }
+
       if (!user) {
         if (mounted) setIsPremium(false);
         return;
@@ -60,6 +68,12 @@ function AppContent() {
         console.log(`[App] Checking premium status (Attempt ${retries + 1})...`);
         const premium = await SubscriptionService.isPremium(user.id);
         
+        // Check again after async call
+        if (isSigningOutRef.current || !mounted) {
+          console.log('[App] Aborting premium check after async (signing out)');
+          return;
+        }
+
         if (mounted) {
           console.log('[App] Premium status result:', premium);
           
@@ -80,7 +94,7 @@ function AppContent() {
       } catch (error) {
         console.error('[App] Failed to check premium status:', error);
         // On error, retry if possible before giving up
-        if (mounted && retries < 5) {
+        if (mounted && !isSigningOutRef.current && retries < 5) {
           const delay = (retries + 1) * 1000;
           setTimeout(() => checkPremiumStatus(retries + 1), delay);
         } else if (mounted) {
@@ -90,6 +104,9 @@ function AppContent() {
     }
 
     if (user) {
+      // Reset sign-out flag when we have a user
+      isSigningOutRef.current = false;
+
       // 1. Immediate Check
       checkPremiumStatus();
 
@@ -151,11 +168,19 @@ function AppContent() {
 
   // Auto-redirect to app after successful authentication (but not during sign-out)
   useEffect(() => {
-    if (isAuthenticated && user && view !== 'app' && !isSigningOut) {
+    if (isAuthenticated && user && view !== 'app' && !isSigningOut && !isSigningOutRef.current) {
       console.log('[App] User authenticated, redirecting to app')
       handleEnterApp()
     }
   }, [isAuthenticated, user, view, isSigningOut])
+
+  // Reset sign-out state when authentication officially clears
+  useEffect(() => {
+    if (!user) {
+      if (isSigningOut) setIsSigningOut(false);
+      isSigningOutRef.current = false;
+    }
+  }, [user, isSigningOut]);
 
   const handleAcceptDisclaimer = () => {
     localStorage.setItem('hasAcceptedDisclaimer', 'true');
@@ -179,15 +204,22 @@ function AppContent() {
     let currentPremiumStatus = isPremium;
     if (user) {
       try {
-        currentPremiumStatus = await SubscriptionService.isPremium(user.id);
+        console.log('[App] Refreshing premium status before generation...');
+        // Add a 3s timeout to ensure we don't hang the UI
+        const checkPromise = SubscriptionService.isPremium(user.id);
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Premium check timed out')), 3000);
+        });
+
+        currentPremiumStatus = await Promise.race([checkPromise, timeoutPromise]) as boolean;
+        
         // Sync UI state if it differs (fixes stale state on login)
         if (currentPremiumStatus !== isPremium) {
-          console.log('[App] Syncing premium state:', currentPremiumStatus);
+          console.log('[App] Updated premium state:', currentPremiumStatus);
           setIsPremium(currentPremiumStatus);
         }
       } catch (err) {
-        console.error('[App] Fresh premium check failed, using cached state:', err);
-        // Fall back to cached state if the fresh check fails
+        console.warn('[App] Premium check failed or timed out, using cached state:', err);
       }
     }
 
@@ -195,24 +227,23 @@ function AppContent() {
     if (user && !currentPremiumStatus) {
       try {
         const usage = await GenerationService.getMonthlyUsage(user.id);
-        console.log('[App] Current usage:', usage);
+        console.log('[App] Usage check:', usage, '/', MONTHLY_LIMIT);
         
         if (usage >= MONTHLY_LIMIT) {
-          console.warn('[App] Monthly limit reached! Showing limit modal. Usage:', usage, 'Limit:', MONTHLY_LIMIT);
+          console.warn('[App] Monthly limit reached!');
           setUsageCount(usage);
           setLimitModalOpen(true);
           return; // Block generation
         }
       } catch (err) {
         console.error('[App] Failed to check usage (failing closed):', err);
-        // Fail closed - if we can't verify usage, show upgrade modal for security
         setUsageCount(MONTHLY_LIMIT);
         setLimitModalOpen(true);
         return;
       }
     }
 
-    console.log('[App] Usage check passed, starting generation...');
+    console.log('[App] All checks passed, starting generation');
     setIsGenerating(true);
     setGeneratedContent(null);
 
@@ -328,6 +359,7 @@ function AppContent() {
     
     // Prevent auto-redirect during sign-out
     setIsSigningOut(true)
+    isSigningOutRef.current = true  // Abort pending async operations
     
     // Reset state IMMEDIATELY - don't wait for Supabase
     setView('landing')
@@ -340,20 +372,13 @@ function AppContent() {
     setCopied(false)
     setIsGenerating(false)
     
-    // CRITICAL: Clear local session FIRST (instant, no API call)
+    // Clear session in background
     try {
-      // Force clear localStorage session to prevent auto-login
       await signOut()
       console.log('[App] Local session cleared')
     } catch (localError) {
       console.error('[App] Local sign out failed:', localError)
-      // Even if this fails, continue - state is already reset
     }
-    
-    // Allow auth state to update
-    setTimeout(() => {
-      setIsSigningOut(false)
-    }, 100)
   };
 
   const mainClasses = `min-h-screen font-sans selection:bg-[#CC785C] selection:text-white transition-colors duration-300 ${

@@ -46,15 +46,33 @@ export class SubscriptionService {
    * Get user's subscription with session verification and retry logic
    */
   static async getSubscription(userId: string): Promise<Subscription | null> {
-    console.log('[SubscriptionService] Getting subscription for user:', userId);
+    console.log('[SubscriptionService] Fetching subscription for user:', userId);
     
     // 1. Verify we have a valid session before querying (critical for OAuth flows)
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !sessionData?.session) {
-      console.warn('[SubscriptionService] No valid session found, cannot query subscriptions:', sessionError);
+    try {
+      const sessionPromise = supabase.auth.getSession();
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('getSession timed out')), 5000);
+      });
+
+      const { data: sessionData, error: sessionError } = await Promise.race([
+        sessionPromise,
+        timeoutPromise
+      ]) as any;
+
+      if (sessionError) {
+        console.warn('[SubscriptionService] Session check error:', sessionError);
+        return null;
+      }
+
+      if (!sessionData?.session) {
+        console.warn('[SubscriptionService] No active session found');
+        return null;
+      }
+    } catch (err) {
+      console.error('[SubscriptionService] Session verification failed:', err);
       return null;
     }
-    console.log('[SubscriptionService] Session verified, user:', sessionData.session.user.email);
 
     // 2. Try to fetch subscription with retry logic
     const fetchWithRetry = async (attempt: number): Promise<Subscription | null> => {
