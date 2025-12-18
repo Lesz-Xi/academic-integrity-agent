@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { Copy, CheckCircle, AlertTriangle, FileText, File } from 'lucide-react';
+import { Copy, CheckCircle, AlertTriangle } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { markdownToHtml } from '../utils/markdownRenderer';
 import { cleanLatex } from '../utils/latexCleaner';
@@ -12,6 +12,24 @@ interface OutputPanelProps {
   onCopy: () => void;
   copied: boolean;
 }
+
+const DocxIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+    <polyline points="14 2 14 8 20 8" />
+    <rect x="2" y="11" width="10" height="6" rx="1" fill="currentColor" stroke="none" />
+    <text x="7" y="15.5" fontSize="3.5" fontWeight="bold" textAnchor="middle" fill="white" stroke="none">DOCX</text>
+  </svg>
+);
+
+const PdfIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+    <polyline points="14 2 14 8 20 8" />
+    <rect x="2" y="11" width="8" height="6" rx="1" fill="currentColor" stroke="none" />
+    <text x="6" y="15.5" fontSize="4.5" fontWeight="bold" textAnchor="middle" fill="white" stroke="none">PDF</text>
+  </svg>
+);
 
 const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnings, onCopy, copied }, ref) => {
   const [isExporting, setIsExporting] = useState<'docx' | 'pdf' | null>(null);
@@ -76,7 +94,7 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
               className="p-2.5 text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-50"
               title="Download as Word"
             >
-              <FileText className="w-5 h-5" />
+              <DocxIcon className="w-5 h-5" />
             </button>
 
             {/* Export PDF Button */}
@@ -86,7 +104,7 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
               className="p-2.5 text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-50"
               title="Download as PDF"
             >
-              <File className="w-5 h-5" />
+              <PdfIcon className="w-5 h-5" />
             </button>
 
             <div className="w-[1px] h-5 bg-gray-200 dark:bg-white/10 mx-1" />
