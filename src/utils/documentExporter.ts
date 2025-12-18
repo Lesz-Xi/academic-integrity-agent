@@ -173,6 +173,40 @@ export async function exportToDocx(text: string, filename: string = 'generated-c
   }
 
   const doc = new Document({
+    styles: {
+      default: {
+        document: {
+          run: {
+            font: 'Arial',
+            size: 24, // 12pt
+          },
+        },
+        heading1: {
+          run: {
+            font: 'Arial',
+            size: 32,
+            bold: true,
+            color: '000000',
+          },
+        },
+        heading2: {
+          run: {
+            font: 'Arial',
+            size: 28,
+            bold: true,
+            color: '000000',
+          },
+        },
+        heading3: {
+          run: {
+            font: 'Arial',
+            size: 24,
+            bold: true,
+            color: '000000',
+          },
+        },
+      },
+    },
     sections: [{
       properties: {},
       children,
