@@ -204,11 +204,15 @@ function AppContent() {
         }
       } catch (err) {
         console.warn('[App] Premium check failed or timed out, using cached state:', err);
+        // CRITICAL: If the check fails (e.g. timeout), DO NOT set it to false.
+        // Keep the currentPremiumStatus as the previous isPremium state (which might be true).
+        currentPremiumStatus = isPremium;
       }
     }
 
     // Check usage limit before generating (skip for premium users)
-    if (user && !currentPremiumStatus) {
+    // Only block if we are SURE the user is not premium (currentPremiumStatus is explicitly false)
+    if (user && currentPremiumStatus === false) {
       try {
         const usage = await GenerationService.getMonthlyUsage(user.id);
         console.log('[App] Usage check:', usage, '/', MONTHLY_LIMIT);

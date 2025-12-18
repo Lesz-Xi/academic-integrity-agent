@@ -97,22 +97,20 @@ export class SubscriptionService {
    * Check if user has premium access
    */
   static async isPremium(userId: string): Promise<boolean> {
-    try {
-      const subscription = await this.getSubscription(userId)
-      
-      if (!subscription) return false
-      if (subscription.plan !== 'premium') return false
-      if (subscription.status !== 'active' && subscription.status !== 'canceled') return false
-      
-      if (subscription.status === 'canceled' && subscription.currentPeriodEnd) {
-        return new Date() < subscription.currentPeriodEnd
-      }
-      
-      return true
-    } catch (error) {
-      console.error('[SubscriptionService] isPremium check error:', error)
-      return false
+    const subscription = await this.getSubscription(userId)
+    
+    if (!subscription) return false
+    // Consider both 'premium' and 'pro' as premium (case-insensitive)
+    const plan = subscription.plan.toLowerCase();
+    if (plan !== 'premium' && plan !== 'pro') return false
+    
+    if (subscription.status !== 'active' && subscription.status !== 'canceled') return false
+    
+    if (subscription.status === 'canceled' && subscription.currentPeriodEnd) {
+      return new Date() < subscription.currentPeriodEnd
     }
+    
+    return true
   }
 
   static async createSubscription(

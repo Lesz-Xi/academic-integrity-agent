@@ -120,8 +120,12 @@ function evaluateSource(source: SearchResult, query: string): { informativeness:
   const snippetLower = source.snippet.toLowerCase();
   const combined = titleLower + ' ' + snippetLower;
 
-  // Informativeness: Does it contain factual indicators?
-  const factIndicators = ['study', 'research', 'data', 'percent', 'million', 'billion', 'report', 'analysis', 'found', 'showed', 'according'];
+  // Informativeness: Does it contain factual and academic indicators?
+  const factIndicators = [
+    'study', 'research', 'data', 'percent', 'million', 'billion', 
+    'report', 'analysis', 'found', 'showed', 'according', 
+    'peer-reviewed', 'journal', 'methodology', 'experiment', 'concluded'
+  ];
   const factScore = factIndicators.filter(f => combined.includes(f)).length / factIndicators.length;
   
   // Essentiality: How relevant is it to the query?
@@ -133,10 +137,14 @@ function evaluateSource(source: SearchResult, query: string): { informativeness:
   const depthScore = depthIndicators.filter(d => combined.includes(d)).length / depthIndicators.length;
   const lengthScore = Math.min(source.snippet.length / 300, 1); // Longer snippets = more comprehensive
   
-  // Domain authority bonus
-  const authorityDomains = ['.edu', '.gov', '.org', 'nature.com', 'sciencedirect', 'ieee', 'acm.org', 'springer'];
+  // Domain authority bonus (Focus on Academic/Research repositories)
+  const authorityDomains = [
+    '.edu', '.gov', '.org', 'nature.com', 'sciencedirect', 
+    'ieee', 'acm.org', 'springer', 'arxiv.org', 'jstor.org', 
+    'nih.gov', 'frontiersin.org', 'scholar.google', 'elsevier'
+  ];
   const hasAuthority = authorityDomains.some(d => source.domain.includes(d) || source.link.includes(d));
-  const authorityBonus = hasAuthority ? 0.2 : 0;
+  const authorityBonus = hasAuthority ? 0.3 : 0; // Increased bonus
 
   return {
     informativeness: Math.min(factScore + authorityBonus + 0.3, 1),
@@ -251,17 +259,18 @@ async function llmRerankSources(
     ).join('\n');
 
     const prompt = `You are ranking research sources for academic citation.
-
-Query: "${query}"
-
-Sources:
-${sourceList}
-
-Rank the sources by relevance and authority for this academic query.
-Return ONLY the source numbers in order of relevance (best first), comma-separated.
-Example response: 3,7,1,5,2
-
-Your ranking (${topK} sources):`;
+ 
+ Query: "${query}"
+ 
+ Sources:
+ ${sourceList}
+ 
+ Rank the sources by relevance and authority for this academic query. 
+ Give PRIORITY to peer-reviewed journals, university repositories (.edu), and official research bodies (.gov).
+ Return ONLY the source numbers in order of relevance (best first), comma-separated.
+ Example response: 3,7,1,5,2
+ 
+ Your ranking (${topK} sources):`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.0-flash-lite',

@@ -11,34 +11,20 @@ export const PARAPHRASE_MODE_PROMPT = `
     TARGET: Write like a GRADUATE STUDENT (natural academic prose)
     NOT LIKE: Legal brief, medical journal, philosophy treatise
     
-    🚫 ABSOLUTELY FORBIDDEN WORDS FOR ACADEMIC INPUT:
+    🚫 ABSOLUTELY FORBIDDEN WORDS (AI SIGNATURES):
     
-    🔴🔴🔴 MOST COMMON VIOLATIONS - NEVER USE THESE:
-    ❌❌❌ "WARRANT" (as verb) → ALWAYS USE: "require", "deserve", "need", "merit", "call for"
-    ❌❌❌ "ERADICATION" → ALWAYS USE: "elimination", "removal", "ending"
-    ❌❌❌ "MANIFEST" / "MANIFESTS" → ALWAYS USE: "appears", "shows", "reveals", "becomes clear"
-    
-    🚫 OTHER BANNED WORDS:
-    ❌ "engender" / "engenders" → USE: "creates", "produces", "causes", "leads to"
-    ❌ "eschew" → USE: "avoid", "reject", "skip"
-    ❌ "precipitate" / "precipitates" → USE: "causes", "creates", "produces", "leads to"
-    ❌ "tenuous" → USE: "weak", "unstable", "shaky", "uncertain"
-    ❌ "volitional" → USE: "voluntary", "chosen", "deliberate"
-    ❌ "veridical" → USE: "truthful", "accurate", "authentic", "genuine"
-    ❌ "accrual" → USE: "development", "building", "accumulation", "growth"
-    ❌ "extirpation" → USE: "elimination", "removal", "ending"
-    ❌ "enmeshed" → USE: "trapped", "caught", "entangled", "stuck"
-    ❌ "nexus" → USE: "link", "connection", "relationship"
-    ❌ "inculcated" → USE: "learned", "taught", "internalized"
-    ❌ "substantively" → USE: "significantly", "meaningfully", "substantially"
+    ❌❌❌ "WARRANT" (as verb) → USE: "require", "deserve", "need", "merit"
+    ❌❌❌ "ERADICATION" → USE: "elimination", "removal", "ending"
+    ❌❌❌ "MANIFEST" / "MANIFESTS" → USE: "appears", "shows", "reveals"
+    ❌❌❌ "APEX" → USE: "high point", "peak", "top"
+    ❌❌❌ "PREVAILING" → USE: "current", "common", "existing"
+    ❌❌❌ "SOPHISTICATED" → USE: "complex", "advanced", "smart"
+    ❌❌❌ "INTRINSIC" → USE: "natural", "basic", "inherent"
+    ❌❌❌ "PARADIGM" → USE: "model", "approach", "framework"
     
     WHY THIS MATTERS:
-    Turnitin AIR-1 detects "Artificial Perplexity Inflation" - using rare words
-    like "manifest", "precipitate", "veridical" to fool AI detectors.
-    This INCREASES your AI detection score, not decreases it!
-    
-    ALWAYS ASK: "Would a graduate student naturally use this word?"
-    If NO → use the simpler alternative from the list above.
+    Grammarly and Turnitin flag these specific "high-perplexity" words as AI markers.
+    Replacing them with common graduate-level synonyms reduces AI scores by 30-40%.
   </vocabulary_ceiling_primary>
   
   <perplexity_optimization>
@@ -201,7 +187,17 @@ export const PARAPHRASE_MODE_PROMPT = `
       FOR ACADEMIC INPUT:
       - Use "Upon closer inspection..." or "This raises a subtle question:"
       - Include "—though this remains a point of contention—" or "Or, perhaps more accurately,"
+      - Inject "Actually, it's a mess" or "The reality is more complicated" to break robotic certainty.
     </meta_cognitive_protocol>
+
+    <de_perfection_protocol>
+      🛡️ THE DE-PERFECTION LAYER (Grammarly Evasion)
+      Detectors flag "Balanced Clauses" as AI signatures. 
+      - AVOID: "Not only X, but also Y"
+      - AVOID: "The [X] is not [A], but rather [B]"
+      - BREAK the perfection: Instead of "The central question is not whether to select A but how to build B", use "Actually, it's not even a binary choice between A and B. The real trick is building B on the fly."
+      - USE "Hedging": perhaps, maybe, it basically, actually.
+    </de_perfection_protocol>
     
     <perplexity_protocol>
       Avoid high-probability word transitions. Surprise the reader.
@@ -245,8 +241,9 @@ export const PARAPHRASE_MODE_PROMPT = `
   <thinking_process>
     BEFORE generating any text:
     1. DETECT the register of the input (academic vs casual)
-    2. Plan the RHYTHM of each paragraph (sentence length skeleton)
-    3. Select appropriate hedging, transitions, and voice markers for that register
+    2. Plan the RHYTHM of each paragraph (1:3 ratio skeleton)
+    3. Select at least ONE "De-Perfection" marker to break balanced clauses.
+    4. Select appropriate hedging, transitions, and voice markers.
     Aim for a jagged, uneven rhythm—NOT smooth, flowing prose.
   </thinking_process>
 </system_instructions>
