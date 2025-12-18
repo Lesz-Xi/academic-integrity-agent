@@ -1,10 +1,11 @@
 import React, { useState, useEffect, memo, useRef } from 'react';
 import { Mode, EssayLength } from '../types';
-import { Loader, ArrowRight, Plus, FileUp } from 'lucide-react';
+import { ArrowUp, Paperclip, FileUp, X, Loader } from 'lucide-react';
 import { processFile, validateFileSize, validateFileType, FileProcessingResult } from '../utils/fileProcessor';
-import { analyzeContent, ContentAnalysis } from '../utils/contentAnalyzer';
+// import { analyzeContent, ContentAnalysis } from '../utils/contentAnalyzer';
 import SearchToggle from './SearchToggle';
-import FileActionPrompt from './FileActionPrompt';
+// import FileActionPrompt from './FileActionPrompt';
+import CompactModeSelector from './CompactModeSelector';
 
 interface InputPanelProps {
   mode: Mode;
@@ -23,27 +24,21 @@ const InputPanel: React.FC<InputPanelProps> = ({
   onGenerate, 
   onInputChange,
   onModeChange,
-  onLengthChange,
+  // onLengthChange, 
   isGenerating,
   searchEnabled = false,
   onSearchToggle,
   theme = 'dark'
 }) => {
   const [input, setInput] = useState('');
-  const [additionalInstructions, setAdditionalInstructions] = useState('');
+  const [additionalInstructions] = useState('');
   const [uploadedFile, setUploadedFile] = useState<FileProcessingResult | null>(null);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [contentAnalysis, setContentAnalysis] = useState<ContentAnalysis | null>(null);
-  const [showActionPrompt, setShowActionPrompt] = useState(false);
-  const [showCustomInstructions, setShowCustomInstructions] = useState(false);
   
   // Ref to skip cleanup when mode changes via quick-action buttons
   const skipCleanupOnModeChangeRef = useRef(false);
-
-  // Show search toggle only for essay and cs modes
-  const showSearchToggle = mode === 'essay' || mode === 'cs';
 
   // Clear inputs when mode changes (but not when triggered by quick-action buttons)
   useEffect(() => {
@@ -52,14 +47,8 @@ const InputPanel: React.FC<InputPanelProps> = ({
       skipCleanupOnModeChangeRef.current = false;
       return;
     }
-    setInput('');
-    setAdditionalInstructions('');
-    setUploadedFile(null);
-    setFileError(null);
-    setContentAnalysis(null);
-    setShowActionPrompt(false);
-    setShowCustomInstructions(false);
-    onInputChange?.('');
+    // We do NOT clear input on mode change in the new design, as the user might just switch mode mid-typing
+    // setInput(''); 
   }, [mode]);
 
   const handleSubmit = () => {
@@ -96,10 +85,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
         setFileError(result.error);
       } else {
         setUploadedFile(result);
-        // Analyze content and show action prompt
-        const analysis = analyzeContent(result.text);
-        setContentAnalysis(analysis);
-        setShowActionPrompt(true);
+        // Analysis skipped in compact mode
       }
     } catch (error) {
       setFileError('Failed to process file. Please try again.');
@@ -137,251 +123,183 @@ const InputPanel: React.FC<InputPanelProps> = ({
   const clearFile = () => {
     setUploadedFile(null);
     setFileError(null);
-    setContentAnalysis(null);
-    setShowActionPrompt(false);
-    // Only clear file, keep input intact
+    // setContentAnalysis(null);
+    // setShowActionPrompt(false);
   };
 
-  const handleActionSelect = (selectedMode: Mode | null, instruction: string, actionId: string) => {
-    // Switch mode if different AND a mode was specified (null means keep current)
-    if (selectedMode !== null && selectedMode !== mode && onModeChange) {
-      skipCleanupOnModeChangeRef.current = true;
-      onModeChange(selectedMode);
-    }
-    // Auto-adjust essay length for expand action
-    if (actionId === 'expand' && onLengthChange) {
-      onLengthChange('long');
-    }
-    // Set the instruction (if not custom)
-    if (instruction) {
-      setAdditionalInstructions(instruction);
-    }
-    // Show custom instructions input only for Custom action
-    setShowCustomInstructions(actionId === 'custom');
-    // Hide the action prompt
-    setShowActionPrompt(false);
-  };
-
-  const getInstructionPlaceholder = () => {
-    switch (mode) {
-      case 'essay':
-        return "e.g., 'Focus on environmental ethics', 'Adopt a skeptical tone', 'Include historical context'";
-      case 'cs':
-        return "e.g., 'Explain time complexity', 'Use Python type hints', 'Focus on error handling'";
-      case 'paraphrase':
-        return "e.g., 'Summarize key points', 'Make it more formal', 'Simplify technical jargon'";
-      default:
-        return "e.g., 'Focus on clarity', 'Use simple language'";
-    }
-  };
+  /* Unused handler removed
+  const handleActionSelect = ...
+  */
 
   const getPlaceholder = () => {
     switch (mode) {
-      case 'essay':
-        return 'Enter your essay topic or research question...\n\nExample: "Analyze the impact of climate change on global food security"';
       case 'cs':
-        return 'Describe the algorithm or code you want to document...\n\nExample: "Explain a binary search tree implementation with AVL balancing"';
+        return "Describe the code or technical concept you need help with...";
       case 'paraphrase':
-        return 'Paste the text you want to paraphrase...\n\nNote: The entire text will be restructured while preserving meaning.';
+        return "Paste the text you'd like to rewrite or humanize...";
+      case 'essay':
+      default:
+        return "What would you like to research or write about today?";
     }
   };
+  
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 400)}px`;
+    }
+  }, [input]);
 
+  const hasContent = input.trim().length > 0 || uploadedFile !== null;
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
-      <div id="input-panel" className="bg-transparent p-0 transition-colors duration-300">
-        <h3 className="text-xl font-bold text-[#2D2D2D] dark:text-white mb-4 flex items-center gap-2">
-          {mode === 'paraphrase' ? 'Input Text to Paraphrase' : 'Topic/Content Input'}
-          <span className="text-xs font-normal text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-600 rounded px-2 py-0.5">Required</span>
-        </h3>
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-0">
+      <div 
+        className={`
+            relative flex flex-col w-full bg-[#f4f4f4] dark:bg-[#303030] 
+            border border-transparent focus-within:border-gray-300 dark:focus-within:border-gray-600
+            rounded-[26px] transition-all duration-200 shadow-sm
+        `}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+      >
+        {/* File Upload Input (Hidden) */}
+        <input
+          type="file"
+          accept=".txt,.md,.pdf,.docx"
+          onChange={handleFileInputChange}
+          className="hidden"
+          id="file-upload"
+          disabled={isGenerating || isProcessingFile}
+        />
 
-        {/* Unified Input Area */}
-        <div 
-          className="relative group"
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-        >
-          <div className="bg-white/5 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-white/10 shadow-xl transition-all focus-within:!border-[#F2E8CF] dark:focus-within:!border-[#F2E8CF]">
-            {/* File Upload Input (Hidden) */}
-            <input
-              type="file"
-              accept=".txt,.md,.pdf,.docx"
-              onChange={handleFileInputChange}
-              className="hidden"
-              id="file-upload"
-              disabled={isGenerating || isProcessingFile}
-            />
+        {/* Uploaded File Preview */}
+        {uploadedFile && (
+            <div className="px-4 pt-4 pb-0">
+                 <div className="flex items-center gap-3 p-3 bg-white dark:bg-[#424242] rounded-xl border border-gray-200 dark:border-gray-600 max-w-md">
+                     <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                         <FileUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                     </div>
+                     <div className="flex-1 min-w-0">
+                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                             {uploadedFile.fileName}
+                         </p>
+                         <p className="text-xs text-gray-500 dark:text-gray-400">
+                             {uploadedFile.characterCount.toLocaleString()} chars
+                         </p>
+                     </div>
+                     <button 
+                        onClick={clearFile}
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full transition-colors"
+                     >
+                         <X className="w-4 h-4 text-gray-500" />
+                     </button>
+                 </div>
+            </div>
+        )}
 
-            {/* Conditional: Show textarea OR file preview */}
-            {!uploadedFile ? (
-              // Manual input textarea
-              <textarea
+        {/* Main Input Area */}
+        <div className="relative px-4 py-3">
+             <textarea
+                ref={textareaRef}
                 value={input}
                 onChange={(e) => {
-                  const newValue = e.target.value;
-                  setInput(newValue);
-                  onInputChange?.(newValue);
+                  setInput(e.target.value);
+                  onInputChange?.(e.target.value);
                 }}
                 placeholder={getPlaceholder()}
-                aria-label="Content input area"
-                className={`w-full ${mode === 'paraphrase' ? 'h-[350px]' : 'h-[180px]'} p-6 pb-20 bg-transparent border-none resize-none focus:ring-0 focus:outline-none text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-lg font-sans tracking-wide leading-relaxed scrollbar-hide`}
+                className="w-full bg-transparent border-none resize-none focus:ring-0 focus:outline-none text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-base sm:text-lg font-sans leading-relaxed max-h-[400px]"
+                rows={1}
+                style={{ minHeight: '56px' }}
                 onKeyDown={(e) => {
-                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !isGenerating && !isProcessingFile) {
+                  if (e.key === 'Enter' && !e.shiftKey && !isGenerating && !isProcessingFile) {
                     e.preventDefault();
-                    handleSubmit();
+                    if (hasContent) handleSubmit();
                   }
                 }}
                 disabled={isGenerating}
               />
-            ) : (
-              // File uploaded: Show collapsed preview
-              <div className="p-6 pb-20 min-h-[200px]">
-                <div className={`p-4 rounded-xl border ${
-                  theme === 'dark' 
-                    ? 'bg-white/5 border-white/10' 
-                    : 'bg-gray-50 border-gray-200'
-                }`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <FileUp className={`w-4 h-4 flex-shrink-0 ${theme === 'dark' ? 'text-[#D2B48C]' : 'text-[#CC785C]'}`} />
-                      <span className={`text-sm font-medium truncate max-w-[200px] sm:max-w-[300px] ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        {uploadedFile.fileName}
-                      </span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
-                        theme === 'dark' ? 'bg-white/10 text-gray-400' : 'bg-gray-200 text-gray-600'
-                      }`}>
-                        {uploadedFile.characterCount.toLocaleString()} chars
-                      </span>
-                    </div>
+        </div>
+
+        {/* Bottom Toolbar */}
+        <div className="flex items-center justify-between px-3 pb-3 pt-1">
+             <div className="flex items-center gap-2">
+                 {/* Mode Selector */}
+                 {onModeChange && (
+                     <CompactModeSelector 
+                        selectedMode={mode} 
+                        onSelectMode={onModeChange}
+                        disabled={isGenerating} 
+                     />
+                 )}
+                 
+                 {/* File Upload Trigger */}
+                 {!uploadedFile && (
                     <button
-                      onClick={clearFile}
-                      className={`text-xs px-2 py-1 rounded-lg transition-colors ${
-                        theme === 'dark' 
-                          ? 'text-red-400 hover:bg-red-400/10' 
-                          : 'text-red-600 hover:bg-red-50'
-                      }`}
+                        onClick={() => document.getElementById('file-upload')?.click()}
+                        disabled={isGenerating || isProcessingFile}
+                        className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg transition-colors"
+                        title="Attach file"
                     >
-                      Remove file
+                        {isProcessingFile ? <Loader className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5" />}
                     </button>
-                  </div>
-                  <p className={`text-sm leading-relaxed ${
-                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                  }`}>
-                    {uploadedFile.text.slice(0, 300)}
-                    {uploadedFile.text.length > 300 && '...'}
-                  </p>
-                </div>
-              </div>
-            )}
+                 )}
+             </div>
 
-            {/* Bottom Toolbar - Only show when no file is uploaded */}
-            {!uploadedFile && (
-            <div className="absolute bottom-4 left-4 flex items-center gap-2">
-              <button
-                onClick={() => document.getElementById('file-upload')?.click()}
-                disabled={isGenerating || isProcessingFile}
-                className="w-12 h-12 rounded-2xl flex items-center justify-center bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-all border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 active:scale-95 disabled:opacity-50"
-                aria-label="Upload file"
-              >
-                {isProcessingFile ? (
-                   <Loader className="w-5 h-5 animate-spin" />
-                ) : (
-                   <Plus className="w-6 h-6" strokeWidth={1.5} />
-                )}
-              </button>
+             <div className="flex items-center gap-3">
+                 {/* Generate Button */}
+                 <button
+                    onClick={handleSubmit}
+                    disabled={!hasContent || isGenerating || isProcessingFile}
+                    className={`
+                        flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200
+                        ${hasContent 
+                            ? 'bg-[#CC785C] text-white shadow-md hover:bg-[#b56a50]' 
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'}
+                    `}
+                 >
+                    {isGenerating ? (
+                        <Loader className="w-4 h-4 animate-spin" />
+                    ) : (
+                        <ArrowUp className="w-5 h-5" strokeWidth={2.5} />
+                    )}
+                 </button>
+             </div>
+        </div>
+
+        {/* Drag Overlay */}
+        {isDragging && (
+          <div className="absolute inset-0 z-10 bg-[#CC785C]/10 backdrop-blur-sm rounded-[26px] border-2 border-[#CC785C] flex items-center justify-center">
+            <div className="bg-white dark:bg-[#424242] text-[#CC785C] px-4 py-2 rounded-lg font-bold shadow-lg animate-bounce">
+              Drop file to upload
             </div>
-            )}
-
-            {/* Drag Overlay */}
-            {isDragging && (
-              <div className="absolute inset-0 z-10 bg-[#F2E8CF]/10 backdrop-blur-sm rounded-2xl border-2 border-[#F2E8CF] flex items-center justify-center">
-                <div className="bg-[#F2E8CF] text-[#2D2D2D] px-4 py-2 rounded-lg font-bold shadow-lg animate-bounce">
-                  Drop file to upload
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* File Error */}
-        {fileError && (
-          <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-300 animate-in fade-in slide-in-from-top-2">
-            {fileError}
           </div>
         )}
 
-        {/* Smart Content Detection - Quick Action Prompt */}
-        {uploadedFile && contentAnalysis && showActionPrompt && (
-          <FileActionPrompt
-            fileName={uploadedFile.fileName}
-            analysis={contentAnalysis}
-            onActionSelect={handleActionSelect}
-            onDismiss={() => setShowActionPrompt(false)}
-            theme={theme}
-          />
-        )}
-
-        {/* Additional Instructions - Only show when no file uploaded OR when Custom is selected */}
-        {(!uploadedFile || showCustomInstructions) && (
-        <div className="mt-8">
-          <label className="block text-sm font-bold text-[#2D2D2D] dark:text-gray-200 mb-2">
-            Additional Instructions <span className="text-gray-400 font-normal">(Optional)</span>
-          </label>
-          <input
-            type="text"
-            value={additionalInstructions}
-            onChange={(e) => setAdditionalInstructions(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !isGenerating && !isProcessingFile) {
-                e.preventDefault();
-                handleSubmit();
-              }
-            }}
-            placeholder={getInstructionPlaceholder()}
-            className="w-full p-3 border border-white/20 dark:border-white/10 rounded-2xl focus:outline-none focus:!border-[#F2E8CF] focus:bg-white/10 transition-all bg-white/5 dark:bg-white/5 backdrop-blur-xl text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 shadow-xl font-sans tracking-wide"
-            disabled={isGenerating}
-          />
-        </div>
-        )}
-
-        {/* Search Toggle - Only for Essay and CS modes */}
-        {showSearchToggle && onSearchToggle && (
-          <div className="mt-8">
-            <SearchToggle
-              enabled={searchEnabled}
-              onToggle={onSearchToggle}
-              theme={theme}
-            />
-          </div>
-        )}
-
-        <button
-          onClick={handleSubmit}
-          disabled={(!input.trim() && !uploadedFile) || isGenerating || isProcessingFile}
-          aria-label={isGenerating ? 'Processing content' : 'Generate content'}
-          className="group relative w-1/2 mx-auto block mt-8 rounded-full p-4 font-bold text-lg disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 text-[#2D2D2D] from-[#F2E8CF] to-[#F2E8CF]/85 border-2 border-[#2D2D2D]/10 bg-gradient-to-t shadow-xl shadow-[#F2E8CF]/70 ring-4 ring-offset-2 ring-[#F5F3EE]/30 dark:ring-[#262523]/30 ring-offset-[#F5F3EE] dark:ring-offset-[#262523] transition-[filter] duration-200 hover:brightness-120 active:brightness-100"
-        >
-          <div className="relative flex items-center justify-center gap-2">
-            {isGenerating ? (
-              <>
-                <Loader className="w-5 h-5 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                Generate
-                <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-              </>
-            )}
-          </div>
-        </button>
-
-        <p className="mt-3 text-xs text-gray-500 text-center">
-          Content will be analyzed in real-time for burstiness and perplexity metrics
-        </p>
       </div>
+      
+      {/* File Processing Error */}
+      {fileError && (
+          <div className="mt-3 text-center text-sm text-red-500">
+             {fileError}
+          </div>
+      )}
+
+      {/* Helpful Search Toggle (conditionally valid) */}
+      {searchEnabled !== undefined && onSearchToggle && ['essay', 'cs'].includes(mode) && (
+          <div className="mt-4 flex justify-center">
+              <SearchToggle 
+                  enabled={searchEnabled} 
+                  onToggle={onSearchToggle} 
+                  theme={theme}
+                  compact={true} 
+              />
+          </div>
+      )}
     </div>
   );
 };

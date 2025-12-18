@@ -27,7 +27,7 @@ const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme }) 
     {
       id: 1,
       title: "Smart Source Selection",
-      description: "Monte Carlo Tree Search intelligently evaluates and ranks research sources for informativeness, relevance, and authority.",
+      description: "Advanced LLM-based Ranking intelligently evaluates and ranks research sources for informativeness, relevance, and authority.",
       icon: GitBranch,
       label: "02. SELECT"
     },

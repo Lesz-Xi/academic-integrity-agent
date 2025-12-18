@@ -43,34 +43,53 @@ function toSubscription(row: SubscriptionRow): Subscription {
 
 export class SubscriptionService {
   /**
-   * Get user's subscription
+   * Get user's subscription with session verification and retry logic
    */
   static async getSubscription(userId: string): Promise<Subscription | null> {
-    console.log('[SubscriptionService] Getting subscription for user:', userId)
+    console.log('[SubscriptionService] Getting subscription for user:', userId);
     
-    try {
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // No subscription found - return null (user will create one)
-          console.log('[SubscriptionService] No subscription found for user')
-          return null
-        }
-        console.error('[SubscriptionService] Error fetching subscription:', error)
-        throw error
-      }
-
-      console.log('[SubscriptionService] Found subscription:', data.plan, data.status)
-      return toSubscription(data)
-    } catch (error) {
-      console.error('[SubscriptionService] getSubscription error:', error)
-      throw error
+    // 1. Verify we have a valid session before querying (critical for OAuth flows)
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData?.session) {
+      console.warn('[SubscriptionService] No valid session found, cannot query subscriptions:', sessionError);
+      return null;
     }
+    console.log('[SubscriptionService] Session verified, user:', sessionData.session.user.email);
+
+    // 2. Try to fetch subscription with retry logic
+    const fetchWithRetry = async (attempt: number): Promise<Subscription | null> => {
+      try {
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116') {
+            // No subscription found - return null (user will create one)
+            console.log('[SubscriptionService] No subscription found for user');
+            return null;
+          }
+          // If it's an auth/RLS error on first attempt, retry after a short delay
+          if (attempt === 1 && (error.code === 'PGRST301' || error.message.includes('JWT'))) {
+            console.warn('[SubscriptionService] Possible RLS/Auth timing issue, retrying in 1s...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return fetchWithRetry(2);
+          }
+          console.error('[SubscriptionService] Error fetching subscription:', error);
+          throw error;
+        }
+
+        console.log('[SubscriptionService] Found subscription:', data.plan, data.status);
+        return toSubscription(data);
+      } catch (error) {
+        console.error('[SubscriptionService] getSubscription error:', error);
+        throw error;
+      }
+    };
+
+    return fetchWithRetry(1);
   }
 
   /**
@@ -109,127 +128,19 @@ export class SubscriptionService {
   /**
    * Upgrade to premium subscription
    */
+  /**
+   * Upgrade to premium subscription
+   * @deprecated logic moved to backend triggers/webhooks for security
+   */
   static async upgradeToPremium(
-    userId: string,
-    billingCycle: BillingCycle,
-    stripeCustomerId?: string,
-    stripeSubscriptionId?: string,
-    paypalSubscriptionId?: string
+    _userId: string,
+    _billingCycle: BillingCycle,
+    _stripeCustomerId?: string,
+    _stripeSubscriptionId?: string,
+    _paypalSubscriptionId?: string
   ): Promise<Subscription> {
-    console.log('[SubscriptionService] Upgrading user to premium:', userId)
-    
-    // Calculate period end based on billing cycle
-    const now = new Date()
-    const periodEnd = new Date(now)
-    switch (billingCycle) {
-      case 'monthly':
-        periodEnd.setMonth(periodEnd.getMonth() + 1)
-        break
-      case 'quarterly':
-        periodEnd.setMonth(periodEnd.getMonth() + 3)
-        break
-      case 'annual':
-        periodEnd.setFullYear(periodEnd.getFullYear() + 1)
-        break
-    }
-
-    try {
-      // Use direct fetch to bypass Supabase client hanging issue
-      console.log('[SubscriptionService] Using direct REST API to update subscription...')
-      
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-      
-      // Get current session for the access token to pass RLS
-      const { data: { session } } = await supabase.auth.getSession()
-      const accessToken = session?.access_token
-      
-      if (!accessToken) {
-        console.warn('[SubscriptionService] No access token found, falling back to anon key (might fail RLS)')
-      }
-      
-      // Skip getSession as it might be hanging - use anon key directly (RLS is disabled)
-      console.log('[SubscriptionService] Making PATCH request to:', `${supabaseUrl}/rest/v1/subscriptions`)
-      
-      
-      const response = await fetch(
-        `${supabaseUrl}/rest/v1/subscriptions?user_id=eq.${userId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': supabaseAnonKey,
-            'Authorization': `Bearer ${accessToken || supabaseAnonKey}`,
-            'Prefer': 'return=representation'
-          },
-          body: JSON.stringify({
-            plan: 'premium',
-            billing_cycle: billingCycle,
-            status: 'active',
-            stripe_customer_id: stripeCustomerId || null,
-            stripe_subscription_id: stripeSubscriptionId || null,
-            paypal_subscription_id: paypalSubscriptionId || null,
-            current_period_start: now.toISOString(),
-            current_period_end: periodEnd.toISOString(),
-          })
-        }
-      )
-      
-      console.log('[SubscriptionService] Response status:', response.status)
-      
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error('[SubscriptionService] REST API error:', errorText)
-        throw new Error(`Failed to update subscription: ${response.status} ${errorText}`)
-      }
-      
-      const data = await response.json()
-      console.log('[SubscriptionService] Update successful:', data)
-      
-      if (!data || data.length === 0) {
-        // No existing subscription, create one
-        console.log('[SubscriptionService] No existing subscription, creating new one...')
-        const insertResponse = await fetch(
-          `${supabaseUrl}/rest/v1/subscriptions`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': supabaseAnonKey,
-              'Authorization': `Bearer ${accessToken || supabaseAnonKey}`,
-              'Prefer': 'return=representation'
-            },
-            body: JSON.stringify({
-              user_id: userId,
-              plan: 'premium',
-              billing_cycle: billingCycle,
-              status: 'active',
-              stripe_customer_id: stripeCustomerId || null,
-              stripe_subscription_id: stripeSubscriptionId || null,
-              paypal_subscription_id: paypalSubscriptionId || null,
-              current_period_start: now.toISOString(),
-              current_period_end: periodEnd.toISOString(),
-            })
-          }
-        )
-        
-        if (!insertResponse.ok) {
-          const errorText = await insertResponse.text()
-          console.error('[SubscriptionService] Insert error:', errorText)
-          throw new Error(`Failed to create subscription: ${insertResponse.status} ${errorText}`)
-        }
-        
-        const insertData = await insertResponse.json()
-        console.log('[SubscriptionService] Created new subscription:', insertData)
-        return toSubscription(insertData[0])
-      }
-      
-      console.log('[SubscriptionService] Upgraded to premium successfully:', data[0].id, data[0].plan)
-      return toSubscription(data[0])
-    } catch (error) {
-      console.error('[SubscriptionService] upgradeToPremium error:', error)
-      throw error
-    }
+    console.warn('[SubscriptionService] Client-side upgrade is deprecated and insecure.');
+    throw new Error('Subscription upgrades must be processed via payment provider webhooks.');
   }
 
   /**
