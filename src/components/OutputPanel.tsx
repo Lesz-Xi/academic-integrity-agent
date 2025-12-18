@@ -66,15 +66,15 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
         ref={ref}
         className="bg-white/5 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/10 shadow-lg p-6 transition-colors duration-300"
       >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-[#2D2D2D] dark:text-white">Generated Content</h3>
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D] dark:text-white">Generated Content</h3>
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Export DOCX Button */}
             <button
               onClick={handleExportDocx}
               disabled={isExporting !== null}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all font-medium border text-xs 
-                bg-white dark:bg-claude-input border-[#5B9BD5] text-[#5B9BD5] hover:bg-[#5B9BD5] hover:text-white dark:hover:bg-[#5B9BD5] dark:hover:text-white
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all font-medium border text-[10px] sm:text-xs 
+                bg-white dark:bg-claude-input border-[#D2B48C] text-[#D2B48C] hover:bg-[#D2B48C] hover:text-white dark:hover:bg-[#D2B48C] dark:hover:text-white
                 disabled:opacity-50 disabled:cursor-not-allowed`}
               title="Download as Word Document"
             >
@@ -86,8 +86,8 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
             <button
               onClick={handleExportPdf}
               disabled={isExporting !== null}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all font-medium border text-xs 
-                bg-white dark:bg-claude-input border-[#E74C3C] text-[#E74C3C] hover:bg-[#E74C3C] hover:text-white dark:hover:bg-[#E74C3C] dark:hover:text-white
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all font-medium border text-[10px] sm:text-xs 
+                bg-white dark:bg-claude-input border-[#D2B48C] text-[#D2B48C] hover:bg-[#D2B48C] hover:text-white dark:hover:bg-[#D2B48C] dark:hover:text-white
                 disabled:opacity-50 disabled:cursor-not-allowed`}
               title="Download as PDF"
             >
@@ -98,7 +98,7 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
             {/* Copy Button */}
             <button
               onClick={onCopy}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all font-medium border text-xs ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all font-medium border text-[10px] sm:text-xs ${
                 copied 
                   ? 'bg-[#D2B48C] dark:bg-[#D2B48C] border-[#D2B48C] text-white' 
                   : 'bg-white dark:bg-claude-input border-[#D2B48C] text-[#D2B48C] hover:bg-[#D2B48C] hover:text-white dark:hover:bg-[#D2B48C] dark:hover:text-white'
@@ -140,7 +140,7 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
         )}
 
         {/* Content - Rendered as HTML */}
-        <div className="p-6 bg-transparent rounded-lg border-none max-h-[600px] overflow-y-auto prose prose-sm max-w-none dark:prose-invert">
+        <div className="p-4 sm:p-6 bg-transparent rounded-lg border-none max-h-[600px] overflow-y-auto prose prose-sm sm:prose-base max-w-none dark:prose-invert prose-p:leading-relaxed sm:prose-p:leading-loose prose-p:mb-4">
           <div 
             className="markdown-content"
             dangerouslySetInnerHTML={{ __html: htmlContent }}

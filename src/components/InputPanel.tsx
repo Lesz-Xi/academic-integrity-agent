@@ -53,10 +53,22 @@ const InputPanel: React.FC<InputPanelProps> = ({
   }, [mode]);
 
   const handleSubmit = () => {
-    // Use file content if uploaded, otherwise use input
-    const content = uploadedFile?.text || input.trim();
-    if (content) {
-      onGenerate(content, additionalInstructions, searchEnabled);
+    // If a file is uploaded AND there is text in the input box, combine them.
+    // The file becomes the context, and the input text becomes the specific instruction.
+    let finalInput = input.trim();
+    
+    if (uploadedFile) {
+      if (finalInput) {
+        // Fusion: Treat file as context and user text as the specific instruction
+        finalInput = `REFERENCE FILE: ${uploadedFile.fileName}\n\nCONTENT:\n${uploadedFile.text}\n\n---\n\nUSER INSTRUCTION FOR THIS FILE:\n${finalInput}`;
+      } else {
+        // Just the file content (legacy behavior if box is empty)
+        finalInput = uploadedFile.text;
+      }
+    }
+    
+    if (finalInput) {
+      onGenerate(finalInput, additionalInstructions, searchEnabled);
     }
   };
 
@@ -133,6 +145,10 @@ const InputPanel: React.FC<InputPanelProps> = ({
   */
 
   const getPlaceholder = () => {
+    if (uploadedFile) {
+      return `What should I do with "${uploadedFile.fileName}"? (e.g. "Write my section", "Paraphrase", "Check for AI")`;
+    }
+
     switch (mode) {
       case 'cs':
         return "Describe the code or technical concept you need help with...";
@@ -228,16 +244,19 @@ const InputPanel: React.FC<InputPanelProps> = ({
 
         {/* Additional Instructions Field (Expandable) */}
         {showInstructions && (
-            <div className="px-4 pb-3 border-t border-gray-100 dark:border-white/5 animate-in slide-in-from-top-2 duration-200">
-                <div className="pt-3">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5 block">
-                        Additional Instructions
-                    </label>
+            <div className="px-4 pb-4 border-t border-gray-100 dark:border-white/5 animate-in slide-in-from-top-2 duration-300">
+                <div className="pt-4 px-1">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="w-1 h-3 bg-[#CC785C] rounded-full" />
+                        <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-gray-500 dark:text-gray-400">
+                            Custom Directives
+                        </label>
+                    </div>
                     <textarea
                         value={additionalInstructions}
                         onChange={(e) => setAdditionalInstructions(e.target.value)}
-                        placeholder="e.g. 'Use a skeptical tone', 'Focus on ethics', '1:3 Burstiness ratio'..."
-                        className="w-full bg-transparent border-none resize-none focus:ring-0 focus:outline-none text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm font-sans leading-relaxed min-h-[60px]"
+                        placeholder="e.g. 'Use a skeptical tone', 'Incorporate 1:3 burstiness'..."
+                        className="w-full bg-transparent border-none resize-none focus:ring-0 focus:outline-none text-gray-600 dark:text-gray-400 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-xs font-mono italic leading-relaxed min-h-[50px]"
                         rows={2}
                     />
                 </div>
@@ -264,7 +283,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
                         className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg transition-colors"
                          title="Attach file"
                     >
-                        {isProcessingFile ? <Loader className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5" />}
+                        {isProcessingFile ? <Loader className="w-4 h-4 animate-spin" /> : <Paperclip className="w-4 h-4" />}
                     </button>
                  )}
 
@@ -280,7 +299,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
                     `}
                     title="Add specific instructions"
                  >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                     <span className="hidden sm:inline">Instructions</span>
                  </button>
              </div>

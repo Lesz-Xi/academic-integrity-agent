@@ -479,7 +479,7 @@ function AppContent() {
             {!generatedContent && (
                 <div className="flex-1 flex flex-col items-center justify-center px-4 w-full min-h-[80vh] animate-in fade-in duration-700">
                     <div className="text-center mb-8 sm:mb-12">
-                         <h1 className="text-4xl sm:text-5xl font-serif text-[#2D2D2D] dark:text-[#EAEAEA] mb-4">
+                         <h1 className="text-2xl sm:text-5xl font-serif text-[#2D2D2D] dark:text-[#EAEAEA] mb-4">
                             Welcome, <span className="text-[#C1A87D] dark:text-[#F2E8CF] italic">{user?.email?.split('@')[0] || 'Scholar'}</span>
                          </h1>
                     </div>
