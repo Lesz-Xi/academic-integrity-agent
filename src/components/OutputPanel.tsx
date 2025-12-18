@@ -61,7 +61,7 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
 
   return (
 
-    <div className="w-full max-w-5xl mx-auto px-0 sm:px-6">
+    <div className="w-full max-w-5xl mx-auto px-0 sm:px-6 scroll-mt-20">
       <div 
         ref={ref}
         className="bg-transparent transition-colors duration-300"

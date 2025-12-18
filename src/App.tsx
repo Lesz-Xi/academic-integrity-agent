@@ -146,7 +146,7 @@ function AppContent() {
       setTimeout(() => {
         outputContainerRef.current?.scrollIntoView({
           behavior: 'smooth',
-          block: 'center'
+          block: 'start'
         });
       }, 100);
     }
