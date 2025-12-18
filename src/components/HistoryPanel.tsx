@@ -1,11 +1,10 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo } from 'react';
 import { X, Clock, FileText, Code, RefreshCw } from 'lucide-react';
 import { HistoryItem, Mode } from '../types';
 
 
 interface HistoryPanelProps {
   history: HistoryItem[];
-  activeMode: Mode;
   onDelete: (id: string) => void;
   onRestore: (item: HistoryItem) => void;
 }
@@ -41,14 +40,8 @@ const formatTimestamp = (timestamp: number) => {
   return date.toLocaleDateString();
 };
 
-const HistoryPanel: React.FC<HistoryPanelProps> = ({ history, activeMode, onDelete, onRestore }) => {
-  // Memoize filtered history to prevent recalculation on every render
-  const filteredHistory = useMemo(
-    () => history.filter(item => item.mode === activeMode),
-    [history, activeMode]
-  );
-
-  if (filteredHistory.length === 0) {
+const HistoryPanel: React.FC<HistoryPanelProps> = ({ history, onDelete, onRestore }) => {
+  if (history.length === 0) {
     return null;
   }
 
@@ -66,13 +59,13 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ history, activeMode, onDele
               Recent Generations
             </h3>
             <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono bg-gray-100 dark:bg-[#333] text-gray-500 dark:text-gray-400`}>
-              {filteredHistory.length}
+              {history.length}
             </span>
           </div>
         </div>
 
         <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-          {filteredHistory.map((item) => (
+          {history.map((item: HistoryItem) => (
             <div
               key={item.id}
               className={`group flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-black/5 dark:hover:bg-white/5 border border-transparent hover:border-gray-200 dark:hover:border-white/10`}

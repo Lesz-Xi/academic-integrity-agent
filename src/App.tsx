@@ -550,7 +550,6 @@ function AppContent() {
                 <div className="pb-8 px-4 w-full max-w-5xl mx-auto opacity-80 hover:opacity-100 transition-opacity">
                     <HistoryPanel
                         history={history.slice(0, 3)} // Only show recent 3
-                        activeMode={selectedMode || 'essay'}
                         onDelete={handleDeleteHistory}
                         onRestore={handleRestoreHistory}
                     />
