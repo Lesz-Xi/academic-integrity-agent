@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { HistoryItem } from '../types'
 import { GenerationService } from '../services/generationService'
 import { SyncService } from '../services/syncService'
@@ -35,6 +35,9 @@ export function useGenerationHistory() {
       setHasSynced(false)
     }
   }, [user?.id])
+
+  // Track deleted IDs to prevent race conditions where a fetch resurrects a deleted item
+  const deletedIdsRef = useRef<Set<string>>(new Set())
 
   // Load history on mount or auth change
   useEffect(() => {
@@ -84,7 +87,13 @@ export function useGenerationHistory() {
       if (!isAuthenticated) {
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
-          setHistory(JSON.parse(stored))
+          try {
+            const parsed = JSON.parse(stored)
+            // Filter out any locally deleted items
+            setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
+          } catch {
+            setHistory([])
+          }
         }
       } else {
         setHistory([])
@@ -106,8 +115,8 @@ export function useGenerationHistory() {
         console.log('[useGenerationHistory] Fetched', data.length, 'items from Supabase')
         
         // For authenticated users: ONLY use Supabase data
-        // Don't fall back to localStorage to prevent cross-account data leakage
-        setHistory(data)
+        // Filter out any items that were deleted while the fetch was in progress
+        setHistory(data.filter(item => !deletedIdsRef.current.has(item.id)))
         
         // Clear localStorage to prevent data from being shown to other users
         localStorage.removeItem(STORAGE_KEY)
@@ -115,7 +124,8 @@ export function useGenerationHistory() {
         console.log('[useGenerationHistory] Not authenticated, using localStorage')
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
-          setHistory(JSON.parse(stored))
+          const parsed = JSON.parse(stored)
+          setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
         } else {
           setHistory([])
         }
@@ -132,7 +142,12 @@ export function useGenerationHistory() {
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
           console.log('[useGenerationHistory] Error (guest), falling back to localStorage')
-          setHistory(JSON.parse(stored))
+          try {
+            const parsed = JSON.parse(stored)
+            setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
+          } catch {
+            setHistory([])
+          }
         }
       } else {
         setHistory([])
@@ -200,22 +215,38 @@ export function useGenerationHistory() {
   const deleteItem = useCallback(
     async (id: string) => {
       try {
-        // Optimistic update
-        const updatedHistory = history.filter((item) => item.id !== id)
-        setHistory(updatedHistory)
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedHistory))
+        // Track deletion to prevent race conditions with background fetches
+        deletedIdsRef.current.add(id)
+
+        // Optimistic update using functional state
+        setHistory(prev => prev.filter((item) => item.id !== id))
 
         if (isAuthenticated && user) {
+          // For authenticated users: ONLY delete from Supabase
+          // Do NOT touch localStorage - it will cause re-migration issues
           await GenerationService.deleteGeneration(id, user.id)
+        } else {
+          // For guest users: Update localStorage
+          const stored = localStorage.getItem(STORAGE_KEY)
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored)
+              const updated = parsed.filter((item: HistoryItem) => item.id !== id)
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+            } catch {
+              // Ignore parse errors
+            }
+          }
         }
       } catch (err) {
         console.error('Failed to delete history item:', err)
         setError(err instanceof Error ? err.message : 'Failed to delete')
-        // Reload to revert optimistic update
+        // Remove from tombstone on failure so reload can bring it back
+        deletedIdsRef.current.delete(id)
         await loadHistory()
       }
     },
-    [user, isAuthenticated, history]
+    [user, isAuthenticated]
   )
 
   const clearHistory = useCallback(async () => {
