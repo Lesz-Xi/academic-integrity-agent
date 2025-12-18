@@ -154,15 +154,17 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
         )}
 
         {/* Content - Document Style */}
-        <div className="prose prose-sm sm:prose-lg max-w-none dark:prose-invert 
-            prose-headings:font-serif prose-headings:font-medium 
-            prose-p:leading-relaxed sm:prose-p:leading-loose prose-p:mb-6 
-            prose-li:my-1 prose-ul:my-4 prose-ol:my-4
+        <div className="bg-white dark:bg-[#1e1e1e] rounded-3xl p-8 sm:p-12 shadow-sm border border-gray-100 dark:border-white/5">
+          <div className="prose prose-sm sm:prose-lg max-w-none dark:prose-invert 
+              prose-headings:font-serif prose-headings:font-medium 
+              prose-p:leading-relaxed sm:prose-p:leading-loose prose-p:mb-6 
+              prose-li:my-1 prose-ul:my-4 prose-ol:my-4
             text-gray-800 dark:text-gray-200">
           <div 
             className="markdown-content"
             dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
+        </div>
         </div>
 
         <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 text-center">
