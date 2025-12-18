@@ -355,7 +355,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
                  </button>
              </div>
 
-             <div className="flex items-center gap-3">
+             <div className="flex items-center gap-4 sm:gap-3">
                  {/* Generate Button */}
                  <button
                     onClick={handleSubmit}

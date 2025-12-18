@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { Copy, CheckCircle, AlertTriangle, FileDown } from 'lucide-react';
+import { Copy, CheckCircle, AlertTriangle, FileText, File } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { markdownToHtml } from '../utils/markdownRenderer';
 import { cleanLatex } from '../utils/latexCleaner';
@@ -66,49 +66,49 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
         ref={ref}
         className="bg-transparent transition-colors duration-300"
       >
-        <div className="flex flex-row items-center justify-end gap-2 mb-8 sticky top-20 z-10 py-2">
-          {/* Actions - Now more discrete */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm">
+        <div className="flex flex-row items-center justify-center gap-2 mb-10 sticky top-20 z-10 py-2">
+          {/* Actions - Now centered and more discrete */}
+          <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-white/60 dark:bg-[#1a1a1a]/60 backdrop-blur-md border border-gray-200 dark:border-white/10 shadow-lg px-2">
             {/* Export DOCX Button */}
             <button
               onClick={handleExportDocx}
               disabled={isExporting !== null}
-              className="p-2 text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors rounded-lg hover:bg-white dark:hover:bg-white/10 disabled:opacity-50"
+              className="p-2.5 text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-50"
               title="Download as Word"
             >
-              <FileDown className="w-4 h-4" />
+              <FileText className="w-5 h-5" />
             </button>
 
             {/* Export PDF Button */}
             <button
               onClick={handleExportPdf}
               disabled={isExporting !== null}
-              className="p-2 text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors rounded-lg hover:bg-white dark:hover:bg-white/10 disabled:opacity-50"
+              className="p-2.5 text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-50"
               title="Download as PDF"
             >
-              <FileDown className="w-4 h-4" />
+              <File className="w-5 h-5" />
             </button>
 
-            <div className="w-[1px] h-4 bg-gray-200 dark:bg-white/10 mx-0.5" />
+            <div className="w-[1px] h-5 bg-gray-200 dark:bg-white/10 mx-1" />
 
             {/* Copy Button */}
             <button
               onClick={onCopy}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all ${
                 copied 
-                  ? 'bg-[#C1A87D] text-white shadow-sm' 
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-white/10'
+                  ? 'bg-[#C1A87D] text-white shadow-md transform scale-105' 
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
               }`}
             >
               {copied ? (
                 <>
                   <CheckCircle className="w-3.5 h-3.5" />
-                  <span>Copied</span>
+                  <span>COPIED</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5" />
-                  <span>Copy</span>
+                  <span>COPY</span>
                 </>
               )}
             </button>

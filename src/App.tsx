@@ -394,8 +394,9 @@ function AppContent() {
                   </div>
 
                   {generatedContent && (
-                      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/10">
-                          <span className="text-sm font-semibold text-[#C1A87D] dark:text-[#F2E8CF]">
+                      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-1.5 rounded-full bg-white dark:bg-[#252525] border border-gray-200 dark:border-white/10 shadow-sm animate-in fade-in zoom-in duration-300">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#C1A87D] animate-pulse"></div>
+                          <span className="text-[11px] font-bold tracking-widest uppercase text-gray-500 dark:text-gray-400">
                               {selectedMode === 'essay' ? 'Essay & Research' : 
                                selectedMode === 'cs' ? 'Computer Science' : 'Paraphrase'}
                           </span>
