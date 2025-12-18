@@ -159,7 +159,7 @@ function AppContent() {
       return "Annyeonghaseyo";
     }
     // Midnight: 11 PM - 4:59 AM (Filipino)
-    return "Magandang madaling araw";
+    return "Kumusta";
   };
 
   useEffect(() => {
