@@ -393,14 +393,7 @@ function AppContent() {
                       )}
                   </div>
 
-                  {generatedContent && (
-                      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/10">
-                          <span className="text-sm font-semibold text-[#C1A87D] dark:text-[#F2E8CF]">
-                              {selectedMode === 'essay' ? 'Essay & Research' : 
-                               selectedMode === 'cs' ? 'Computer Science' : 'Paraphrase'}
-                          </span>
-                      </div>
-                  )}
+
 
                   <div className="flex items-center gap-2">
                       {/* Optional right-side header actions can go here */}
