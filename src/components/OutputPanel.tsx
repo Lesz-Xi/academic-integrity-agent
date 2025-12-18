@@ -121,16 +121,17 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
 
         {/* Warnings */}
         {warnings.length > 0 && (
-          <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
+          <div className="mb-6 p-4 bg-[#F2E8CF]/20 dark:bg-[#F2E8CF]/5 border border-[#85683F]/30 dark:border-[#85683F]/20 rounded-xl relative overflow-hidden">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#85683F]/40" />
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-[#85683F] dark:text-[#F2E8CF] mt-0.5 flex-shrink-0" />
               <div>
-                <h4 className="font-semibold text-yellow-900 dark:text-yellow-400 mb-2">Warnings</h4>
-                <ul className="text-sm text-yellow-800 dark:text-yellow-300 space-y-1">
+                <h4 className="font-bold text-[#85683F] dark:text-[#F2E8CF] text-sm uppercase tracking-wider mb-2">Warnings</h4>
+                <ul className="text-sm text-[#85683F]/90 dark:text-[#F2E8CF]/80 space-y-1.5">
                   {warnings.map((warning, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="text-yellow-600 dark:text-yellow-500">•</span>
-                      <span>{warning}</span>
+                    <li key={idx} className="flex items-center gap-2">
+                      <span className="text-[#85683F]/60 dark:text-[#F2E8CF]/60 flex-shrink-0 leading-none">•</span>
+                      <span className="leading-tight">{warning}</span>
                     </li>
                   ))}
                 </ul>

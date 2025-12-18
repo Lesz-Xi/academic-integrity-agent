@@ -41,7 +41,45 @@ export async function generateContent(
   length: 'short' | 'medium' | 'long' = 'medium'
 ): Promise<GenerationResponse> {
   
-  let systemPrompt = MODE_PROMPTS[mode];
+  const basePrompt = MODE_PROMPTS[mode];
+  let customInstructions = '';
+  
+  // Custom Instructions (Additional Instructions) are prioritized at the top
+  if (additionalInstructions) {
+    customInstructions = `CUSTOM USER INSTRUCTIONS (HIGHEST PRIORITY):\n${additionalInstructions}\n\n`;
+  }
+
+  // AUTO-APPEND: Humanization + Anti-RLHF + Burstiness for paraphrase mode
+  // Based on Grammarly detection analysis: casual markers + varied structure = lower AI scores
+  if (mode === 'paraphrase') {
+    const wordCount = input.trim().split(/\s+/).length;
+    let instruction = '';
+    
+    // Core rules that apply to ALL text lengths
+    const coreRules = 'HUMANIZE: Write like a real person, not a textbook. Use contractions (didn\'t, can\'t), occasional informal phrasing, and natural speech patterns. BANNED PHRASES: "In conclusion", "It is important to note", "Furthermore", "Moreover", "Additionally".';
+    
+    if (wordCount < 200) {
+      // SHORT TEXT
+      instruction = `${coreRules} BURSTINESS: Include 2+ very short sentences (under 5 words).`;
+    } else if (wordCount < 600) {
+      // MEDIUM TEXT
+      instruction = `${coreRules} BURSTINESS: Create 3-4 short sentences (under 6 words) AND 1+ long flowing sentence (over 30 words).`;
+    } else {
+      // LONG TEXT
+      instruction = `${coreRules} BURSTINESS: At least 15% of sentences must be under 6 words. Vary structure organically. Break lists into 2 or 4 items.`;
+    }
+    
+    // Only append if not already present
+    if (instruction && !customInstructions.toLowerCase().includes('humanize')) {
+      customInstructions = customInstructions 
+        ? `${customInstructions}${instruction}\n\n`
+        : `CUSTOM USER INSTRUCTIONS (HIGHEST PRIORITY):\n${instruction}\n\n`;
+    }
+  }
+
+  // Prepend custom instructions to the base prompt for maximum weight
+  const systemInstruction = customInstructions + basePrompt;
+
   let searchContext = '';
   
   // Search integration (only for essay and cs modes)
@@ -59,9 +97,6 @@ export async function generateContent(
     }
   }
   
-  // Claude will be called directly with streaming
-  const systemInstruction = systemPrompt;
-  
   // Build user message with search context if available
   let userMessage = input;
   
@@ -72,9 +107,9 @@ export async function generateContent(
   // Inject length instructions (only for content generation modes, not paraphrase)
   if (mode !== 'paraphrase') {
     const lengthTargets = {
-      short: '400-600 words',      // Optimized: shorter for better humanization
-      medium: '800-1,000 words',   // Optimized: reduced from 1,200-1,800
-      long: '1,500-2,000 words'    // Optimized: reduced from 2,500-3,500
+      short: '400-500 words',      // Normal: exact match to user request
+      medium: '1,000-1,500 words', // Medium: Standard essay
+      long: '2,000-3,000 words'    // Long: Deep research
     };
     userMessage += `\n\nIMPORTANT: Target length is ${lengthTargets[length]}. Ensure the response meets this requirement.`;
   } else {
@@ -272,7 +307,7 @@ export async function streamChat(
   
   // Convert history to Claude message format
   const messages = history.map(msg => ({
-    role: msg.role as 'user' | 'assistant',
+    role: msg.role === 'user' ? 'user' : 'assistant' as 'user' | 'assistant',
     content: msg.text
   }));
   
@@ -280,7 +315,7 @@ export async function streamChat(
 
   try {
     const stream = await anthropic.messages.stream({
-      model: 'claude-opus-4-20250514',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 4096,
       system: systemPrompt,
       messages: messages,

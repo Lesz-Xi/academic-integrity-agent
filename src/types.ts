@@ -1,8 +1,8 @@
 // Core types for the Academic Integrity Agent
 
 export type Mode = 'essay' | 'cs' | 'paraphrase';
-
 export type EssayLength = 'short' | 'medium' | 'long';
+
 
 export interface LengthConfig {
   id: EssayLength;

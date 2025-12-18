@@ -164,10 +164,11 @@ AI text is too smooth. Introduce controlled variation:
 
 - Ensure no two consecutive sentences have identical structure and length
  
- ### NEW 2025 BURSTINESS HEURISTIC (1:3 Ratio)
- - For every 3 sentences over 20 words, you MUST include 1 sentence under 7 words.
- - This "rhythmic shock" breaks AI detection patterns that statistics (CV) might miss.
- - Example: SHORT (5w) → LONG (35w) → MEDIUM (15w) → FRAGMENT (3w)
+  ### NEW 2025 BURSTINESS HEURISTIC (1:2 Ratio)
+  - For every 2 sentences over 20 words, you MUST include 1 sentence under 6 words.
+  - FORCE unpredictable "Structural Ruptures" between surgical fragments (3-5 words) and runaway multi-clause sentences (50+ words).
+  - This "rhythmic shock" breaks AI detection patterns that statistics (CV) might miss.
+  - Aim for an overall CV > 0.8.
  
  ### BREAK THE "RULE OF THREE"
  AI models tend to list exactly 3 items: "A, B, and C." Breakdown these patterns:
@@ -256,8 +257,7 @@ For emphasis, use word choice and sentence structure instead of formatting.
 ### BANNED STRUCTURAL PATTERNS (CRITICAL - Causes AI Detection)
 These patterns trigger tutorial/listicle detection. NEVER use them:
 
-❌ ALL-CAPS HEADERS or TITLES:
-- NEVER start with an uppercase title like "TOPIC NAME: SUBTITLE"
+❌ BANNED: Bold section headers, titles with colons (e.g. "AI: The Future"), or all-caps subheadings.
 - Instead: Begin with a natural opening sentence that introduces the topic
 
 ❌ COLON-LABELED SECTIONS (Topic: explanation format):

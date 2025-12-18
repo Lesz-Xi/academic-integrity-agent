@@ -3,18 +3,21 @@ import { generateContent } from './services/academicIntegrityService';
 import { GenerationService } from './services/generationService';
 import { SubscriptionService } from './services/subscriptionService';
 import { supabase } from './lib/supabase';
-import { RotateCcw, Moon, Sun, Crown, LogOut } from 'lucide-react';
+import { 
+  RotateCcw,
+  PanelLeft,
+} from 'lucide-react';
 import { Mode, GenerationResponse, HistoryItem, EssayLength } from './types';
 import { useTheme } from './hooks/useTheme';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useGenerationHistory } from './hooks/useGenerationHistory';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
+import Sidebar from './components/Sidebar';
 import InputPanel from './components/InputPanel';
 import OutputPanel from './components/OutputPanel';
 import MetricsPanel from './components/MetricsPanel';
 import EthicsDisclaimer from './components/EthicsDisclaimer';
-import HistoryPanel from './components/HistoryPanel';
 import RevealOnScroll from './components/RevealOnScroll';
 import LimitReachedModal from './components/LimitReachedModal';
 import CheckoutModal from './components/CheckoutModal';
@@ -27,7 +30,7 @@ const AuthPage = lazy(() => import('./components/AuthPage'));
 function AppContent() {
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated, signOut, loading: authLoading } = useAuth();
-  const { history, addItem, deleteItem, loading: historyLoading } = useGenerationHistory();
+  const { history, addItem, deleteItem } = useGenerationHistory();
 
   // Default to 'essay' so the UI is ready immediately
   const [selectedMode, setSelectedMode] = useState<Mode>('essay');
@@ -43,11 +46,25 @@ function AppContent() {
   const [showTour, setShowTour] = useState(false);
   const [searchEnabled, setSearchEnabled] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  
   // Track sign-out to prevent race conditions
   const isSigningOutRef = useRef(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
 
-  // Check subscription status with Realtime and Polling
+  // Keyboard shortcut for sidebar: Cmd + .
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === '.') {
+        e.preventDefault();
+        setIsSidebarOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Check subscription status
   useEffect(() => {
     let mounted = true;
     let channel: any = null;
@@ -58,37 +75,37 @@ function AppContent() {
 
       try {
         const premium = await SubscriptionService.isPremium(user.id);
-        
         if (!mounted || isSigningOutRef.current) return;
-
-        console.log('[App] Premium check result for UI:', premium);
         setIsPremium(premium);
 
         // If false, retry up to 5 times (propagation lag)
         if (!premium && retries < 5) {
-          console.log('[App] Premium not found yet, retrying in 2s...');
           setTimeout(() => {
             if (mounted) checkPremiumStatus(retries + 1);
           }, 2000);
         }
       } catch (error) {
-        console.error('[App] Premium check error:', error);
-      }
+          console.error('[App] Failed to check premium status:', error);
+          // Fail Safe: If we encounter an error (network/timeout), DO NOT downgrade the user
+          // Only update state if we get a successful 'false' from the service.
+          // If we were already premium, keep it that way until we can verify otherwise.
+          setIsPremium(prev => {
+            if (prev) {
+              console.warn('[App] Keeping existing Premium status despite check failure');
+              return true;
+            }
+            return false;
+          });
+        }
     }
 
     if (user) {
-      // Reset sign-out flag when we have a user
       isSigningOutRef.current = false;
-      
-      // Set to loading state immediately when user changes
       setIsPremium(null);
-
-      // 1. Immediate Check (with a short delay to let auth state settle)
       const timeoutId = setTimeout(() => {
         if (mounted) checkPremiumStatus();
-      }, 1000); // 1s wait is enough for RLS settling
+      }, 1000);
 
-      // 2. Realtime Subscription
       channel = supabase
         .channel(`public:subscriptions:${user.id}`)
         .on(
@@ -99,10 +116,7 @@ function AppContent() {
             table: 'subscriptions',
             filter: `user_id=eq.${user.id}`,
           },
-          (payload: any) => {
-            console.log('[App] Subscription change detected:', payload);
-            checkPremiumStatus(); // Re-check on any change
-          }
+          () => checkPremiumStatus()
         )
         .subscribe();
 
@@ -121,14 +135,12 @@ function AppContent() {
     };
   }, [user, view]);
   
-  // Usage Limit State
   const [limitModalOpen, setLimitModalOpen] = useState(false);
   const [usageCount, setUsageCount] = useState(0);
-  const MONTHLY_LIMIT = 20; // Free tier: 20 generations before requiring subscription
+  const MONTHLY_LIMIT = 20;
 
   const outputContainerRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to content when generated or restored
   useEffect(() => {
     if (generatedContent && outputContainerRef.current) {
       setTimeout(() => {
@@ -141,7 +153,6 @@ function AppContent() {
   }, [generatedContent]);
 
   useEffect(() => {
-    // Check if user has previously accepted
     const accepted = localStorage.getItem('hasAcceptedDisclaimer');
     if (!accepted) {
       setShowDisclaimer(true);
@@ -150,15 +161,12 @@ function AppContent() {
     }
   }, []);
 
-  // Auto-redirect to app after successful authentication (but not during sign-out)
   useEffect(() => {
     if (isAuthenticated && user && view !== 'app' && !isSigningOut && !isSigningOutRef.current) {
-      console.log('[App] User authenticated, redirecting to app')
       handleEnterApp()
     }
   }, [isAuthenticated, user, view, isSigningOut])
 
-  // Reset sign-out state when authentication officially clears
   useEffect(() => {
     if (!user) {
       if (isSigningOut) setIsSigningOut(false);
@@ -172,85 +180,50 @@ function AppContent() {
     setShowDisclaimer(false);
   };
 
-  const handleGenerate = async (input: string, additionalInstructions: string, useSearch: boolean = false) => {
-    console.log('[App] handleGenerate triggered', { selectedMode, disclaimerAccepted, inputLength: input.length });
-    
-    // Ensure we have a mode (defaulting to essay if somehow null)
+  const handleGenerate = async (input: string, additionalInstructions: string = '', useSearch: boolean = false) => {
     const modeToUse = selectedMode || 'essay';
-    
     if (!disclaimerAccepted) {
-        console.warn('[App] Generation blocked: Disclaimer not accepted');
         setShowDisclaimer(true);
         return;
     }
 
-    // Do a FRESH premium check every time to avoid race conditions with stale state
     let currentPremiumStatus = isPremium;
     if (user) {
       try {
-        console.log('[App] Refreshing premium status before generation...');
-        // Add a 3s timeout to ensure we don't hang the UI
-        const checkPromise = SubscriptionService.isPremium(user.id);
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Premium check timed out')), 3000);
-        });
-
-        currentPremiumStatus = await Promise.race([checkPromise, timeoutPromise]) as boolean;
-        
-        // Sync UI state if it differs (fixes stale state on login)
-        if (currentPremiumStatus !== isPremium) {
-          console.log('[App] Updated premium state:', currentPremiumStatus);
-          setIsPremium(currentPremiumStatus);
-        }
+        currentPremiumStatus = await SubscriptionService.isPremium(user.id);
+        if (currentPremiumStatus !== isPremium) setIsPremium(currentPremiumStatus);
       } catch (err) {
-        console.warn('[App] Premium check failed or timed out, using cached state:', err);
-        // CRITICAL: If the check fails (e.g. timeout), DO NOT set it to false.
-        // Keep the currentPremiumStatus as the previous isPremium state (which might be true).
         currentPremiumStatus = isPremium;
       }
     }
 
-    // Check usage limit before generating (skip for premium users)
-    // Only block if we are SURE the user is not premium (currentPremiumStatus is explicitly false)
     if (user && currentPremiumStatus === false) {
       try {
         const usage = await GenerationService.getMonthlyUsage(user.id);
-        console.log('[App] Usage check:', usage, '/', MONTHLY_LIMIT);
-        
         if (usage >= MONTHLY_LIMIT) {
-          console.warn('[App] Monthly limit reached!');
           setUsageCount(usage);
           setLimitModalOpen(true);
-          return; // Block generation
+          return;
         }
       } catch (err) {
-        console.error('[App] Failed to check usage (failing closed):', err);
         setUsageCount(MONTHLY_LIMIT);
         setLimitModalOpen(true);
         return;
       }
     }
 
-    console.log('[App] All checks passed, starting generation');
     setIsGenerating(true);
     setGeneratedContent(null);
 
     try {
-      console.log('[App] Calling generateContent...');
-      // Pass searchEnabled (5th param) and selectedLength (6th param) to generateContent
       const response = await generateContent(modeToUse, input, additionalInstructions, undefined, useSearch, selectedLength);
-      console.log('[App] Generation complete, setting content');
       setGeneratedContent(response);
-
-      // Save to history in background (don't block UI)
       addItem({
         mode: modeToUse,
         input: input,
         output: response.text,
         metrics: response.metrics,
-      }).catch(err => {
-        console.error('[App] Failed to save to history:', err);
-      });
+      }).catch(err => console.error('[App] Failed to save to history:', err));
     } catch (error) {
       console.error('Generation error:', error);
       alert('Failed to generate content. Please check your API key in .env.local');
@@ -260,15 +233,13 @@ function AppContent() {
   };
 
   const handleReset = () => {
-    setSelectedMode('essay'); // Reset to default mode
+    setSelectedMode('essay');
     setGeneratedContent(null);
     setIsGenerating(false);
     setCopied(false);
+    if (window.innerWidth < 1024) setIsSidebarOpen(false);
   };
 
-  const handleDeleteHistory = async (id: string) => {
-    await deleteItem(id);
-  };
 
   const handleRestoreHistory = (item: HistoryItem) => {
     setSelectedMode(item.mode);
@@ -277,6 +248,7 @@ function AppContent() {
       metrics: item.metrics,
       warnings: [],
     });
+    if (window.innerWidth < 1024) setIsSidebarOpen(false);
   };
 
   const handleCopy = async () => {
@@ -293,21 +265,13 @@ function AppContent() {
       setView('auth');
       return;
     }
-
     setView('app');
-    setShowDisclaimer(false); // Ensure disclaimer is closed before tour starts
-
-    // Check for pending subscription intent
+    setShowDisclaimer(false);
     const pendingSubscription = localStorage.getItem('pendingSubscription');
     if (pendingSubscription === 'premium') {
-      console.log('[App] Found pending subscription intent, opening upgrade modal');
       setShowUpgradeModal(true);
       localStorage.removeItem('pendingSubscription');
     }
-
-    // Default mode already set to essay
-
-    // Check if tour has been seen
     const hasSeenTour = localStorage.getItem('hasSeenOnboardingTour');
     if (!hasSeenTour) {
       setTimeout(() => setShowTour(true), 1000);
@@ -322,8 +286,6 @@ function AppContent() {
   const handleTourComplete = () => {
     setShowTour(false);
     localStorage.setItem('hasSeenOnboardingTour', 'true');
-
-    // Open Ethics Disclaimer immediately after tour
     setShowDisclaimer(true);
   };
 
@@ -334,7 +296,6 @@ function AppContent() {
 
   const handleBackToLanding = () => {
     setView('landing');
-    // Reset app state when going back to landing
     setSelectedMode('essay');
     setGeneratedContent(null);
     setShowDisclaimer(false);
@@ -343,13 +304,8 @@ function AppContent() {
   };
 
   const handleSignOut = async () => {
-    console.log('[App] Signing out user')
-    
-    // Prevent auto-redirect during sign-out
     setIsSigningOut(true)
-    isSigningOutRef.current = true  // Abort pending async operations
-    
-    // Reset state IMMEDIATELY - don't wait for Supabase
+    isSigningOutRef.current = true
     setView('landing')
     setSelectedMode('essay')
     setGeneratedContent(null)
@@ -359,11 +315,8 @@ function AppContent() {
     setInitAuthSignup(false)
     setCopied(false)
     setIsGenerating(false)
-    
-    // Clear session in background
     try {
       await signOut()
-      console.log('[App] Local session cleared')
     } catch (localError) {
       console.error('[App] Local sign out failed:', localError)
     }
@@ -373,7 +326,6 @@ function AppContent() {
     theme === 'dark' ? 'bg-[#1a1a1a] text-[#e5e5e5]' : 'bg-[#F5F3EE] text-[#2D2D2D]'
   }`;
 
-  // Show loading spinner while auth is initializing
   if (authLoading) {
     return <LoadingSpinner fullScreen message="Loading..." />;
   }
@@ -395,9 +347,7 @@ function AppContent() {
       {view === 'auth' && (
         <Suspense fallback={<LoadingSpinner fullScreen message="Loading..." />}>
           <AuthPage
-            onLogin={() => {
-              // Once logged in, the useEffect hook will handle redirection to app
-            }}
+            onLogin={() => {}}
             onBack={handleBackToLanding}
             theme={theme}
             initialIsSignUp={initAuthSignup}
@@ -406,161 +356,126 @@ function AppContent() {
       )}
 
       {view === 'app' && (
-        <div className={`relative overflow-hidden flex flex-col ${mainClasses}`}>
-          {/* Parallax Background Blobs */}
-          <div className="fixed top-20 -left-20 w-96 h-96 bg-[#F2E8CF]/10 rounded-full blur-3xl animate-float -z-10 pointer-events-none"></div>
-          <div className="fixed top-40 right-0 w-72 h-72 bg-[#CC785C]/5 rounded-full blur-3xl animate-float-delayed -z-10 pointer-events-none"></div>
-          <div className="fixed bottom-0 left-1/3 w-[500px] h-[500px] bg-yellow-400/5 rounded-full blur-3xl animate-float -z-10 pointer-events-none"></div>
-
-          <EthicsDisclaimer
-            isOpen={showDisclaimer}
-            onClose={() => setShowDisclaimer(false)}
-            onAccept={handleAcceptDisclaimer}
-            canClose={disclaimerAccepted}
-          />
-
-          <LimitReachedModal 
-            isOpen={limitModalOpen}
-            onClose={() => setLimitModalOpen(false)}
-            onUpgrade={() => {
-              setLimitModalOpen(false);
-              setShowUpgradeModal(true); // Open checkout modal directly
-            }}
+        <div className={`relative flex min-h-screen overflow-hidden ${mainClasses}`}>
+          <Sidebar 
+            isOpen={isSidebarOpen}
+            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+            history={history}
+            onHistoryItemClick={handleRestoreHistory}
+            onNewChat={handleReset}
+            isAuthenticated={isAuthenticated}
+            user={user}
+            isPremium={isPremium}
             theme={theme}
-            usageCount={usageCount}
-            limit={MONTHLY_LIMIT}
+            toggleTheme={toggleTheme}
+            onSignOut={handleSignOut}
+            onUpgrade={() => setShowUpgradeModal(true)}
+            onDeleteHistoryItem={(id, e) => {
+              e.stopPropagation();
+              deleteItem(id);
+            }}
           />
 
-          {/* Minimal Header */}
-          <header className="absolute top-0 right-0 left-0 p-4 z-40 flex justify-between items-center pointer-events-none">
-             {/* Left side empty or minimal logo if desired, but user asked for Claude style which is empty top left usually unless menu opened */}
-             <div className="pointer-events-auto">
-                {/* Optional: Add a subtle home/reset button here if needed */}
-             </div>
+          <div className={`
+             flex-1 flex flex-col relative transition-all duration-300
+             ${isSidebarOpen ? 'lg:ml-72' : 'ml-0'}
+          `}>
+              <header className="sticky top-0 p-4 z-40 flex justify-between items-center pointer-events-none">
+                  <div className="pointer-events-auto flex items-center gap-3">
+                      {!isSidebarOpen && (
+                          <button
+                            onClick={() => setIsSidebarOpen(true)}
+                            className="p-2 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-white/10 pointer-events-auto"
+                            title="Open Sidebar (Cmd+.)"
+                          >
+                            <PanelLeft className="w-5 h-5 text-gray-500" />
+                          </button>
+                      )}
+                  </div>
+              </header>
 
-             <div className="flex items-center gap-2 sm:gap-4 pointer-events-auto bg-black/5 dark:bg-white/5 backdrop-blur-md rounded-full px-4 py-2">
-                 <button
-                   onClick={toggleTheme}
-                   className={`p-2 rounded-full transition-colors ${
-                     theme === 'dark' ? 'text-yellow-400 hover:bg-[#333]' : 'text-slate-600 hover:bg-[#F5F3EE]'
-                   }`}
-                   title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                 >
-                   {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                 </button>
+              <div className="absolute top-20 -left-20 w-96 h-96 bg-[#F2E8CF]/10 rounded-full blur-3xl animate-float -z-10 pointer-events-none"></div>
+              <div className="absolute top-40 right-0 w-72 h-72 bg-[#CC785C]/5 rounded-full blur-3xl animate-float-delayed -z-10 pointer-events-none"></div>
+              <div className="absolute bottom-0 left-1/3 w-[500px] h-[500px] bg-yellow-400/5 rounded-full blur-3xl animate-float -z-10 pointer-events-none"></div>
 
-                 {isPremium === false && isAuthenticated && (
-                      <button
-                        onClick={() => setShowUpgradeModal(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full transition-colors bg-gradient-to-r from-[#F2E8CF] to-[#CC785C] text-white hover:opacity-90 shadow-sm"
-                      >
-                        <Crown className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Upgrade</span>
-                      </button>
-                 )}
+              <main className="flex-1 flex flex-col max-w-7xl mx-auto w-full relative">
+                <EthicsDisclaimer
+                    isOpen={showDisclaimer}
+                    onClose={() => setShowDisclaimer(false)}
+                    onAccept={handleAcceptDisclaimer}
+                    canClose={disclaimerAccepted}
+                />
 
-                 {/* Sign Out Button */}
-                 {isAuthenticated && (
-                     <button
-                       onClick={handleSignOut}
-                       className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors text-gray-600 hover:text-gray-900 hover:bg-black/5 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10"
-                       title="Sign out"
-                     >
-                       <LogOut className="w-3.5 h-3.5" />
-                       <span className="hidden sm:inline">Sign Out</span>
-                     </button>
-                 )}
-             </div>
-          </header>
+                <LimitReachedModal 
+                    isOpen={limitModalOpen}
+                    onClose={() => setLimitModalOpen(false)}
+                    onUpgrade={() => {
+                        setLimitModalOpen(false);
+                        setShowUpgradeModal(true);
+                    }}
+                    theme={theme}
+                    usageCount={usageCount}
+                    limit={MONTHLY_LIMIT}
+                />
 
-          <main className="flex-1 flex flex-col max-w-7xl mx-auto w-full relative">
-            
-            {/* Centered Welcome & Input Area (Visible when no content generated) */}
-            {!generatedContent && (
-                <div className="flex-1 flex flex-col items-center justify-center px-4 w-full min-h-[80vh] animate-in fade-in duration-700">
-                    <div className="text-center mb-8 sm:mb-12">
-                         <h1 className="text-2xl sm:text-5xl font-serif text-[#2D2D2D] dark:text-[#EAEAEA] mb-4">
-                            Welcome, <span className="text-[#C1A87D] dark:text-[#F2E8CF] italic">{user?.email?.split('@')[0] || 'Scholar'}</span>
-                         </h1>
-                    </div>
-
-                    <div className="w-full max-w-3xl">
-                        <InputPanel
-                          mode={selectedMode || 'essay'}
-                          onGenerate={handleGenerate}
-                          onInputChange={(input: string) => {
-                            if (!input.trim()) {
-                              setGeneratedContent(null);
-                              setCopied(false);
-                            }
-                          }}
-                          onModeChange={setSelectedMode}
-                          onLengthChange={setSelectedLength}
-                          isGenerating={isGenerating}
-                          searchEnabled={searchEnabled}
-                          onSearchToggle={setSearchEnabled}
-                          theme={theme}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Generated Content View (Visible when content exists) */}
-            {generatedContent && (
-               <div className="flex-1 w-full pt-24 px-4 sm:px-6 pb-20">
-                   {/* We could keep the input at top or move to bottom. For now, let's keep the user flow of seeing the input logic above or implicitly handled. 
-                       Actually, in a chat interface, the input usually moves to bottom. 
-                       But to stick to the current "Generation" style where you see the output clearly:
-                   */}
-                   
-                   <div className="max-w-4xl mx-auto space-y-8">
-                        {/* Quick controls to go back/reset */}
-                        <div className="flex justify-between items-center">
-                            <button 
-                                onClick={handleReset}
-                                className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#CC785C] transition-colors"
-                            >
-                                <RotateCcw className="w-4 h-4" /> Start New Generation
-                            </button>
+                {!generatedContent && (
+                    <div className="flex-1 flex flex-col items-center justify-center px-4 w-full min-h-[85vh] animate-in fade-in duration-700">
+                        <div className="text-center mb-8 sm:mb-12">
+                             <h1 className="text-2xl sm:text-5xl font-serif text-[#2D2D2D] dark:text-[#EAEAEA] mb-4">
+                                Welcome, <span className="text-[#C1A87D] dark:text-[#F2E8CF] italic">{user?.email?.split('@')[0] || 'Academic Agent'}</span>
+                             </h1>
                         </div>
 
-                        {/* Analysis Metrics */}
-                        <RevealOnScroll>
-                            <MetricsPanel metrics={generatedContent.metrics} />
-                        </RevealOnScroll>
-
-                        {/* The Content */}
-                        <RevealOnScroll delay={100}>
-                            <OutputPanel
-                                ref={outputContainerRef}
-                                text={generatedContent.text}
-                                warnings={generatedContent.warnings}
-                                onCopy={handleCopy}
-                                copied={copied}
+                        <div className="w-full max-w-3xl">
+                            <InputPanel
+                              mode={selectedMode || 'essay'}
+                              onGenerate={handleGenerate}
+                              onInputChange={(input: string) => {
+                                if (!input.trim()) {
+                                  setGeneratedContent(null);
+                                  setCopied(false);
+                                }
+                              }}
+                              onModeChange={setSelectedMode}
+                              onLengthChange={setSelectedLength}
+                              selectedLength={selectedLength}
+                              isGenerating={isGenerating}
+                              searchEnabled={searchEnabled}
+                              onSearchToggle={setSearchEnabled}
+                              theme={theme}
                             />
-                        </RevealOnScroll>
-                        
-                        {/* Input could be repeated at bottom for follow-up if we fully move to chat, but for now this is good */}
+                        </div>
+                    </div>
+                )}
+
+                {generatedContent && (
+                   <div className="flex-1 w-full pt-8 px-4 sm:px-6 pb-20">
+                       <div className="max-w-4xl mx-auto space-y-8">
+                            <div className="flex justify-between items-center">
+                                <button 
+                                    onClick={handleReset}
+                                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#CC785C] transition-colors"
+                                >
+                                    <RotateCcw className="w-4 h-4" /> Start New Generation
+                                </button>
+                            </div>
+                            <RevealOnScroll>
+                                <MetricsPanel metrics={generatedContent.metrics} />
+                            </RevealOnScroll>
+                            <RevealOnScroll delay={100}>
+                                <OutputPanel
+                                    ref={outputContainerRef}
+                                    text={generatedContent.text}
+                                    warnings={generatedContent.warnings}
+                                    onCopy={handleCopy}
+                                    copied={copied}
+                                />
+                            </RevealOnScroll>
+                       </div>
                    </div>
-               </div>
-            )}
-
-            {/* History Panel - Tucked away or visible? 
-                In the new Minimal design, history might be in a sidebar. 
-                For now, let's put it at the bottom of the landing state or hidden.
-                Let's keep it visible but subtle at the bottom of the landing view for quick access.
-            */}
-             {!generatedContent && !historyLoading && history.length > 0 && (
-                <div className="pb-8 px-4 w-full max-w-5xl mx-auto opacity-80 hover:opacity-100 transition-opacity">
-                    <HistoryPanel
-                        history={history.slice(0, 3)} // Only show recent 3
-                        onDelete={handleDeleteHistory}
-                        onRestore={handleRestoreHistory}
-                    />
-                </div>
-            )}
-
-          </main>
+                )}
+              </main>
+          </div>
         </div>
       )}
 
@@ -571,7 +486,6 @@ function AppContent() {
         />
       </Suspense>
 
-      {/* Upgrade Modal */}
       {showUpgradeModal && (
         <CheckoutModal
           isOpen={showUpgradeModal}

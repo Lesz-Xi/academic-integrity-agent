@@ -1,11 +1,10 @@
 import React, { useState, useEffect, memo, useRef } from 'react';
 import { Mode, EssayLength } from '../types';
-import { ArrowUp, Paperclip, FileUp, X, Loader } from 'lucide-react';
 import { processFile, validateFileSize, validateFileType, FileProcessingResult } from '../utils/fileProcessor';
-// import { analyzeContent, ContentAnalysis } from '../utils/contentAnalyzer';
 import SearchToggle from './SearchToggle';
-// import FileActionPrompt from './FileActionPrompt';
 import CompactModeSelector from './CompactModeSelector';
+import CompactLengthSelector from './CompactLengthSelector';
+import { ArrowUp, Paperclip, FileUp, X, Loader, Edit3 } from 'lucide-react';
 
 interface InputPanelProps {
   mode: Mode;
@@ -13,6 +12,7 @@ interface InputPanelProps {
   onInputChange?: (input: string) => void;
   onModeChange?: (mode: Mode) => void;
   onLengthChange?: (length: EssayLength) => void;
+  selectedLength?: EssayLength;
   isGenerating: boolean;
   searchEnabled?: boolean;
   onSearchToggle?: (enabled: boolean) => void;
@@ -24,7 +24,8 @@ const InputPanel: React.FC<InputPanelProps> = ({
   onGenerate, 
   onInputChange,
   onModeChange,
-  // onLengthChange, 
+  onLengthChange, 
+  selectedLength = 'medium',
   isGenerating,
   searchEnabled = false,
   onSearchToggle,
@@ -136,9 +137,8 @@ const InputPanel: React.FC<InputPanelProps> = ({
   const clearFile = () => {
     setUploadedFile(null);
     setFileError(null);
-    // setContentAnalysis(null);
-    // setShowActionPrompt(false);
   };
+
 
   /* Unused handler removed
   const handleActionSelect = ...
@@ -244,21 +244,22 @@ const InputPanel: React.FC<InputPanelProps> = ({
 
         {/* Additional Instructions Field (Expandable) */}
         {showInstructions && (
-            <div className="px-4 pb-4 border-t border-gray-100 dark:border-white/5 animate-in slide-in-from-top-2 duration-300">
-                <div className="pt-4 px-1">
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="w-1 h-3 bg-[#CC785C] rounded-full" />
-                        <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-gray-500 dark:text-gray-400">
-                            Custom Directives
-                        </label>
+            <div className="px-1 py-1 sm:px-4 sm:py-3 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-black/10 animate-in slide-in-from-top-2 duration-300">
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-1">
+                            Custom Instructions
+                        </span>
                     </div>
-                    <textarea
-                        value={additionalInstructions}
-                        onChange={(e) => setAdditionalInstructions(e.target.value)}
-                        placeholder="e.g. 'Use a skeptical tone', 'Incorporate 1:3 burstiness'..."
-                        className="w-full bg-transparent border-none resize-none focus:ring-0 focus:outline-none text-gray-600 dark:text-gray-400 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-base sm:text-xs font-mono italic leading-relaxed min-h-[50px]"
-                        rows={2}
-                    />
+                    
+                    <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+                        <textarea
+                            value={additionalInstructions}
+                            onChange={(e) => setAdditionalInstructions(e.target.value)}
+                            placeholder="Define your own writing rules, target tone, or specific data points..."
+                            className="w-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl p-3 focus:ring-1 focus:ring-[#85683F] focus:border-transparent text-sm text-gray-600 dark:text-gray-300 placeholder:text-gray-400 italic min-h-[80px] resize-none"
+                        />
+                    </div>
                 </div>
             </div>
         )}
@@ -274,7 +275,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
                         disabled={isGenerating} 
                      />
                  )}
-                 
+
                  {/* File Upload Trigger */}
                  {!uploadedFile && (
                     <button
@@ -283,24 +284,33 @@ const InputPanel: React.FC<InputPanelProps> = ({
                         className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg transition-colors"
                          title="Attach file"
                     >
-                        {isProcessingFile ? <Loader className="w-4 h-4 animate-spin" /> : <Paperclip className="w-4 h-4" />}
+                        {isProcessingFile ? <Loader className="w-4 h-4 animate-spin text-[#C1A87D] dark:text-[#F2E8CF]" /> : <Paperclip className="w-4 h-4 text-[#C1A87D] dark:text-[#F2E8CF]" />}
                     </button>
                  )}
 
-                 {/* Instructions Toggle */}
+                  {/* Length Selector (Only for Essay and CS modes) */}
+                  {(mode === 'essay' || mode === 'cs') && onLengthChange && (
+                    <CompactLengthSelector
+                        selectedLength={selectedLength}
+                        onSelectLength={onLengthChange}
+                        disabled={isGenerating}
+                    />
+                  )}
+                 
+                 {/* Custom Instructions Toggle */}
                  <button
                     onClick={() => setShowInstructions(!showInstructions)}
                     disabled={isGenerating}
                     className={`
-                        p-2 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium
+                        p-2 rounded-lg transition-all duration-200 flex items-center gap-1.5
                         ${showInstructions 
-                            ? 'text-[#CC785C] bg-[#CC785C]/10' 
+                            ? 'bg-[#85683F]/10 text-[#85683F] ring-1 ring-[#85683F]/30' 
                             : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-white/10'}
                     `}
-                    title="Add specific instructions"
+                    title="Custom Instructions"
                  >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                    <span className="hidden sm:inline">Instructions</span>
+                    <Edit3 className="w-4 h-4 text-[#C1A87D] dark:text-[#F2E8CF]" />
+                    <span className="text-xs font-medium hidden sm:inline">Instructions</span>
                  </button>
              </div>
 
@@ -310,16 +320,16 @@ const InputPanel: React.FC<InputPanelProps> = ({
                     onClick={handleSubmit}
                     disabled={!hasContent || isGenerating || isProcessingFile}
                     className={`
-                        flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200
+                        flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300
                         ${hasContent 
-                            ? 'bg-[#CC785C] text-white shadow-md hover:bg-[#b56a50]' 
+                            ? 'bg-gradient-to-br from-[#C1A87D] to-[#A9936D] text-[#FFF] shadow-lg shadow-[#C1A87D]/20 hover:scale-105 active:scale-95' 
                             : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'}
                     `}
                  >
                     {isGenerating ? (
                         <Loader className="w-4 h-4 animate-spin" />
                     ) : (
-                        <ArrowUp className="w-5 h-5" strokeWidth={2.5} />
+                        <ArrowUp className="w-5 h-5" strokeWidth={3} />
                     )}
                  </button>
              </div>
@@ -327,8 +337,8 @@ const InputPanel: React.FC<InputPanelProps> = ({
 
         {/* Drag Overlay */}
         {isDragging && (
-          <div className="absolute inset-0 z-10 bg-[#CC785C]/10 backdrop-blur-sm rounded-[26px] border-2 border-[#CC785C] flex items-center justify-center">
-            <div className="bg-white dark:bg-[#424242] text-[#CC785C] px-4 py-2 rounded-lg font-bold shadow-lg animate-bounce">
+          <div className="absolute inset-0 z-10 bg-[#F2E8CF]/10 backdrop-blur-sm rounded-[26px] border-2 border-[#F2E8CF] flex items-center justify-center">
+            <div className="bg-white dark:bg-[#424242] text-[#85683F] px-4 py-2 rounded-lg font-bold shadow-lg animate-bounce">
               Drop file to upload
             </div>
           </div>

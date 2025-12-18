@@ -25,10 +25,14 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ metrics }) => {
   const getRiskColor = () => {
     const risk = metrics.overallRisk;
     switch (risk) {
-      case 'LOW': return 'text-[#2D2D2D] bg-[#F5F3EE] border-[#F2E8CF] dark:text-[#E5E5E5] dark:bg-[#3A332A] dark:border-[#F2E8CF]';
-      case 'MEDIUM': return 'text-[#2D2D2D] bg-[#F2E8CF] border-[#F2E8CF] dark:text-[#E5E5E5] dark:bg-[#F2E8CF]/20 dark:border-[#F2E8CF]';
-      case 'HIGH': return 'text-[#f2e8cf] bg-red-900/80 border-[#f2e8cf]/50 dark:text-[#f2e8cf] dark:bg-red-900/30 dark:border-[#f2e8cf]';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200 dark:text-gray-400 dark:bg-gray-900/30 dark:border-gray-700';
+      case 'LOW':
+        return 'bg-[#F2E8CF]/10 dark:bg-[#F2E8CF]/5 border-[#85683F]/20 dark:border-[#85683F]/10 text-[#85683F]/80 dark:text-[#F2E8CF]/70';
+      case 'MEDIUM':
+        return 'bg-[#F2E8CF]/20 dark:bg-[#F2E8CF]/5 border-[#85683F]/30 dark:border-[#85683F]/20 text-[#85683F] dark:text-[#F2E8CF]';
+      case 'HIGH':
+        return 'bg-red-500/10 dark:bg-red-900/10 border-red-500/30 dark:border-red-500/20 text-red-700 dark:text-red-400';
+      default:
+        return 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400';
     }
   };
 
@@ -56,7 +60,10 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ metrics }) => {
         </div>
 
         {/* Overall Risk Card */}
-        <div className={`mb-5 p-4 rounded-xl border ${getRiskColor()} transition-colors`}>
+        <div className={`mb-5 p-4 rounded-xl border relative overflow-hidden ${getRiskColor()} transition-colors`}>
+          <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+              metrics.overallRisk === 'HIGH' ? 'bg-red-500/40' : 'bg-[#85683F]/40'
+          }`} />
           <div className="flex items-center justify-between mb-1">
             <h4 className="text-sm font-bold uppercase tracking-wider opacity-80">Overall Risk</h4>
             <span className="text-lg font-bold">{metrics.overallRisk.toUpperCase()}</span>
@@ -73,9 +80,9 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ metrics }) => {
                 {metrics.burstiness.score}
               </span>
             </div>
-            <div className="h-2 bg-gray-100 dark:bg-[#333] rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
               <div 
-                className={`h-full transition-all duration-500 ${metrics.burstiness.score !== 'LOW' ? 'bg-[#C1A87D] dark:bg-[#f2e8cf]' : 'bg-yellow-500'}`}
+                className={`h-full transition-all duration-500 ${metrics.burstiness.score !== 'LOW' ? 'bg-[#C1A87D] dark:bg-[#f2e8cf]' : 'bg-[#85683F]/60'}`}
                 style={{ width: `${Math.min(metrics.burstiness.coefficient_of_variation * 100, 100)}%` }}
               ></div>
             </div>
@@ -92,9 +99,9 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ metrics }) => {
                 {metrics.perplexity.score}
               </span>
             </div>
-            <div className="h-2 bg-gray-100 dark:bg-[#333] rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
               <div 
-                className={`h-full transition-all duration-500 ${metrics.perplexity.score !== 'LOW' ? 'bg-[#C1A87D] dark:bg-[#f2e8cf]' : 'bg-yellow-500'}`}
+                className={`h-full transition-all duration-500 ${metrics.perplexity.score !== 'LOW' ? 'bg-[#C1A87D] dark:bg-[#f2e8cf]' : 'bg-[#85683F]/60'}`}
                 style={{ width: `${Math.min((metrics.perplexity.perplexity / 300) * 100, 100)}%` }}
               ></div>
             </div>

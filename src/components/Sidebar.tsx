@@ -1,0 +1,189 @@
+import React from 'react';
+import { 
+  Plus, 
+  History, 
+  LogOut, 
+  Sun, 
+  Moon, 
+  Crown, 
+  X,
+  PanelLeft
+} from 'lucide-react';
+import { HistoryItem } from '../types';
+
+interface SidebarProps {
+  isOpen: boolean;
+  onToggle: () => void;
+  history: HistoryItem[];
+  onHistoryItemClick: (item: HistoryItem) => void;
+  onNewChat: () => void;
+  isAuthenticated: boolean;
+  user: any;
+  isPremium: boolean | null;
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+  onSignOut: () => void;
+  onUpgrade: () => void;
+  onDeleteHistoryItem: (id: string, e: React.MouseEvent) => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({
+  isOpen,
+  onToggle,
+  history,
+  onHistoryItemClick,
+  onNewChat,
+  isAuthenticated,
+  user,
+  isPremium,
+  theme,
+  toggleTheme,
+  onSignOut,
+  onUpgrade,
+  onDeleteHistoryItem
+}) => {
+  return (
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+          onClick={onToggle}
+        />
+      )}
+
+      {/* Sidebar Container */}
+      <aside
+        className={`
+          fixed top-0 left-0 h-full bg-[#fcfcfc] dark:bg-[#1a1a1a] 
+          border-r border-gray-200 dark:border-white/5 
+          z-50 transition-all duration-300 ease-in-out
+          flex flex-col
+          ${isOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full lg:w-0 lg:translate-x-0 overflow-hidden'}
+        `}
+      >
+        {/* Header */}
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 px-2">
+            <div className="w-8 h-8 rounded-lg bg-[#F2E8CF] flex items-center justify-center shadow-lg shadow-[#F2E8CF]/10">
+              <span className="text-[#85683F] font-serif font-bold text-xl leading-none">A</span>
+            </div>
+            <span className="font-serif font-bold text-xl tracking-tight text-[#2D2D2D] dark:text-white">Academic Agent</span>
+          </div>
+          <button 
+            onClick={onToggle}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg lg:hidden"
+            title="Close Sidebar"
+          >
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+          
+          <button 
+            onClick={onToggle}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg hidden lg:flex text-gray-400 hover:text-[#85683F] transition-colors"
+            title="Close Sidebar (Cmd+.)"
+          >
+            <PanelLeft className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* New chat button */}
+        <div className="px-4 py-2">
+          <button
+            onClick={onNewChat}
+            className="w-full flex items-center gap-3 px-4 py-3 bg-white dark:bg-[#242424] border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 hover:border-[#85683F] dark:hover:border-[#F2E8CF] transition-all hover:shadow-md group"
+          >
+            <div className="w-6 h-6 rounded-md bg-[#F2E8CF] text-[#85683F] flex items-center justify-center group-hover:bg-[#85683F] group-hover:text-white transition-colors shadow-sm">
+              <Plus className="w-4 h-4" />
+            </div>
+            New Generation
+          </button>
+        </div>
+
+        {/* Navigation / History */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-2 mt-4 space-y-1">
+          <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 flex items-center justify-between">
+            <span>Recent Activity</span>
+            {history.length > 0 && <span>{history.length}</span>}
+          </div>
+          
+          {history.length === 0 ? (
+            <div className="px-4 py-8 text-center" key="no-history">
+              <History className="w-8 h-8 text-gray-200 dark:text-gray-700 mx-auto mb-2" />
+              <p className="text-xs text-gray-400">No recent activity</p>
+            </div>
+          ) : (
+            history.map((item) => (
+              <div key={item.id} className="group relative">
+                <button
+                  onClick={() => onHistoryItemClick(item)}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-all"
+                >
+                  <div className="w-2 h-2 rounded-full bg-[#F2E8CF] group-hover:bg-[#85683F] transition-colors flex-shrink-0" />
+                  <span className="truncate flex-1 pr-6">{item.input}</span>
+                </button>
+                <button
+                  onClick={(e) => onDeleteHistoryItem(item.id, e)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 opacity-0 group-hover:opacity-100 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-all rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                  title="Delete generation"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-100 dark:border-white/5 space-y-1">
+          {isAuthenticated && (
+            <div className="flex items-center gap-3 px-3 py-3 mb-2 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+              <div className="w-8 h-8 rounded-full bg-[#F2E8CF] flex items-center justify-center text-[#85683F] font-bold text-xs shadow-sm">
+                {user?.email?.[0].toUpperCase() || 'U'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                  {user?.email?.split('@')[0]}
+                </p>
+                {isPremium ? (
+                  <span className="flex items-center gap-1 text-[9px] font-bold text-[#85683F] dark:text-[#F2E8CF] uppercase tracking-wider">
+                    <Crown className="w-2.5 h-2.5 fill-current" /> Premium
+                  </span>
+                ) : (
+                  <button 
+                    onClick={onUpgrade}
+                    className="text-[9px] font-bold text-gray-400 hover:text-[#85683F] uppercase tracking-wider transition-colors"
+                  >
+                    Upgrade Plan
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+               onClick={toggleTheme}
+               className="flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+               title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+            </button>
+            
+            <button
+               onClick={onSignOut}
+               className="flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs font-medium text-gray-500 hover:text-[#85683F] hover:bg-[#F2E8CF]/10 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Log out</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+    </>
+  );
+};
+
+export default Sidebar;

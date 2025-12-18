@@ -4,24 +4,24 @@ import { EssayLength, LengthConfig } from '../types';
 const LENGTH_CONFIGS: LengthConfig[] = [
   {
     id: 'short',
-    label: 'Short',
-    wordRange: '500-800',
-    targetWords: 650,
-    description: 'Quick assignments, focused responses'
+    label: 'Normal',
+    wordRange: '400-500',
+    targetWords: 450,
+    description: 'Quick responses, focused content'
   },
   {
     id: 'medium',
     label: 'Medium',
-    wordRange: '1,200-1,800',
-    targetWords: 1500,
+    wordRange: '1,000-1,500',
+    targetWords: 1250,
     description: 'Standard essays, detailed analysis'
   },
   {
     id: 'long',
     label: 'Long',
-    wordRange: '2,500-3,500',
-    targetWords: 3000,
-    description: 'Research papers, comprehensive coverage'
+    wordRange: '2,000-3,000',
+    targetWords: 2500,
+    description: 'Deep research, comprehensive papers'
   }
 ];
 

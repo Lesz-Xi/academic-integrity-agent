@@ -36,10 +36,11 @@ const CompactModeSelector: React.FC<CompactModeSelectorProps> = ({
               `}
             >
               <span className="flex items-center gap-2">
-                {currentMode.label}
+                <span className="hidden sm:inline">{currentMode.label}</span>
+                <span className="sm:hidden">{currentMode.label.split(' ')[0]}</span>
               </span>
               <ChevronDown 
-                className={`w-3 h-3 transition-transform duration-200 ${open ? 'transform rotate-180' : ''}`} 
+                className={`w-3 h-3 transition-transform duration-200 flex-shrink-0 ${open ? 'transform rotate-180' : ''}`} 
               />
             </Menu.Button>
 
@@ -65,7 +66,7 @@ const CompactModeSelector: React.FC<CompactModeSelectorProps> = ({
                             ${selectedMode === mode.id ? 'bg-gray-50 dark:bg-white/5 font-semibold' : ''}
                           `}
                         >
-                          <span className={`${selectedMode === mode.id ? 'text-[#CC785C]' : 'text-gray-500 dark:text-gray-400'}`}>
+                          <span className={`${selectedMode === mode.id ? 'text-[#C1A87D] dark:text-[#F2E8CF]' : 'text-gray-400 dark:text-gray-500'}`}>
                             {mode.icon}
                           </span>
                           {mode.label}

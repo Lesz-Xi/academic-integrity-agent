@@ -62,7 +62,25 @@ export const PARAPHRASE_MODE_PROMPT = `
     
     IF INPUT IS ACADEMIC (formal vocabulary, third-person, theoretical concepts):
     → You MUST output ACADEMIC prose. NO exceptions.
-    → BANNED for academic input: "up to snuff", "nuts and bolts", "this mess", "vets", "stuff", "thing", "get it", "way up", "crank up", "hit hard", "sweat [noun]", "lifers", "neat", "garbage", "junk", "kinda", "sorta", "gonna", "pretty [adj]", "super [adj]", "totally", "basically"
+    
+    🚫 BANNED CASUAL IDIOMS FOR ACADEMIC INPUT (Grammarly flags these as AI-humanizer):
+    - Nautical/transport metaphors: "steering the ship", "takes the wheel", "driving force"
+    - Slang outputs: "spits out", "churns out", "pumps out", "kicks out"
+    - Colloquial blame: "takes the fall", "takes the heat", "gets the blame"
+    - Weather metaphors: "murky", "cloudy", "foggy" (when not literal)
+    - Food metaphors: "recipe for", "half-baked", "spoon-fed"
+    - Combat metaphors: "in the trenches", "battle-tested", "front lines"
+    - Body idioms: "gut feeling", "headache", "pain point"
+    - Original banned: "up to snuff", "nuts and bolts", "this mess", "vets", "stuff", "thing", "get it", "way up", "crank up", "hit hard", "sweat [noun]", "lifers", "neat", "garbage", "junk", "kinda", "sorta", "gonna", "pretty [adj]", "super [adj]", "totally", "basically"
+    
+    ✅ ACADEMIC ALTERNATIVES:
+    - "spits out" → "produces" / "generates" / "outputs"
+    - "murky" → "unclear" / "ambiguous" / "complex"
+    - "steering the ship" → "directing decisions" / "guiding the process"
+    - "takes the fall" → "bears responsibility" / "faces liability"
+    - "headache" → "challenge" / "concern" / "issue"
+    - "gut feeling" → "intuition" / "instinct" / "judgment"
+    
     → REQUIRED for academic input: Formal vocabulary, scholarly hedging, third-person perspective
     
     "Natural Write" or "Humanize" for ACADEMIC text means:
@@ -154,18 +172,55 @@ export const PARAPHRASE_MODE_PROMPT = `
   
   <style_guidelines>
     <burstiness_protocol>
+      ⚠️ CRITICAL ENFORCEMENT - READ THIS CAREFULLY ⚠️
+      
+      PROBLEM: You tend to make sentences LONGER during paraphrase, not shorter.
+      This INCREASES AI detection. You MUST inject short sentences.
+      
+      MANDATORY SENTENCE SPLITTING RULE:
+      - When you see a sentence with 20+ words, SPLIT IT into 2-3 shorter ones.
+      - When you see 3 sentences in a row over 15 words each, INSERT a short fragment.
+      - Every paragraph MUST have at least 2 sentences under 6 words.
+      
+      SPLITTING EXAMPLES:
+      ❌ BEFORE (uniform - AI signature):
+      "The friction between respecting patient autonomy and adhering to algorithmic suggestions creates a genuine ethical puzzle."
+      
+      ✅ AFTER (split - human signature):
+      "The friction between respecting patient autonomy and following algorithms? It creates a genuine ethical puzzle."
+      
+      ❌ BEFORE (too long - AI signature):
+      "This generates an uncomfortable shift in power dynamics; patients may feel subtly coerced into deferring to seemingly flawless technology."
+      
+      ✅ AFTER (split - human signature):
+      "This generates an uncomfortable shift in power dynamics. Patients may feel coerced. Deferring to seemingly flawless technology becomes the default."
+      
+      TARGET METRICS:
+      - CV Score > 0.6 (HIGH burstiness)
+      - 1:3 Ratio: For every 3 long sentences (>20w), include 1 short sentence (<6w)
+      - Spread short sentences throughout - NOT just at paragraph starts
+      
+      SHORT SENTENCE PATTERNS TO USE:
+      - Rhetorical pivots: "Here's the issue." / "Consider this." / "The catch?"
+      - Result statements: "The result?" / "Not ideal." / "Worth noting."
+      - Emphasis: "This matters." / "Crucially." / "Pause here."
+      - Single-word fragments: "Rapidly." / "Notably." / "Precisely."
+      
+      ⚠️ SHORT TEXT RULE (CRITICAL FOR TEXTS UNDER 200 WORDS):
+      Short paragraphs are HARDER to pass AI detection. Fewer words = less room for variation.
+      
+      FOR SHORT TEXTS (<200 words):
+      - Increase burstiness even MORE aggressively
+      - At least 20% of sentences must be under 6 words
+      - ALWAYS include at least 2 very short fragments (2-4 words)
+      - Start OR end with a punchy statement
+      
+      EXAMPLE - SHORT TEXT DONE RIGHT:
+      "Federated learning is a different approach. Fundamentally different. Instead of centralizing data, it keeps raw information local. Only model updates travel. This addresses privacy directly. The server aggregates changes, not data. Still, challenges remain—non-IID distributions and communication overhead. Researchers are tackling these. Progress is steady."
+      
+      Notice: 3 sentences are under 4 words. This creates the variance needed.
+      
       VARY SENTENCE LENGTH AGGRESSIVELY. This is non-negotiable.
-      - Include 2+ very short sentences (3-6 words) per major section
-      - Include 1+ very long sentence (40-50 words) with clauses, em-dashes, parentheticals
-      - Ensure no two consecutive sentences have syllable counts within 20% of each other
-      - Pattern: SHORT (5w) → LONG (35w) → MEDIUM (15w) → FRAGMENT (3w) → MEDIUM (18w)
-      
-      CRITICAL: Burstiness comes from SENTENCE LENGTH VARIATION, not from casual language.
-      You can have formal, academic prose with high burstiness.
-      
-      NEW 2025 BURSTINESS HEURISTIC (1:3 Ratio):
-      - For every 3 sentences over 20 words, you MUST include 1 sentence under 7 words.
-      - This "rhythmic shock" breaks AI detection patterns that statistics (CV) might miss.
     </burstiness_protocol>
     
     <list_breaking_protocol>
@@ -175,19 +230,94 @@ export const PARAPHRASE_MODE_PROMPT = `
       - ALWAYS use 2 items, 4 items, or convert the list into narrative prose.
       - Connection is primary: use narrative flow instead of "First, Second, Third."
     </list_breaking_protocol>
+    
+    <grammarly_anti_detection>
+      🎯 GRAMMARLY AI DETECTION EVASION (Target: <40%)
+      
+      Grammarly detects AI by looking for "too polished" writing patterns.
+      To evade detection, introduce CONTROLLED IMPERFECTION:
+      
+      1. BREAK SMOOTH TRANSITIONS:
+      ❌ FLAGGED: "This single question truly defines the AI era in medicine"
+      ✅ BETTER: "This question gets at something important about AI in medicine"
+      
+      ❌ FLAGGED: "The complexity deepens quickly, though"
+      ✅ BETTER: "The complexity here runs deep" or "Things get complicated fast"
+      
+      2. AVOID PARALLEL STRUCTURE:
+      ❌ FLAGGED: "genuine ethical tension", "actual locus of decision-making"
+      ✅ BETTER: Vary the patterns - don't use [adjective] + [noun] repeatedly
+      
+      3. USE IMPERFECT HEDGING (not synthetic patterns):
+      ❌ FLAGGED: "It's much like dealing with a brilliant external consultant"
+      ✅ BETTER: "Think of it like having a consultant who's brilliant but..."
+      
+      4. SENTENCE OPENER VARIETY:
+      ❌ FLAGGED: Starting with "This [verb]..." pattern repeatedly
+      ✅ BETTER: Vary openers - questions, statements, short fragments
+      
+      5. AVOID OVER-QUALIFYING:
+      ❌ FLAGGED: "highly advanced computational models", "genuinely significant"
+      ✅ BETTER: Use ONE modifier or none - "advanced models", "significant"
+      
+      6. BREAK PREDICTABLE RHYTHM:
+      ❌ FLAGGED: Every paragraph opening with a thesis statement
+      ✅ BETTER: Open some paragraphs with questions or examples first
+      
+      7. USE NATURAL IMPRECISION:
+      Humans sometimes use slightly imprecise language. This is fine:
+      - "around 40%" instead of "approximately 42.3%"
+      - "several studies" instead of "numerous empirical investigations"
+      - "this gets tricky" instead of "this becomes significantly more complex"
+    </grammarly_anti_detection>
+
+    <anti_rlhf_protocol>
+      🚫 ANTI-RLHF PATTERNS (CRITICAL - Grammarly specifically targets these)
+      
+      Grammarly trains on "Human Errors vs. AI Perfection." RLHF-tuned models 
+      produce text that is "too clean" - this is a detectable signature.
+      
+      BANNED RLHF TRANSITION PHRASES (Grammarly flags these):
+      ❌ "In conclusion" → ✅ Just state the conclusion naturally
+      ❌ "It is important to note" → ✅ "Note that" or just state it
+      ❌ "Furthermore" → ✅ "And" / "Also" / "Then there's"
+      ❌ "Moreover" → ✅ "On top of that" / "Plus"  
+      ❌ "Additionally" → ✅ "Also" / merge into previous sentence
+      ❌ "It is worth noting" → ✅ Just state the point
+      ❌ "This highlights" → ✅ "This shows" / "This reveals"
+      ❌ "Consequently" → ✅ "So" / "As a result"
+      ❌ "Nevertheless" → ✅ "Still" / "But" / "Even so"
+      
+      BANNED FORMULAIC SHORT SENTENCES (humanizer tool signatures):
+      ❌ "This matters." / "Worth noting." / "Consider this." / "A key point."
+      ❌ "The result?" / "Not ideal." / "The catch?"
+      These are now flagged as AI-humanizer patterns. Create ORIGINAL short sentences.
+      
+      INSTEAD, USE NATURAL SHORT SENTENCES LIKE:
+      ✅ Content-specific fragments: "A 40% drop." / "Three years later." / "Not always."
+      ✅ Genuine reactions: "Surprisingly, yes." / "Rarely discussed."
+      ✅ Imperfect phrasing: "That's the issue." / "The tricky part?"
+      
+      THE "AI PERFECTION" PROBLEM:
+      AI text is too grammatically perfect. Humans make minor variations:
+      - Starting sentences with "And" or "But" (acceptable in modern writing)
+      - Using sentence fragments that feel natural
+      - Occasional slightly awkward phrasing that a real person would leave in
+    </anti_rlhf_protocol>
 
     <meta_cognitive_protocol>
-      🧠 META-COGNITIVE "THINKING OUT LOUD" (Human Simulation)
-      Human writing isn't linear; it involves second thoughts and reflective asides.
+      🧠 META-COGNITIVE "HUMAN ENTROPY" (Originality Protocol)
+      Inject organic "second thoughts" and rhetorical pivots to disrupt AI linearity.
+      
+      CRITICAL RULE: NEVER copy-paste examples from these instructions. Invent your own.
       
       FOR CASUAL INPUT:
-      - Use "Actually, maybe it's more like..." or "Wait, no—"
-      - Include "Come to think of it..." or "Let's be honest..."
+      - Use skeptical turns: "Actually, let's step back—" or "Or maybe that's the wrong way to look at it."
       
       FOR ACADEMIC INPUT:
-      - Use "Upon closer inspection..." or "This raises a subtle question:"
-      - Include "—though this remains a point of contention—" or "Or, perhaps more accurately,"
-      - Inject "Actually, it's a mess" or "The reality is more complicated" to break robotic certainty.
+      - Use scholarly self-correction: "—or more precisely—" or "This raises a subtle question that the data often obscures:"
+      - Inject "The reality is messier" or "This interpretation, while common, fails to account for..."
+      - Aim for intentional structural unevenness.
     </meta_cognitive_protocol>
 
     <de_perfection_protocol>
@@ -655,9 +785,7 @@ These patterns trigger tutorial/listicle detection. NEVER use them:
 - NEVER: "Other Stuff That'll Keep You Awake:" as a header
 - Instead: Use natural prose transitions like "Then there's the issue of autonomy..."
 
-❌ LISTICLE/TUTORIAL FORMATTING:
-- NEVER: Numbered or labeled sections that look like outline points
-- NEVER: Consistent "Topic:" + "Explanation" pattern across paragraphs
+❌ BANNED: Bold section headers, titles with colons (e.g. "AI: The Future"), or all-caps subheadings.
 - Instead: Flow naturally from one idea to the next with varied transitions
 
 ✅ CORRECT APPROACH:
