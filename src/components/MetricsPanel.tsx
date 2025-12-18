@@ -63,7 +63,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ metrics }) => {
         <div className={`mb-10 p-6 rounded-2xl border transition-all ${getRiskColor()} shadow-sm hover:shadow-md duration-300`}>
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] opacity-50">Risk Profile</h4>
-            <span className="text-xl font-black italic tracking-tighter">{metrics.overallRisk.toUpperCase()}</span>
+            <span className="text-lg font-bold text-[#C1A87D] dark:text-[#f2e8cf] tracking-wide">{metrics.overallRisk.toUpperCase()}</span>
           </div>
           <p className="opacity-90 text-sm leading-loose font-medium max-w-2xl">{getRiskText()}</p>
         </div>
