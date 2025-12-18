@@ -440,7 +440,7 @@ function AppContent() {
                     <div className="flex-1 flex flex-col items-center justify-center px-4 w-full min-h-[75vh] sm:min-h-[85vh] animate-in fade-in duration-700">
                         <div className="text-center mb-6 sm:mb-12">
                              <h1 className="text-3xl sm:text-5xl font-serif text-[#2D2D2D] dark:text-[#EAEAEA] mb-3">
-                                Welcome, <span className="text-[#C1A87D] dark:text-[#F2E8CF] italic">{user?.email?.split('@')[0] || 'Academic Agent'}</span>
+                                Ready to create, <span className="text-[#C1A87D] dark:text-[#F2E8CF] italic">{user?.email?.split('@')[0] || 'Academic Agent'}?</span>
                              </h1>
                         </div>
 
