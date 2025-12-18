@@ -256,7 +256,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
                         value={additionalInstructions}
                         onChange={(e) => setAdditionalInstructions(e.target.value)}
                         placeholder="e.g. 'Use a skeptical tone', 'Incorporate 1:3 burstiness'..."
-                        className="w-full bg-transparent border-none resize-none focus:ring-0 focus:outline-none text-gray-600 dark:text-gray-400 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-xs font-mono italic leading-relaxed min-h-[50px]"
+                        className="w-full bg-transparent border-none resize-none focus:ring-0 focus:outline-none text-gray-600 dark:text-gray-400 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-base sm:text-xs font-mono italic leading-relaxed min-h-[50px]"
                         rows={2}
                     />
                 </div>
