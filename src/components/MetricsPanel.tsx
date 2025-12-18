@@ -51,24 +51,21 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ metrics }) => {
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 sm:px-0">
-      <div className="bg-white/5 dark:bg-white/5 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/20 dark:border-white/10 shadow-lg mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-semibold text-[#2D2D2D] dark:text-white flex items-center gap-2">
-            <Activity className="w-5 h-5 text-[#F2E8CF]" />
-            Anti-Detection Metrics
+      <div className="bg-transparent p-0 mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-[#C1A87D]" />
+            Integrity Metrics
           </h3>
         </div>
 
         {/* Overall Risk Card */}
-        <div className={`mb-5 p-4 rounded-xl border relative overflow-hidden ${getRiskColor()} transition-colors`}>
-          <div className={`absolute left-0 top-0 bottom-0 w-1 ${
-              metrics.overallRisk === 'HIGH' ? 'bg-red-500/40' : 'bg-[#85683F]/40'
-          }`} />
-          <div className="flex items-center justify-between mb-1">
-            <h4 className="text-sm font-bold uppercase tracking-wider opacity-80">Overall Risk</h4>
-            <span className="text-lg font-bold">{metrics.overallRisk.toUpperCase()}</span>
+        <div className={`mb-8 p-6 rounded-2xl border-l-[4px] relative overflow-hidden ${getRiskColor()} transition-colors shadow-sm`}>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-xs font-black uppercase tracking-widest opacity-60">Risk Profile</h4>
+            <span className="text-lg font-black">{metrics.overallRisk.toUpperCase()}</span>
           </div>
-          <p className="opacity-90 text-sm leading-relaxed">{getRiskText()}</p>
+          <p className="opacity-80 text-sm leading-relaxed font-medium">{getRiskText()}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">

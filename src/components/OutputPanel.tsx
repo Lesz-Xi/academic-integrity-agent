@@ -61,77 +61,72 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
 
   return (
 
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+    <div className="w-full max-w-5xl mx-auto px-0 sm:px-6">
       <div 
         ref={ref}
-        className="bg-white/5 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/10 shadow-lg p-6 transition-colors duration-300"
+        className="bg-transparent transition-colors duration-300"
       >
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 text-center sm:text-left">
-          <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D] dark:text-white">Generated Content</h3>
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+        <div className="flex flex-row items-center justify-end gap-2 mb-8 sticky top-20 z-10 py-2">
+          {/* Actions - Now more discrete */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 shadow-sm">
             {/* Export DOCX Button */}
             <button
               onClick={handleExportDocx}
               disabled={isExporting !== null}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all font-medium border text-[10px] sm:text-xs 
-                bg-white dark:bg-claude-input border-[#D2B48C] text-[#D2B48C] hover:bg-[#D2B48C] hover:text-white dark:hover:bg-[#D2B48C] dark:hover:text-white
-                disabled:opacity-50 disabled:cursor-not-allowed`}
-              title="Download as Word Document"
+              className="p-2 text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors rounded-lg hover:bg-white dark:hover:bg-white/10 disabled:opacity-50"
+              title="Download as Word"
             >
-              <FileDown className="w-3 h-3" />
-              {isExporting === 'docx' ? 'Exporting...' : 'DOCX'}
+              <FileDown className="w-4 h-4" />
             </button>
 
             {/* Export PDF Button */}
             <button
               onClick={handleExportPdf}
               disabled={isExporting !== null}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all font-medium border text-[10px] sm:text-xs 
-                bg-white dark:bg-claude-input border-[#D2B48C] text-[#D2B48C] hover:bg-[#D2B48C] hover:text-white dark:hover:bg-[#D2B48C] dark:hover:text-white
-                disabled:opacity-50 disabled:cursor-not-allowed`}
+              className="p-2 text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors rounded-lg hover:bg-white dark:hover:bg-white/10 disabled:opacity-50"
               title="Download as PDF"
             >
-              <FileDown className="w-3 h-3" />
-              {isExporting === 'pdf' ? 'Exporting...' : 'PDF'}
+              <FileDown className="w-4 h-4" />
             </button>
+
+            <div className="w-[1px] h-4 bg-gray-200 dark:bg-white/10 mx-0.5" />
 
             {/* Copy Button */}
             <button
               onClick={onCopy}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all font-medium border text-[10px] sm:text-xs ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 copied 
-                  ? 'bg-[#D2B48C] dark:bg-[#D2B48C] border-[#D2B48C] text-white' 
-                  : 'bg-white dark:bg-claude-input border-[#D2B48C] text-[#D2B48C] hover:bg-[#D2B48C] hover:text-white dark:hover:bg-[#D2B48C] dark:hover:text-white'
+                  ? 'bg-[#C1A87D] text-white shadow-sm' 
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-white/10'
               }`}
             >
               {copied ? (
                 <>
-                  <CheckCircle className="w-3 h-3" />
-                  Copied
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  <span>Copied</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-3 h-3" />
-                  Copy
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy</span>
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {/* Warnings */}
+        {/* Warnings - Moved and styled elegantly */}
         {warnings.length > 0 && (
-          <div className="mb-6 p-4 bg-[#F2E8CF]/20 dark:bg-[#F2E8CF]/5 border border-[#85683F]/30 dark:border-[#85683F]/20 rounded-xl relative overflow-hidden">
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#85683F]/40" />
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-[#85683F] dark:text-[#F2E8CF] mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="font-bold text-[#85683F] dark:text-[#F2E8CF] text-sm uppercase tracking-wider mb-2">Warnings</h4>
-                <ul className="text-sm text-[#85683F]/90 dark:text-[#F2E8CF]/80 space-y-1.5">
+          <div className="mb-10 p-5 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200/50 dark:border-amber-700/30 rounded-2xl">
+            <div className="flex items-start gap-4">
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-amber-800 dark:text-amber-400 text-sm mb-2">Review Required</h4>
+                <ul className="text-sm text-amber-700/80 dark:text-amber-300/80 space-y-1.5">
                   {warnings.map((warning, idx) => (
-                    <li key={idx} className="flex items-center gap-2">
-                      <span className="text-[#85683F]/60 dark:text-[#F2E8CF]/60 flex-shrink-0 leading-none">•</span>
-                      <span className="leading-tight">{warning}</span>
+                    <li key={idx} className="flex gap-2">
+                      <span className="opacity-60">•</span>
+                      <span>{warning}</span>
                     </li>
                   ))}
                 </ul>
@@ -140,8 +135,12 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
           </div>
         )}
 
-        {/* Content - Rendered as HTML */}
-        <div className="p-4 sm:p-6 bg-transparent rounded-lg border-none max-h-[600px] overflow-y-auto prose prose-sm sm:prose-base max-w-none dark:prose-invert prose-p:leading-relaxed sm:prose-p:leading-loose prose-p:mb-4">
+        {/* Content - Document Style */}
+        <div className="prose prose-sm sm:prose-lg max-w-none dark:prose-invert 
+            prose-headings:font-serif prose-headings:font-medium 
+            prose-p:leading-relaxed sm:prose-p:leading-loose prose-p:mb-6 
+            prose-li:my-1 prose-ul:my-4 prose-ol:my-4
+            text-gray-800 dark:text-gray-200">
           <div 
             className="markdown-content"
             dangerouslySetInnerHTML={{ __html: htmlContent }}

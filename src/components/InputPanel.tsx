@@ -1,9 +1,11 @@
 import React, { useState, useEffect, memo, useRef } from 'react';
 import { Mode, EssayLength } from '../types';
 import { processFile, validateFileSize, validateFileType, FileProcessingResult } from '../utils/fileProcessor';
+import { analyzeDocument, FileAnalysis } from '../services/fileAnalyzer';
 import SearchToggle from './SearchToggle';
 import CompactModeSelector from './CompactModeSelector';
 import CompactLengthSelector from './CompactLengthSelector';
+import FileAnalysisCard from './FileAnalysisCard';
 import { ArrowUp, Paperclip, FileUp, X, Loader, Edit3 } from 'lucide-react';
 
 interface InputPanelProps {
@@ -38,6 +40,10 @@ const InputPanel: React.FC<InputPanelProps> = ({
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  
+  // File analysis state
+  const [fileAnalysis, setFileAnalysis] = useState<FileAnalysis | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   // Ref to skip cleanup when mode changes via quick-action buttons
   const skipCleanupOnModeChangeRef = useRef(false);
@@ -99,7 +105,8 @@ const InputPanel: React.FC<InputPanelProps> = ({
         setFileError(result.error);
       } else {
         setUploadedFile(result);
-        // Analysis skipped in compact mode
+        // Trigger async file analysis (non-blocking)
+        analyzeFileAsync(result.text, result.fileName);
       }
     } catch (error) {
       setFileError('Failed to process file. Please try again.');
@@ -137,6 +144,30 @@ const InputPanel: React.FC<InputPanelProps> = ({
   const clearFile = () => {
     setUploadedFile(null);
     setFileError(null);
+    setFileAnalysis(null);
+    setIsAnalyzing(false);
+  };
+  
+  // Async file analysis
+  const analyzeFileAsync = async (text: string, fileName: string) => {
+    setIsAnalyzing(true);
+    setFileAnalysis(null);
+    try {
+      const analysis = await analyzeDocument(text, fileName);
+      setFileAnalysis(analysis);
+    } catch (error) {
+      console.error('File analysis failed:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+  
+  // Handle action selection from analysis card
+  const handleAnalysisAction = (action: string) => {
+    // Pre-fill the input with the action
+    setInput(action);
+    // Focus the textarea
+    textareaRef.current?.focus();
   };
 
 
@@ -173,7 +204,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
   const hasContent = input.trim().length > 0 || uploadedFile !== null;
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 sm:px-0">
+    <div className="w-full max-w-3xl mx-auto px-2 sm:px-0">
       <div 
         className={`
             relative flex flex-col w-full bg-[#f4f4f4] dark:bg-[#303030] 
@@ -216,11 +247,21 @@ const InputPanel: React.FC<InputPanelProps> = ({
                          <X className="w-4 h-4 text-gray-500" />
                      </button>
                  </div>
+                 
+                 {/* File Analysis Card */}
+                 {(isAnalyzing || fileAnalysis) && (
+                   <FileAnalysisCard
+                     analysis={fileAnalysis || { documentType: 'unknown', confidence: 0, structure: { hasAbstract: false, hasMethodology: false, hasResults: false, hasConclusion: false, estimatedSections: [] }, summary: '', suggestedActions: [] }}
+                     isLoading={isAnalyzing}
+                     onActionSelect={handleAnalysisAction}
+                     theme={theme}
+                   />
+                 )}
             </div>
         )}
 
         {/* Main Input Area */}
-        <div className="relative px-4 py-3">
+        <div className="relative px-3 sm:px-4 py-3">
              <textarea
                 ref={textareaRef}
                 value={input}
@@ -265,7 +306,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
         )}
 
         {/* Bottom Toolbar */}
-        <div className="flex items-center justify-between px-3 pb-3 pt-1">
+        <div className="flex items-center justify-between px-2 sm:px-3 pb-3 pt-1">
              <div className="flex items-center gap-2">
                  {/* Mode Selector */}
                  {onModeChange && (
@@ -310,7 +351,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
                     title="Custom Instructions"
                  >
                     <Edit3 className="w-4 h-4 text-[#C1A87D] dark:text-[#F2E8CF]" />
-                    <span className="text-xs font-medium hidden sm:inline">Instructions</span>
+                    <span className="text-xs font-medium hidden md:inline">Instructions</span>
                  </button>
              </div>
 

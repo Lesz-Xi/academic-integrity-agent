@@ -380,17 +380,30 @@ function AppContent() {
              flex-1 flex flex-col relative transition-all duration-300
              ${isSidebarOpen ? 'lg:ml-72' : 'ml-0'}
           `}>
-              <header className="sticky top-0 p-4 z-40 flex justify-between items-center pointer-events-none">
-                  <div className="pointer-events-auto flex items-center gap-3">
+              <header className="sticky top-0 p-4 z-40 flex justify-between items-center bg-[#F5F3EE]/80 dark:bg-[#1a1a1a]/80 backdrop-blur-sm pointer-events-auto border-b border-transparent transition-all duration-300">
+                  <div className="flex items-center gap-3">
                       {!isSidebarOpen && (
                           <button
                             onClick={() => setIsSidebarOpen(true)}
-                            className="p-2 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-white/10 pointer-events-auto"
+                            className="p-2 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-white/10"
                             title="Open Sidebar (Cmd+.)"
                           >
                             <PanelLeft className="w-5 h-5 text-gray-500" />
                           </button>
                       )}
+                  </div>
+
+                  {generatedContent && (
+                      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/10">
+                          <span className="text-sm font-semibold text-[#C1A87D] dark:text-[#F2E8CF]">
+                              {selectedMode === 'essay' ? 'Essay & Research' : 
+                               selectedMode === 'cs' ? 'Computer Science' : 'Paraphrase'}
+                          </span>
+                      </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                      {/* Optional right-side header actions can go here */}
                   </div>
               </header>
 
@@ -419,9 +432,9 @@ function AppContent() {
                 />
 
                 {!generatedContent && (
-                    <div className="flex-1 flex flex-col items-center justify-center px-4 w-full min-h-[85vh] animate-in fade-in duration-700">
-                        <div className="text-center mb-8 sm:mb-12">
-                             <h1 className="text-2xl sm:text-5xl font-serif text-[#2D2D2D] dark:text-[#EAEAEA] mb-4">
+                    <div className="flex-1 flex flex-col items-center justify-center px-4 w-full min-h-[75vh] sm:min-h-[85vh] animate-in fade-in duration-700">
+                        <div className="text-center mb-6 sm:mb-12">
+                             <h1 className="text-3xl sm:text-5xl font-serif text-[#2D2D2D] dark:text-[#EAEAEA] mb-3">
                                 Welcome, <span className="text-[#C1A87D] dark:text-[#F2E8CF] italic">{user?.email?.split('@')[0] || 'Academic Agent'}</span>
                              </h1>
                         </div>
@@ -449,28 +462,37 @@ function AppContent() {
                 )}
 
                 {generatedContent && (
-                   <div className="flex-1 w-full pt-8 px-4 sm:px-6 pb-20">
-                       <div className="max-w-4xl mx-auto space-y-8">
-                            <div className="flex justify-between items-center">
+                   <div className="flex-1 w-full pt-4 sm:pt-8 px-4 sm:px-6 pb-20">
+                       <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
+                             <div className="flex justify-between items-center sm:hidden">
+                                 <button 
+                                     onClick={handleReset}
+                                     className="flex items-center gap-2 text-xs text-gray-400 hover:text-[#CC785C] transition-colors"
+                                 >
+                                     <RotateCcw className="w-3 h-3" /> New Chat
+                                 </button>
+                             </div>
+                             <RevealOnScroll>
+                                 <MetricsPanel metrics={generatedContent.metrics} />
+                             </RevealOnScroll>
+                             <RevealOnScroll delay={100}>
+                                 <OutputPanel
+                                     ref={outputContainerRef}
+                                     text={generatedContent.text}
+                                     warnings={generatedContent.warnings}
+                                     onCopy={handleCopy}
+                                     copied={copied}
+                                 />
+                             </RevealOnScroll>
+                             
+                             <div className="hidden sm:flex justify-center pt-8">
                                 <button 
                                     onClick={handleReset}
-                                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#CC785C] transition-colors"
+                                    className="px-6 py-2.5 rounded-full border border-gray-200 dark:border-white/10 text-sm font-medium text-gray-500 hover:text-[#C1A87D] hover:border-[#C1A87D] transition-all flex items-center gap-2"
                                 >
                                     <RotateCcw className="w-4 h-4" /> Start New Generation
                                 </button>
-                            </div>
-                            <RevealOnScroll>
-                                <MetricsPanel metrics={generatedContent.metrics} />
-                            </RevealOnScroll>
-                            <RevealOnScroll delay={100}>
-                                <OutputPanel
-                                    ref={outputContainerRef}
-                                    text={generatedContent.text}
-                                    warnings={generatedContent.warnings}
-                                    onCopy={handleCopy}
-                                    copied={copied}
-                                />
-                            </RevealOnScroll>
+                             </div>
                        </div>
                    </div>
                 )}
