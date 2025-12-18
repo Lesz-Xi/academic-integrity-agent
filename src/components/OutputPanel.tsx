@@ -66,9 +66,9 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
         ref={ref}
         className="bg-white/5 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/10 shadow-lg p-6 transition-colors duration-300"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 text-center sm:text-left">
           <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D] dark:text-white">Generated Content</h3>
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
             {/* Export DOCX Button */}
             <button
               onClick={handleExportDocx}
