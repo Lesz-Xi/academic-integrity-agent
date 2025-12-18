@@ -40,16 +40,17 @@ export function useGenerationHistory() {
   const deletedIdsRef = useRef<Set<string>>(new Set())
 
   // Load history on mount or auth change
+  // Use user?.id to prevent re-fetching on session token refreshes
   useEffect(() => {
     loadHistory()
-  }, [user, isAuthenticated])
+  }, [user?.id, isAuthenticated])
 
   // Perform sync when user logs in and hasn't synced yet
   useEffect(() => {
-    if (isAuthenticated && user && !hasSynced) {
+    if (isAuthenticated && user?.id && !hasSynced) {
       performInitialSync()
     }
-  }, [isAuthenticated, user, hasSynced])
+  }, [isAuthenticated, user?.id, hasSynced])
 
   const performInitialSync = async () => {
     if (!user) return
@@ -72,7 +73,11 @@ export function useGenerationHistory() {
   }
 
   const loadHistory = async () => {
-    setLoading(true)
+    // Only set loading to true if we don't already have history
+    // This prevents the UI from "disappearing" during background refreshes
+    if (history.length === 0) {
+      setLoading(true)
+    }
     setError(null)
 
     // Track if we've timed out
@@ -82,8 +87,7 @@ export function useGenerationHistory() {
     const timeoutId = setTimeout(() => {
       hasTimedOut = true
       console.warn('[useGenerationHistory] Loading timed out')
-      // For authenticated users: just show empty (don't leak other user's data)
-      // For guests: use localStorage
+      // For authenticated users: keep current state if it exists, otherwise empty
       if (!isAuthenticated) {
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
@@ -92,11 +96,9 @@ export function useGenerationHistory() {
             // Filter out any locally deleted items
             setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
           } catch {
-            setHistory([])
+            if (history.length === 0) setHistory([])
           }
         }
-      } else {
-        setHistory([])
       }
       setLoading(false)
     }, 15000) // 15s timeout for slower connections
@@ -117,9 +119,6 @@ export function useGenerationHistory() {
         // For authenticated users: ONLY use Supabase data
         // Filter out any items that were deleted while the fetch was in progress
         setHistory(data.filter(item => !deletedIdsRef.current.has(item.id)))
-        
-        // Clear localStorage to prevent data from being shown to other users
-        localStorage.removeItem(STORAGE_KEY)
       } else {
         console.log('[useGenerationHistory] Not authenticated, using localStorage')
         const stored = localStorage.getItem(STORAGE_KEY)
@@ -136,8 +135,7 @@ export function useGenerationHistory() {
       console.error('[useGenerationHistory] Failed to load history:', err)
       setError(err instanceof Error ? err.message : 'Unknown error')
       
-      // For authenticated users: don't fall back to localStorage (prevents data leakage)
-      // For unauthenticated users: try localStorage
+      // For authenticated users: keep existing state if possible
       if (!isAuthenticated) {
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
@@ -146,11 +144,9 @@ export function useGenerationHistory() {
             const parsed = JSON.parse(stored)
             setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
           } catch {
-            setHistory([])
+            if (history.length === 0) setHistory([])
           }
         }
-      } else {
-        setHistory([])
       }
     } finally {
       if (!hasTimedOut) {
