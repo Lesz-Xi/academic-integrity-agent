@@ -146,7 +146,7 @@ export class GenerationService {
     try {
       // Create a timeout promise - increased to 10s
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Usage check timed out')), 10000);
+        setTimeout(() => reject(new Error('Usage check timed out')), 15000); // Increased to 15s
       });
 
       // Execute query with timeout

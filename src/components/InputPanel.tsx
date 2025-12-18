@@ -31,7 +31,8 @@ const InputPanel: React.FC<InputPanelProps> = ({
   theme = 'dark'
 }) => {
   const [input, setInput] = useState('');
-  const [additionalInstructions] = useState('');
+  const [additionalInstructions, setAdditionalInstructions] = useState('');
+  const [showInstructions, setShowInstructions] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<FileProcessingResult | null>(null);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -225,6 +226,24 @@ const InputPanel: React.FC<InputPanelProps> = ({
               />
         </div>
 
+        {/* Additional Instructions Field (Expandable) */}
+        {showInstructions && (
+            <div className="px-4 pb-3 border-t border-gray-100 dark:border-white/5 animate-in slide-in-from-top-2 duration-200">
+                <div className="pt-3">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5 block">
+                        Additional Instructions
+                    </label>
+                    <textarea
+                        value={additionalInstructions}
+                        onChange={(e) => setAdditionalInstructions(e.target.value)}
+                        placeholder="e.g. 'Use a skeptical tone', 'Focus on ethics', '1:3 Burstiness ratio'..."
+                        className="w-full bg-transparent border-none resize-none focus:ring-0 focus:outline-none text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm font-sans leading-relaxed min-h-[60px]"
+                        rows={2}
+                    />
+                </div>
+            </div>
+        )}
+
         {/* Bottom Toolbar */}
         <div className="flex items-center justify-between px-3 pb-3 pt-1">
              <div className="flex items-center gap-2">
@@ -243,11 +262,27 @@ const InputPanel: React.FC<InputPanelProps> = ({
                         onClick={() => document.getElementById('file-upload')?.click()}
                         disabled={isGenerating || isProcessingFile}
                         className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg transition-colors"
-                        title="Attach file"
+                         title="Attach file"
                     >
                         {isProcessingFile ? <Loader className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5" />}
                     </button>
                  )}
+
+                 {/* Instructions Toggle */}
+                 <button
+                    onClick={() => setShowInstructions(!showInstructions)}
+                    disabled={isGenerating}
+                    className={`
+                        p-2 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium
+                        ${showInstructions 
+                            ? 'text-[#CC785C] bg-[#CC785C]/10' 
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-white/10'}
+                    `}
+                    title="Add specific instructions"
+                 >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    <span className="hidden sm:inline">Instructions</span>
+                 </button>
              </div>
 
              <div className="flex items-center gap-3">

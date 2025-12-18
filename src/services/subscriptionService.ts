@@ -45,6 +45,7 @@ export class SubscriptionService {
    * Get user's subscription with internal timeout and retry guards
    */
   static async getSubscription(userId: string): Promise<Subscription | null> {
+    let latestError: any = null;
     const fetchWithTimeout = async (attempt: number): Promise<Subscription | null> => {
       console.log(`[SubscriptionService] Query attempt ${attempt} for user:`, userId);
       
@@ -57,14 +58,14 @@ export class SubscriptionService {
           .single();
 
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Database query timed out')), 5000);
+          setTimeout(() => reject(new Error('Database query timed out')), 8000); // Increased to 8s
         });
 
         const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
         if (error) {
           if (error.code === 'PGRST116') {
-            return null; // Normal "no row" case
+            return null; // Normal "no row" case (Free Tier)
           }
           throw error;
         }
@@ -73,8 +74,9 @@ export class SubscriptionService {
           console.log('[SubscriptionService] Found result:', data.plan);
           return toSubscription(data);
         }
-        return null;
+        return null; // Should be handled by PGRST116, but safe fallback
       } catch (error: any) {
+        latestError = error;
         console.warn(`[SubscriptionService] Query failed (attempt ${attempt}):`, error.message);
         
         if (attempt < 3) {
@@ -84,7 +86,7 @@ export class SubscriptionService {
         }
         
         console.error('[SubscriptionService] All query attempts failed');
-        return null;
+        throw latestError; // CRITICAL: Throw so caller knows it wasn't just "not found"
       }
     };
 

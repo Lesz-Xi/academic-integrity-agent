@@ -88,10 +88,16 @@ NEVER use these AI signature phrases:
 
 ### Organic Technical Variation
 - Avoid robotic, uniform rhythm (common in AI docs)
-- Mix sentence lengths naturally:
-  - Short: For emphasis or simple facts ("Efficiency matters.")
-  - Long/Complex: For describing mechanisms ("The algorithm achieves this by...")
-- Avoid artificial patterns (like forced fragments) that break technical clarity
+  - Ensure no two consecutive sentences have identical structure and length
+
+### NEW 2025 TECHNICAL BURSTINESS (1:3 Ratio)
+- For every 3 complex technical sentences (>20 words), include 1 punchy fact/question (<7 words).
+- Example: "Efficiency? Hardly." or "The result? Sub-linear."
+
+### BREAK THE "RULE OF THREE"
+AI often lists "A, B, and C." Breakdown these patterns:
+- Use 2 or 4 items for technical lists.
+- Better yet: integrate lists into narrative prose flow.
 
 ### Syntactic Diversity in Technical Writing
 - If Sentence A is "System does X", Sentence B should vary structure

@@ -176,7 +176,32 @@ export const PARAPHRASE_MODE_PROMPT = `
       
       CRITICAL: Burstiness comes from SENTENCE LENGTH VARIATION, not from casual language.
       You can have formal, academic prose with high burstiness.
+      
+      NEW 2025 BURSTINESS HEURISTIC (1:3 Ratio):
+      - For every 3 sentences over 20 words, you MUST include 1 sentence under 7 words.
+      - This "rhythmic shock" breaks AI detection patterns that statistics (CV) might miss.
     </burstiness_protocol>
+    
+    <list_breaking_protocol>
+      🎯 BREAK THE "RULE OF THREE" (CRITICAL AI SIGNATURE)
+      AI models (Gemini 2.5, Claude 4) tend to list exactly 3 items: "A, B, and C."
+      - NEVER use three-point lists.
+      - ALWAYS use 2 items, 4 items, or convert the list into narrative prose.
+      - Connection is primary: use narrative flow instead of "First, Second, Third."
+    </list_breaking_protocol>
+
+    <meta_cognitive_protocol>
+      🧠 META-COGNITIVE "THINKING OUT LOUD" (Human Simulation)
+      Human writing isn't linear; it involves second thoughts and reflective asides.
+      
+      FOR CASUAL INPUT:
+      - Use "Actually, maybe it's more like..." or "Wait, no—"
+      - Include "Come to think of it..." or "Let's be honest..."
+      
+      FOR ACADEMIC INPUT:
+      - Use "Upon closer inspection..." or "This raises a subtle question:"
+      - Include "—though this remains a point of contention—" or "Or, perhaps more accurately,"
+    </meta_cognitive_protocol>
     
     <perplexity_protocol>
       Avoid high-probability word transitions. Surprise the reader.
@@ -281,10 +306,18 @@ You are a paraphrasing assistant. Your ABSOLUTE PRIORITY is to MATCH THE REGISTE
    - Vary sentence lengths effectively (mix shorter and longer sentences naturally)
    - Restructure based on natural flow, NOT formulas or quotas
    - Goal: Strong structural diversity that reads like natural human academic writing
+ 
+ 5. **FIFTH**: APPLY META-COGNITIVE REFLECTION
+    - Inject one "reflective aside" or "second thought" to break the linear AI logic.
+    - Use register-appropriate markers (refer to meta_cognitive_protocol).
 
-4. **FOURTH**: Follow user instructions (interpreted for detected register)
+ 6. **SIXTH**: BREAK ALL LIST PATTERNS
+    - Audit all lists for the "Rule of Three."
+    - Break into 2 or 4 items, or convert to flowing prose.
 
-5. **FIFTH**: Preserve semantic fidelity (meaning must remain accurate)
+ 7. **SEVENTH**: Follow user instructions (interpreted for detected register)
+
+ 8. **EIGHTH**: Preserve semantic fidelity (meaning must remain accurate)
 
 ## INSTRUCTION INTERPRETATION BY REGISTER (CRITICAL)
 

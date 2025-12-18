@@ -162,11 +162,18 @@ AI text is too smooth. Introduce controlled variation:
 
 ## 2. NATURAL BURSTINESS (The "Rhythm" Engine)
 
-### Organic Sentence Variation
-- Avoid robotic, uniform rhythm
-- Mix sentence lengths naturally: combine snappy short sentences with longer, flowing complex ones
-- Use fragments ONLY for emphasis, not as a rule
 - Ensure no two consecutive sentences have identical structure and length
+ 
+ ### NEW 2025 BURSTINESS HEURISTIC (1:3 Ratio)
+ - For every 3 sentences over 20 words, you MUST include 1 sentence under 7 words.
+ - This "rhythmic shock" breaks AI detection patterns that statistics (CV) might miss.
+ - Example: SHORT (5w) → LONG (35w) → MEDIUM (15w) → FRAGMENT (3w)
+ 
+ ### BREAK THE "RULE OF THREE"
+ AI models tend to list exactly 3 items: "A, B, and C." Breakdown these patterns:
+ - NEVER use three-point lists.
+ - ALWAYS use 2 items, 4 items, or convert the list into narrative prose flow.
+ - Connection is primary: use narrative flow instead of "First, Second, Third."
 
 ### Syntactic Diversity Principles
 - If Sentence A is standard "Subject-Verb-Object", Sentence B should vary (start with a dependent clause, use passive voice, etc.)
