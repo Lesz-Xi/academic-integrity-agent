@@ -6,6 +6,8 @@ import { supabase } from './lib/supabase';
 import { 
   RotateCcw,
   PanelLeft,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { Mode, GenerationResponse, HistoryItem, EssayLength } from './types';
 import { useTheme } from './hooks/useTheme';
@@ -381,7 +383,7 @@ function AppContent() {
              ${isSidebarOpen ? 'lg:ml-72' : 'ml-0'}
           `}>
               <header className="sticky top-0 p-4 z-40 flex justify-between items-center bg-[#F5F3EE]/80 dark:bg-[#1a1a1a]/80 backdrop-blur-sm pointer-events-auto border-b border-transparent transition-all duration-300">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                       {!isSidebarOpen && (
                           <button
                             onClick={() => setIsSidebarOpen(true)}
@@ -391,6 +393,17 @@ function AppContent() {
                             <PanelLeft className="w-5 h-5 text-gray-500" />
                           </button>
                       )}
+                      <button
+                        onClick={toggleTheme}
+                        className="p-2 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-white/10"
+                        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                      >
+                        {theme === 'dark' ? (
+                          <Sun className="w-5 h-5 text-[#C1A87D]" />
+                        ) : (
+                          <Moon className="w-5 h-5 text-gray-500" />
+                        )}
+                      </button>
                   </div>
 
 
