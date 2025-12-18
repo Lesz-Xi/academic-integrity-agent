@@ -393,6 +393,11 @@ function AppContent() {
                             <PanelLeft className="w-5 h-5 text-gray-500" />
                           </button>
                       )}
+                  </div>
+
+
+
+                  <div className="flex items-center gap-2">
                       <button
                         onClick={toggleTheme}
                         className="p-2 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-white/10"
@@ -404,12 +409,6 @@ function AppContent() {
                           <Moon className="w-5 h-5 text-gray-500" />
                         )}
                       </button>
-                  </div>
-
-
-
-                  <div className="flex items-center gap-2">
-                      {/* Optional right-side header actions can go here */}
                   </div>
               </header>
 
