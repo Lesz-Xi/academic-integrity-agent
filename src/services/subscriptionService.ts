@@ -23,14 +23,13 @@ export interface Subscription {
   updatedAt: Date
 }
 
-// Convert database row to Subscription object
 function toSubscription(row: SubscriptionRow): Subscription {
   return {
     id: row.id,
     userId: row.user_id,
-    plan: row.plan,
-    billingCycle: row.billing_cycle,
-    status: row.status,
+    plan: row.plan as SubscriptionPlan,
+    billingCycle: row.billing_cycle as BillingCycle,
+    status: row.status as SubscriptionStatus,
     stripeCustomerId: row.stripe_customer_id,
     stripeSubscriptionId: row.stripe_subscription_id,
     paypalSubscriptionId: row.paypal_subscription_id,
@@ -43,151 +42,53 @@ function toSubscription(row: SubscriptionRow): Subscription {
 
 export class SubscriptionService {
   /**
-   * Get user's subscription with session verification and retry logic
+   * Get user's subscription with internal timeout and retry guards
    */
   static async getSubscription(userId: string): Promise<Subscription | null> {
-    console.log('[SubscriptionService] Fetching subscription for user:', userId);
-    
-    // 1. Verify we have a valid session before querying (critical for OAuth flows)
-    try {
-      const sessionPromise = supabase.auth.getSession();
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('getSession timed out')), 5000);
-      });
-
-      const { data: sessionData, error: sessionError } = await Promise.race([
-        sessionPromise,
-        timeoutPromise
-      ]) as any;
-
-      if (sessionError) {
-        console.warn('[SubscriptionService] Session check error:', sessionError);
-        return null;
-      }
-
-      if (!sessionData?.session) {
-        console.warn('[SubscriptionService] No active session found');
-        return null;
-      }
-    } catch (err) {
-      console.error('[SubscriptionService] Session verification failed:', err);
-      return null;
-    }
-
-    // 2. Try to fetch subscription with retry logic
-    const fetchWithRetry = async (attempt: number): Promise<Subscription | null> => {
+    const fetchWithTimeout = async (attempt: number): Promise<Subscription | null> => {
+      console.log(`[SubscriptionService] Query attempt ${attempt} for user:`, userId);
+      
       try {
-        const { data, error } = await supabase
+        // Create a timeout for the database query itself
+        const queryPromise = supabase
           .from('subscriptions')
           .select('*')
           .eq('user_id', userId)
           .single();
 
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Database query timed out')), 5000);
+        });
+
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+
         if (error) {
           if (error.code === 'PGRST116') {
-            // No subscription found - return null (user will create one)
-            console.log('[SubscriptionService] No subscription found for user');
-            return null;
+            return null; // Normal "no row" case
           }
-          // If it's an auth/RLS error on first attempt, retry after a short delay
-          if (attempt === 1 && (error.code === 'PGRST301' || error.message.includes('JWT'))) {
-            console.warn('[SubscriptionService] Possible RLS/Auth timing issue, retrying in 1s...');
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            return fetchWithRetry(2);
-          }
-          console.error('[SubscriptionService] Error fetching subscription:', error);
           throw error;
         }
 
-        console.log('[SubscriptionService] Found subscription:', data.plan, data.status);
-        return toSubscription(data);
-      } catch (error) {
-        console.error('[SubscriptionService] getSubscription error:', error);
-        throw error;
+        if (data) {
+          console.log('[SubscriptionService] Found result:', data.plan);
+          return toSubscription(data);
+        }
+        return null;
+      } catch (error: any) {
+        console.warn(`[SubscriptionService] Query failed (attempt ${attempt}):`, error.message);
+        
+        if (attempt < 3) {
+          console.log('[SubscriptionService] Retrying in 1s...');
+          await new Promise(r => setTimeout(r, 1000));
+          return fetchWithTimeout(attempt + 1);
+        }
+        
+        console.error('[SubscriptionService] All query attempts failed');
+        return null;
       }
     };
 
-    return fetchWithRetry(1);
-  }
-
-  /**
-   * Create a new subscription (typically free tier for new users)
-   */
-  static async createSubscription(
-    userId: string,
-    plan: SubscriptionPlan = 'free'
-  ): Promise<Subscription> {
-    console.log('[SubscriptionService] Creating subscription for user:', userId, 'plan:', plan)
-    
-    try {
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .insert({
-          user_id: userId,
-          plan,
-          status: 'active',
-        })
-        .select()
-        .single()
-
-      if (error) {
-        console.error('[SubscriptionService] Error creating subscription:', error)
-        throw error
-      }
-
-      console.log('[SubscriptionService] Created subscription:', data.id)
-      return toSubscription(data)
-    } catch (error) {
-      console.error('[SubscriptionService] createSubscription error:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Upgrade to premium subscription
-   */
-  /**
-   * Upgrade to premium subscription
-   * @deprecated logic moved to backend triggers/webhooks for security
-   */
-  static async upgradeToPremium(
-    _userId: string,
-    _billingCycle: BillingCycle,
-    _stripeCustomerId?: string,
-    _stripeSubscriptionId?: string,
-    _paypalSubscriptionId?: string
-  ): Promise<Subscription> {
-    console.warn('[SubscriptionService] Client-side upgrade is deprecated and insecure.');
-    throw new Error('Subscription upgrades must be processed via payment provider webhooks.');
-  }
-
-  /**
-   * Cancel subscription (keeps access until period end)
-   */
-  static async cancelSubscription(userId: string): Promise<Subscription> {
-    console.log('[SubscriptionService] Canceling subscription for user:', userId)
-    
-    try {
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .update({
-          status: 'canceled',
-        })
-        .eq('user_id', userId)
-        .select()
-        .single()
-
-      if (error) {
-        console.error('[SubscriptionService] Error canceling subscription:', error)
-        throw error
-      }
-
-      console.log('[SubscriptionService] Subscription canceled')
-      return toSubscription(data)
-    } catch (error) {
-      console.error('[SubscriptionService] cancelSubscription error:', error)
-      throw error
-    }
+    return fetchWithTimeout(1);
   }
 
   /**
@@ -201,7 +102,6 @@ export class SubscriptionService {
       if (subscription.plan !== 'premium') return false
       if (subscription.status !== 'active' && subscription.status !== 'canceled') return false
       
-      // If canceled, check if still within paid period
       if (subscription.status === 'canceled' && subscription.currentPeriodEnd) {
         return new Date() < subscription.currentPeriodEnd
       }
@@ -213,16 +113,41 @@ export class SubscriptionService {
     }
   }
 
-  /**
-   * Get or create subscription for user
-   */
+  static async createSubscription(
+    userId: string,
+    plan: SubscriptionPlan = 'free'
+  ): Promise<Subscription> {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .insert({
+        user_id: userId,
+        plan,
+        status: 'active',
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return toSubscription(data)
+  }
+
+  static async cancelSubscription(userId: string): Promise<Subscription> {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .update({ status: 'canceled' })
+      .eq('user_id', userId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return toSubscription(data)
+  }
+
   static async getOrCreateSubscription(userId: string): Promise<Subscription> {
     let subscription = await this.getSubscription(userId)
-    
     if (!subscription) {
       subscription = await this.createSubscription(userId, 'free')
     }
-    
     return subscription
   }
 }

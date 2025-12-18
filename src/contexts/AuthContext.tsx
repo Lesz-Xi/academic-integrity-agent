@@ -196,34 +196,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // ALWAYS clear local state regardless of API success
       setUser(null)
       setSession(null)
-      
-      // Clear all potential auth-related keys from localStorage
-      try {
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i)
-          if (key && (
-            key.includes('supabase') || 
-            key.includes('sb-') || 
-            key.includes('auth-token') ||
-            key.includes('supabase.auth.token')
-          )) {
-            keysToRemove.push(key)
-          }
-        }
-        
-        // Remove them all
-        keysToRemove.forEach(k => {
-          console.log('[AuthContext] Purging security key:', k)
-          localStorage.removeItem(k)
-        })
-
-        // Also clear any other app-specific auth state
-        localStorage.removeItem('hasSyncedToSupabase')
-        
-      } catch (e) {
-        console.warn('[AuthContext] Failed to clear localStorage keys:', e)
-      }
       console.log('[AuthContext] Signed out successfully (local state cleared)')
     }
   }

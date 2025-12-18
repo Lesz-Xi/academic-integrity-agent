@@ -53,62 +53,40 @@ function AppContent() {
     let channel: any = null;
 
     async function checkPremiumStatus(retries = 0) {
-      // Abort if signing out or unmounted
-      if (isSigningOutRef.current || !mounted) {
-        console.log('[App] Aborting premium check (signing out or unmounted)');
-        return;
-      }
-
-      if (!user) {
-        if (mounted) setIsPremium(false);
-        return;
-      }
+      if (isSigningOutRef.current || !mounted) return;
+      if (!user) return;
 
       try {
-        console.log(`[App] Checking premium status (Attempt ${retries + 1})...`);
         const premium = await SubscriptionService.isPremium(user.id);
         
-        // Check again after async call
-        if (isSigningOutRef.current || !mounted) {
-          console.log('[App] Aborting premium check after async (signing out)');
-          return;
-        }
+        if (!mounted || isSigningOutRef.current) return;
 
-        if (mounted) {
-          console.log('[App] Premium status result:', premium);
-          
-          if (premium) {
-            // SUCCESS: Set to true immediately
-            setIsPremium(true);
-          } else if (retries < 5) {
-            // MAYBE FALSE: Retry a few times before confirming
-            console.log('[App] Premium check returned false, retrying...');
-            const delay = (retries + 1) * 1000; // 1s, 2s, 3s, 4s, 5s
-            setTimeout(() => checkPremiumStatus(retries + 1), delay);
-          } else {
-            // CONFIRMED FALSE: All retries exhausted, user is definitely not premium
-            console.log('[App] All retries exhausted, user is not premium');
-            setIsPremium(false);
-          }
+        console.log('[App] Premium check result for UI:', premium);
+        setIsPremium(premium);
+
+        // If false, retry up to 5 times (propagation lag)
+        if (!premium && retries < 5) {
+          console.log('[App] Premium not found yet, retrying in 2s...');
+          setTimeout(() => {
+            if (mounted) checkPremiumStatus(retries + 1);
+          }, 2000);
         }
       } catch (error) {
-        console.error('[App] Failed to check premium status:', error);
-        // On error, retry if possible before giving up
-        if (mounted && !isSigningOutRef.current && retries < 5) {
-          const delay = (retries + 1) * 1000;
-          setTimeout(() => checkPremiumStatus(retries + 1), delay);
-        } else if (mounted) {
-          setIsPremium(false);
-        }
+        console.error('[App] Premium check error:', error);
       }
     }
 
     if (user) {
       // Reset sign-out flag when we have a user
       isSigningOutRef.current = false;
+      
+      // Set to loading state immediately when user changes
+      setIsPremium(null);
 
-      // 1. Immediate Check
-      checkPremiumStatus();
+      // 1. Immediate Check (with a short delay to let auth state settle)
+      const timeoutId = setTimeout(() => {
+        if (mounted) checkPremiumStatus();
+      }, 1000); // 1s wait is enough for RLS settling
 
       // 2. Realtime Subscription
       channel = supabase
@@ -127,6 +105,12 @@ function AppContent() {
           }
         )
         .subscribe();
+
+      return () => {
+        clearTimeout(timeoutId);
+        mounted = false;
+        if (channel) supabase.removeChannel(channel);
+      };
     } else {
       setIsPremium(false);
     }
