@@ -143,6 +143,15 @@ const InputPanel: React.FC<InputPanelProps> = ({
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    if (e.clipboardData.files && e.clipboardData.files.length > 0) {
+      // If user pasted a file (e.g. image from system clipboard)
+      e.preventDefault();
+      handleFileUpload(e.clipboardData.files[0]);
+    }
+    // Otherwise allow normal text paste
+  };
+
   const clearFile = () => {
     setUploadedFile(null);
     setFileError(null);
@@ -224,7 +233,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
         {/* File Upload Input (Hidden) */}
         <input
           type="file"
-          accept=".txt,.md,.pdf,.docx"
+          accept=".txt,.md,.pdf,.docx,.png,.jpg,.jpeg,.webp"
           onChange={handleFileInputChange}
           className="hidden"
           id="file-upload"
@@ -261,6 +270,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
                   setInput(e.target.value);
                   onInputChange?.(e.target.value);
                 }}
+                onPaste={handlePaste}
                 placeholder={getPlaceholder()}
                 className="w-full bg-transparent border-none resize-none focus:ring-0 focus:outline-none text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 text-base sm:text-lg font-sans leading-relaxed max-h-[400px]"
                 rows={1}

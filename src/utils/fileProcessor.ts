@@ -39,6 +39,12 @@ export async function processFile(file: File): Promise<FileProcessingResult> {
       case 'docx':
         extractedText = await processDocxFile(file);
         break;
+      case 'png':
+      case 'jpg':
+      case 'jpeg':
+      case 'webp':
+        extractedText = await processImageFile(file);
+        break;
       default:
         throw new Error(`Unsupported file type: .${fileExtension}`);
     }
@@ -219,6 +225,28 @@ async function processDocxFile(file: File): Promise<string> {
 }
 
 /**
+ * Process Image files (PNG, JPG, etc.) by converting to Base64
+ * This allows the Vision Model (Gemini/Claude) to see the image content.
+ */
+async function processImageFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      // Result is already a Data URL (e.g. "data:image/png;base64,...")
+      resolve(result);
+    };
+    
+    reader.onerror = () => {
+      reject(new Error('Failed to read image file'));
+    };
+    
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
  * Validate file size (max 10MB)
  */
 export function validateFileSize(file: File): { valid: boolean; error?: string } {
@@ -238,7 +266,7 @@ export function validateFileSize(file: File): { valid: boolean; error?: string }
  * Validate file type
  */
 export function validateFileType(file: File): { valid: boolean; error?: string } {
-  const allowedExtensions = ['txt', 'md', 'pdf', 'docx'];
+  const allowedExtensions = ['txt', 'md', 'pdf', 'docx', 'png', 'jpg', 'jpeg', 'webp'];
   const extension = file.name.split('.').pop()?.toLowerCase();
   
   if (!extension || !allowedExtensions.includes(extension)) {
