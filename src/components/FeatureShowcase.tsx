@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Feather, Terminal, RefreshCw, CheckCircle, Code, MessageSquare, Briefcase } from 'lucide-react';
 
 interface FeatureShowcaseProps {
@@ -7,54 +7,6 @@ interface FeatureShowcaseProps {
 
 const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
   const [activeTab, setActiveTab] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
-  const containerRef = useRef<HTMLElement>(null);
-
-  // Auto-play when in view
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // Only auto-play on desktop to prevent mobile layout shifts
-            if (window.innerWidth >= 768) {
-               setIsAutoPlaying(true);
-            }
-            observer.disconnect(); // Start once and unbind
-          }
-        });
-      },
-      { threshold: 0.2 } // Trigger earlier
-    );
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Auto-rotate tabs
-  useEffect(() => {
-    if (!isAutoPlaying) return;
-
-    const interval = setInterval(() => {
-      setActiveTab((prev) => (prev + 1) % 5);
-    }, 2500); // Faster cycle (2.5s) for "line by line" feel
-
-    return () => clearInterval(interval);
-  }, [isAutoPlaying]);
-
-  // Resume auto-play after interaction (Smart Idle)
-  useEffect(() => {
-    if (isAutoPlaying) return;
-
-    const timeout = setTimeout(() => {
-      setIsAutoPlaying(true);
-    }, 6000); // Resume after 6 seconds of idle
-
-    return () => clearTimeout(timeout);
-  }, [isAutoPlaying, activeTab]);
 
   const features = [
     {
@@ -200,7 +152,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
   ];
 
   return (
-    <section id="features" ref={containerRef} className={`py-20 px-6 relative overflow-hidden transition-colors duration-500 ${
+    <section id="features" className={`py-20 px-6 relative overflow-hidden transition-colors duration-500 ${
       theme === 'dark' ? 'bg-[#111]' : 'bg-[#F5F3EE]' // Seamless blend with global background
     }`}>
       
@@ -225,7 +177,6 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                   key={feature.id}
                   onClick={() => {
                     setActiveTab(index);
-                    setIsAutoPlaying(false);
                   }}
                   className={`text-left pl-8 pr-4 transition-all duration-200 group ${
                     activeTab === index 
