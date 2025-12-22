@@ -240,16 +240,10 @@ function AppContent() {
         return;
     }
 
-    let currentPremiumStatus = isPremium;
-    if (user) {
-      try {
-        currentPremiumStatus = await SubscriptionService.isPremium(user.id);
-        if (currentPremiumStatus !== isPremium) setIsPremium(currentPremiumStatus);
-      } catch (err) {
-        currentPremiumStatus = isPremium;
-      }
-    }
+    // Use current state capability - isPremium is kept fresh by real-time subscription
+    const currentPremiumStatus = isPremium;
 
+    // Only enforce limits for free users
     if (user && currentPremiumStatus === false) {
       try {
         const usage = await GenerationService.getMonthlyUsage(user.id);
