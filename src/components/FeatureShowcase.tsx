@@ -220,10 +220,11 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
              
              {/* Animated Progress Indicator */}
              <div 
-               className="absolute left-0 w-1 bg-[#D2B48C] transition-all duration-500 ease-in-out"
+               className="absolute left-0 w-1 bg-[#D2B48C] transition-all duration-300 ease-out"
                style={{ 
                  top: `${activeTab * 20}%`, 
-                 height: '20%' 
+                 height: '20%',
+                 transform: 'translateZ(0)' // GPU acceleration
                }}
              />
 
@@ -234,13 +235,13 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                     setActiveTab(index);
                     setIsAutoPlaying(false);
                   }}
-                  className={`text-left pl-8 pr-4 transition-all duration-500 group ${
+                  className={`text-left pl-8 pr-4 transition-all duration-200 group ${
                     activeTab === index 
                         ? 'py-6 opacity-100' 
                         : 'py-4 opacity-40 hover:opacity-70'
                   }`}
                 >
-                  <h3 className={`text-xl font-bold mb-2 flex items-center gap-3 ${
+                  <h3 className={`text-xl font-bold mb-2 flex items-center gap-3 transition-colors duration-200 ${
                      activeTab === index 
                         ? (theme === 'dark' ? 'text-white' : 'text-[#2D2D2D]') 
                         : (theme === 'dark' ? 'text-gray-400' : 'text-gray-500')
@@ -248,9 +249,12 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                     {activeTab === index && <span className="w-2 h-2 rounded-full bg-[#D2B48C] animate-pulse" />}
                     {feature.title}
                   </h3>
-                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                  <div 
+                    className={`overflow-hidden transition-all duration-200 ease-out ${
                       activeTab === index ? 'max-h-48 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'
-                  }`}>
+                    }`}
+                    style={{ transform: 'translateZ(0)' }} // GPU acceleration for accordion
+                  >
                     <p className={`text-sm leading-relaxed max-w-md ${
                         theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                     }`}>
