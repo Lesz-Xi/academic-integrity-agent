@@ -242,8 +242,8 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                     {feature.title}
                   </h3>
                   <div 
-                    className={`overflow-hidden transition-all duration-200 ease-out ${
-                      activeTab === index ? 'max-h-48 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'
+                    className={`overflow-hidden transition-all duration-300 ease-out ${
+                      activeTab === index ? 'max-h-48 opacity-100 py-2' : 'max-h-0 opacity-0 py-0'
                     }`}
                     style={{ transform: 'translateZ(0)' }} // GPU acceleration for accordion
                   >
@@ -289,7 +289,10 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                 {/* Background Glow - Moved behind content */}
                 <div 
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full blur-[100px] opacity-10 pointer-events-none transition-colors duration-1000 z-0"
-                  style={{ backgroundColor: features[activeTab].color }}
+                  style={{ 
+                      backgroundColor: features[activeTab].color,
+                      transform: 'translate3d(-50%, -50%, 0)' // Force HW acceleration to fix iOS flicker
+                  }}
                 />
 
                 {/* Content Area */}
