@@ -345,9 +345,17 @@ const InputPanel: React.FC<InputPanelProps> = ({
                  {/* Generate/Stop Button */}
                  {isGenerating ? (
                    <div className="relative group">
+                     {/* Pulse Animation Styles */}
+                     <style>{`
+                       @keyframes pulse-scale {
+                         0%, 100% { transform: scale(1); }
+                         50% { transform: scale(0.9); }
+                       }
+                     `}</style>
                      <button
                         onClick={onStop}
-                        className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 bg-[#383838] hover:bg-[#C1A87D]/20 text-white shadow-lg shadow-black/10 hover:scale-105 active:scale-95"
+                        style={{ animation: 'pulse-scale 2s infinite ease-in-out' }}
+                        className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200 bg-[#383838] hover:bg-[#C1A87D]/20 text-white shadow-lg shadow-black/10 active:scale-95"
                      >
                         <div className="w-2.5 h-2.5 bg-white rounded-[1px]" />
                      </button>
