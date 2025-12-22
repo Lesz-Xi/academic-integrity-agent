@@ -66,7 +66,8 @@ export async function generateContent(
   onChunk?: (text: string) => void,
   searchEnabled: boolean = false,
   length: 'short' | 'medium' | 'long' = 'medium',
-  userId?: string
+  userId?: string,
+  signal?: AbortSignal
 ): Promise<GenerationResponse> {
   
   const basePrompt = MODE_PROMPTS[mode];
@@ -173,6 +174,11 @@ PRE-OUTPUT AUDIT: Before outputting, check for mechanical precision and imperson
 
   let searchContext = '';
   
+  // Check abort before expensive search operation
+  if (signal?.aborted) {
+    throw new Error('Generation cancelled by user');
+  }
+  
   // Search integration (only for essay and cs modes)
   if (searchEnabled && (mode === 'essay' || mode === 'cs')) {
     try {
@@ -270,6 +276,11 @@ PRE-OUTPUT AUDIT: Before outputting, check for mechanical precision and imperson
           const result = await chat.sendMessageStream({ message: userMessage });
           
           for await (const chunk of result) {
+            // Check for abort during streaming
+            if (signal?.aborted) {
+              throw new Error('Generation cancelled by user');
+            }
+            
             if (chunk.text) {
               fullResponse += chunk.text;
               if (onChunk) onChunk(chunk.text);
@@ -329,9 +340,16 @@ PRE-OUTPUT AUDIT: Before outputting, check for mechanical precision and imperson
           { role: 'user', content: userMessage }
         ],
         temperature: dynamicTemperature
+      }, {
+        signal: signal  // Pass AbortSignal to Anthropic SDK
       });
 
       for await (const event of stream) {
+        // Check for abort during streaming
+        if (signal?.aborted) {
+          throw new Error('Generation cancelled by user');
+        }
+        
         if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
           const text = event.delta.text;
           fullResponse += text;

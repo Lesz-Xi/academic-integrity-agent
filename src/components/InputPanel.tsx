@@ -6,11 +6,12 @@ import SearchToggle from './SearchToggle';
 import CompactModeSelector from './CompactModeSelector';
 import CompactLengthSelector from './CompactLengthSelector';
 import FileAnalysisCard from './FileAnalysisCard';
-import { ArrowUp, Paperclip, Loader, Edit3 } from 'lucide-react';
+import { ArrowUp, Paperclip, Loader, Edit3, X } from 'lucide-react';
 
 interface InputPanelProps {
   mode: Mode;
   onGenerate: (input: string, additionalInstructions: string, searchEnabled?: boolean) => void;
+  onStop?: () => void;
   onInputChange?: (input: string) => void;
   onModeChange?: (mode: Mode) => void;
   onLengthChange?: (length: EssayLength) => void;
@@ -24,6 +25,7 @@ interface InputPanelProps {
 const InputPanel: React.FC<InputPanelProps> = ({ 
   mode, 
   onGenerate, 
+  onStop,
   onInputChange,
   onModeChange,
   onLengthChange, 
@@ -340,23 +342,30 @@ const InputPanel: React.FC<InputPanelProps> = ({
              </div>
 
              <div className="flex items-center gap-3">
-                 {/* Generate Button */}
-                 <button
-                    onClick={handleSubmit}
-                    disabled={!hasContent || isGenerating || isProcessingFile}
-                    className={`
-                        flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300
-                        ${hasContent 
-                            ? 'bg-gradient-to-br from-[#C1A87D] to-[#A9936D] text-[#FFF] shadow-lg shadow-[#C1A87D]/20 hover:scale-105 active:scale-95' 
-                            : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'}
-                    `}
-                 >
-                    {isGenerating ? (
-                        <Loader className="w-4 h-4 animate-spin" />
-                    ) : (
-                        <ArrowUp className="w-5 h-5" strokeWidth={3} />
-                    )}
-                 </button>
+                 {/* Generate/Stop Button */}
+                 {isGenerating ? (
+                   <button
+                      onClick={onStop}
+                      className="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300 bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20 hover:scale-105 active:scale-95"
+                      title="Stop Generation"
+                   >
+                      <X className="w-5 h-5" strokeWidth={3} />
+                   </button>
+                 ) : (
+                   <button
+                      onClick={handleSubmit}
+                      disabled={!hasContent || isProcessingFile}
+                      className={`
+                          flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300
+                          ${hasContent 
+                              ? 'bg-gradient-to-br from-[#C1A87D] to-[#A9936D] text-[#FFF] shadow-lg shadow-[#C1A87D]/20 hover:scale-105 active:scale-95' 
+                              : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'}
+                      `}
+                      title="Generate"
+                   >
+                      <ArrowUp className="w-5 h-5" strokeWidth={3} />
+                   </button>
+                 )}
              </div>
         </div>
 

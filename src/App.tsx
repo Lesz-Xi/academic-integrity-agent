@@ -56,6 +56,9 @@ function AppContent() {
   const isSigningOutRef = useRef(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
+  
+  // Abort controller for cancelling generation
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Keyboard shortcut for sidebar: Cmd + .
   useEffect(() => {
@@ -220,6 +223,15 @@ function AppContent() {
     setDisclaimerAccepted(true);
     setShowDisclaimer(false);
   };
+  
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsGenerating(false);
+    setGeneratedContent(null);
+  };
 
   const handleGenerate = async (input: string, additionalInstructions: string = '', useSearch: boolean = false) => {
     const modeToUse = selectedMode || 'essay';
@@ -255,20 +267,44 @@ function AppContent() {
 
     setIsGenerating(true);
     setGeneratedContent(null);
+    
+    // Create new AbortController for this generation
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     try {
-      const response = await generateContent(modeToUse, input, additionalInstructions, undefined, useSearch, selectedLength, user?.id);
-      setGeneratedContent(response);
-      addItem({
-        mode: modeToUse,
-        input: input,
-        output: response.text,
-        metrics: response.metrics,
-      }).catch(err => console.error('[App] Failed to save to history:', err));
-    } catch (error) {
+      const response = await generateContent(
+        modeToUse, 
+        input, 
+        additionalInstructions, 
+        undefined, 
+        useSearch, 
+        selectedLength, 
+        user?.id,
+        abortController.signal  // Pass abort signal
+      );
+      
+      // Check if aborted before setting state
+      if (!abortController.signal.aborted) {
+        setGeneratedContent(response);
+        addItem({
+          mode: modeToUse,
+          input: input,
+          output: response.text,
+          metrics: response.metrics,
+        }).catch(err => console.error('[App] Failed to save to history:', err));
+      }
+    } catch (error: any) {
+      // Ignore abort errors
+      if (error.message?.includes('cancelled')) {
+        console.log('[App] Generation cancelled by user');
+        return;
+      }
+      
       console.error('Generation error:', error);
       alert('Failed to generate content. Please check your API key in .env.local');
     } finally {
+      abortControllerRef.current = null;
       setIsGenerating(false);
     }
   };
@@ -487,6 +523,7 @@ function AppContent() {
                             <InputPanel
                               mode={selectedMode || 'essay'}
                               onGenerate={handleGenerate}
+                              onStop={handleStopGeneration}
                               onInputChange={(input: string) => {
                                 if (!input.trim()) {
                                   setGeneratedContent(null);
