@@ -30,10 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Timeout protection: ensure loading state never gets stuck
     // Shorter timeout for regular loads, longer for OAuth callbacks
-    const timeoutDuration = isOAuthCallback ? 30000 : 5000 // 30s for OAuth, 5s for normal
+    // REDUCED: 30s -> 10s for OAuth, 5s -> 3s for normal (improve perceived perf)
+    const timeoutDuration = isOAuthCallback ? 10000 : 3000 
     const authTimeout = setTimeout(() => {
       if (loading) {
-        console.warn('[AuthContext] Auth timeout after', timeoutDuration, 'ms - clearing stale session')
+        console.warn('[AuthContext] Auth timeout after', timeoutDuration, 'ms - clearing stale session (likely network block)')
         setSession(null)
         setUser(null)
         setLoading(false)
