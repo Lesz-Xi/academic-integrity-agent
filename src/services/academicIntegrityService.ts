@@ -323,7 +323,46 @@ PRE-OUTPUT AUDIT: Before outputting, check for mechanical precision and imperson
       console.log('[AcademicIntegrityService] Using Claude Sonnet 4.5 (Essay/CS Mode)');
       
       // Dynamic temperature scaling based on input length
-      const inputWordCount = input.trim().split(/\s+/).length;
+      // Identify input type: Multimodal or Text?
+      const base64ImageMatch = input.match(/data:image\/(png|jpeg|jpg|webp);base64,([^"'\s]+)/);
+      let messages: any[] = [];
+      let inputWordCount = 0;
+
+      if (base64ImageMatch) {
+        // MULTIMODAL REQUEST
+        const mimeType = base64ImageMatch[1] === 'jpg' ? 'jpeg' : base64ImageMatch[1]; // Normalization
+        const base64Data = base64ImageMatch[2];
+        const textContent = input.replace(base64ImageMatch[0], '').trim(); // Remove base64 from text
+        
+        inputWordCount = textContent.split(/\s+/).length;
+        
+        console.log(`[AcademicIntegrityService] Detected Image Input (${mimeType}). Processing as Multimodal.`);
+        
+        messages = [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: `image/${mimeType}`,
+                  data: base64Data,
+                },
+              },
+              {
+                type: 'text',
+                text: userMessage.replace(base64ImageMatch[0], '[Image attached]').trim() // Ensure clean text context
+              }
+            ]
+          }
+        ];
+      } else {
+        // STANDARD TEXT REQUEST
+        inputWordCount = input.trim().split(/\s+/).length;
+        messages = [{ role: 'user', content: userMessage }];
+      }
+
       let dynamicTemperature = 1.0; 
       if (inputWordCount >= 1500) {
         dynamicTemperature = 0.85;
@@ -333,12 +372,10 @@ PRE-OUTPUT AUDIT: Before outputting, check for mechanical precision and imperson
       console.log(`[AcademicIntegrityService] Claude Input: ${inputWordCount} words → Temperature: ${dynamicTemperature}`);
 
       const stream = await anthropic.messages.stream({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-20250514', // Using Claude 3.5 Sonnet (mapped via proxy/Shim)
         max_tokens: 4096,
         system: systemInstruction,
-        messages: [
-          { role: 'user', content: userMessage }
-        ],
+        messages: messages,
         temperature: dynamicTemperature
       }, {
         signal: signal  // Pass AbortSignal to Anthropic SDK
