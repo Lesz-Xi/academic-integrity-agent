@@ -205,14 +205,9 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                     </p>
 
                     {/* Mobile Only: Inline Preview */}
-                    <div className="lg:hidden mt-6">
-                       <div className={`rounded-xl border shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-[#1a1a1a] border-[#333]' : 'bg-white border-gray-100'}`}>
-                           <div className={`px-4 py-3 border-b flex items-center gap-2 ${theme === 'dark' ? 'border-[#333]' : 'border-gray-100'}`}>
-                               <div className="w-1.5 h-1.5 rounded-full bg-red-400/20"/>
-                               <div className="w-1.5 h-1.5 rounded-full bg-yellow-400/20"/>
-                               <div className="text-[10px] opacity-40 ml-2 font-mono">Mobile Preview</div>
-                           </div>
-                           <div className="p-4">
+                    <div className="lg:hidden mt-4">
+                       <div className={`rounded-xl border border-dashed overflow-hidden ${theme === 'dark' ? 'border-[#333]' : 'border-gray-200'}`}>
+                           <div className="w-full">
                               {feature.preview}
                            </div>
                        </div>
