@@ -94,18 +94,43 @@ export async function analyzeDocument(text: string, _fileName: string): Promise<
     const ai = new GoogleGenAI({ apiKey });
     
     const excerpt = prepareExcerpt(text);
-    const prompt = FILE_ANALYSIS_PROMPT + excerpt;
+    
+    // Check for image data (Multimodal Analysis)
+    const base64ImageMatch = text.match(/^data:image\/(png|jpeg|jpg|webp);base64,([^"'\s]+)/);
+    
+    let contentParts: any[] = [];
+    
+    if (base64ImageMatch) {
+      // It's an image. Send as image part + prompt
+      const mimeType = base64ImageMatch[1] === 'jpg' ? 'jpeg' : base64ImageMatch[1];
+      const base64Data = base64ImageMatch[2];
+      
+      console.log(`[FileAnalyzer] Analyzing image document (${mimeType})`);
+      
+      contentParts = [
+        {
+          inlineData: {
+            mimeType: `image/${mimeType}`,
+            data: base64Data
+          }
+        },
+        { text: FILE_ANALYSIS_PROMPT + "\n\n(This document is an image/screenshot. Analyze its visual contents.)" }
+      ];
+    } else {
+      // Text document
+      contentParts = [{ text: FILE_ANALYSIS_PROMPT + excerpt }];
+    }
     
     // Use Gemini Flash Lite for fast, cheap analysis
     const response = await ai.models.generateContent({
       model: 'gemini-2.0-flash-lite',
-      contents: prompt,
+      contents: [{ role: 'user', parts: contentParts }],
       config: {
-        temperature: 0.1, // Low temperature for consistent JSON
-        maxOutputTokens: 800,
+        responseMimeType: 'application/json',
+        temperature: 0.1, 
       }
     });
-    
+
     const responseText = response.text?.trim() || '';
     
     // Parse JSON response
