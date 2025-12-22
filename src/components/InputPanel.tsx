@@ -370,14 +370,14 @@ const InputPanel: React.FC<InputPanelProps> = ({
                       onClick={handleSubmit}
                       disabled={!hasContent || isProcessingFile}
                       className={`
-                          flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300
+                          flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-300
                           ${hasContent 
                               ? 'bg-gradient-to-br from-[#C1A87D] to-[#A9936D] text-[#FFF] shadow-lg shadow-[#C1A87D]/20 hover:scale-105 active:scale-95' 
                               : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'}
                       `}
                       title="Generate"
                    >
-                      <ArrowUp className="w-5 h-5" strokeWidth={3} />
+                      <ArrowUp className="w-4 h-4" strokeWidth={3} />
                    </button>
                  )}
              </div>
