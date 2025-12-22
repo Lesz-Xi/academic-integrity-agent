@@ -207,7 +207,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                               <div key={item.id} className="group relative pl-2">
                                 <button
                                   onClick={() => onHistoryItemClick(item)}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-all"
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm text-gray-600 dark:text-gray-400 md:hover:bg-black/5 md:dark:hover:bg-white/5 md:hover:text-gray-900 md:dark:hover:text-white transition-all active:scale-[0.98]"
                                 >
                                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${
                                     mode === 'essay' ? 'bg-[#F2E8CF]' :
