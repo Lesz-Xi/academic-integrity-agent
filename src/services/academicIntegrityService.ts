@@ -388,7 +388,7 @@ PRE-OUTPUT AUDIT: Before outputting, check for mechanical precision and imperson
     
     // Collect HIGH and MEDIUM risk sentences for user review
     const flaggedSentences = riskReport.sentences.filter(
-      s => s.riskLevel === 'HIGH' || s.riskLevel === 'MEDIUM'
+      (s: SentenceRisk) => s.riskLevel === 'HIGH' || s.riskLevel === 'MEDIUM'
     );
     
     if (flaggedSentences.length > 0) {
@@ -509,8 +509,7 @@ export async function streamChat(
  */
 export async function generateSurgicalContent(
   input: string,
-  editThreshold: 'HIGH' | 'MEDIUM' = 'HIGH',
-  userId?: string
+  editThreshold: 'HIGH' | 'MEDIUM' = 'HIGH'
 ): Promise<GenerationResponse> {
   
   // Get API key for surgical editing
@@ -523,7 +522,7 @@ export async function generateSurgicalContent(
   console.log(`[AcademicIntegrityService] Starting surgical edit (threshold: ${editThreshold})`);
   
   // Apply surgical edits - only modify high-risk sentences
-  const surgicalResult = await applySurgicalEdits(input, apiKey, editThreshold, userId);
+  const surgicalResult = await applySurgicalEdits(input, apiKey, editThreshold);
   
   console.log(`[AcademicIntegrityService] Surgical complete: ${surgicalResult.editedCount} edits, ${(surgicalResult.preservationRatio * 100).toFixed(1)}% preserved`);
   
@@ -549,7 +548,7 @@ export async function generateSurgicalContent(
   const riskReport = analyzeTextRisk(surgicalResult.editedText);
   
   const flaggedSentences = riskReport.sentences.filter(
-    s => s.riskLevel === 'HIGH' || s.riskLevel === 'MEDIUM'
+    (s: SentenceRisk) => s.riskLevel === 'HIGH' || s.riskLevel === 'MEDIUM'
   );
   
   const humanEditFlags = flaggedSentences.length > 0 ? flaggedSentences.map((s: SentenceRisk) => ({
