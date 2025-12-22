@@ -346,13 +346,10 @@ const InputPanel: React.FC<InputPanelProps> = ({
                  {isGenerating ? (
                    <button
                       onClick={onStop}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium"
-                      title="Stop Generation"
+                      className="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200 bg-[#383838] hover:bg-[#424242] text-white shadow-lg shadow-black/10 hover:scale-105 active:scale-95"
+                      title="Stop generation"
                    >
-                      <div className="w-4 h-4 rounded-sm border-2 border-current flex items-center justify-center">
-                        <div className="w-2 h-2 bg-current rounded-[1px]" />
-                      </div>
-                      <span>Stop</span>
+                      <div className="w-3.5 h-3.5 bg-white rounded-[2px]" />
                    </button>
                  ) : (
                    <button

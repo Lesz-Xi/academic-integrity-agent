@@ -296,8 +296,7 @@ function AppContent() {
       }
     } catch (error: any) {
       // Ignore abort errors
-      if (error.message?.includes('cancelled')) {
-        console.log('[App] Generation cancelled by user');
+      if (error.message?.includes('cancelled') || error.message?.includes('aborted')) {
         return;
       }
       

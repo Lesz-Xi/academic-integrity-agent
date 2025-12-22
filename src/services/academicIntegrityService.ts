@@ -358,6 +358,11 @@ PRE-OUTPUT AUDIT: Before outputting, check for mechanical precision and imperson
       }
     }
   } catch (error: any) {
+    // Ignore abort errors - they are expected user actions
+    if (error.name === 'AbortError' || error.message?.includes('aborted') || error.message?.includes('cancelled')) {
+      throw new Error('Generation cancelled by user');
+    }
+
     console.error('API Error:', error);
     
     // Handle errors from both providers
