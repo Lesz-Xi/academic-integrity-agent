@@ -344,13 +344,19 @@ const InputPanel: React.FC<InputPanelProps> = ({
              <div className="flex items-center gap-3">
                  {/* Generate/Stop Button */}
                  {isGenerating ? (
-                   <button
-                      onClick={onStop}
-                      className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 bg-[#383838] hover:bg-[#424242] text-white shadow-lg shadow-black/10 hover:scale-105 active:scale-95"
-                      title="Stop generation"
-                   >
-                      <div className="w-2.5 h-2.5 bg-white rounded-[1px]" />
-                   </button>
+                   <div className="relative group">
+                     <button
+                        onClick={onStop}
+                        className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 bg-[#383838] hover:bg-[#C1A87D]/20 text-white shadow-lg shadow-black/10 hover:scale-105 active:scale-95"
+                     >
+                        <div className="w-2.5 h-2.5 bg-white rounded-[1px]" />
+                     </button>
+                     
+                     {/* Custom Tooltip */}
+                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#1F2937] text-white text-xs font-medium rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg border border-gray-700">
+                       Stop Agent response
+                     </div>
+                   </div>
                  ) : (
                    <button
                       onClick={handleSubmit}
