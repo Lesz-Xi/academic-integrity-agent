@@ -16,7 +16,10 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setIsAutoPlaying(true);
+            // Only auto-play on desktop to prevent mobile layout shifts
+            if (window.innerWidth >= 768) {
+               setIsAutoPlaying(true);
+            }
             observer.disconnect(); // Start once and unbind
           }
         });
