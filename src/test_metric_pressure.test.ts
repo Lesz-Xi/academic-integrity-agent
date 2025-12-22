@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
-import { computeAllMetrics, computeTCR, computeSCV, computeLCD, computeHDV } from './services/metricService';
+import { computeAllMetrics } from './services/metricService';
 
 // Load API key from .env.local
 const envContent = readFileSync('.env.local', 'utf-8');
@@ -205,7 +205,7 @@ function injectTerminologyDrift(text: string): string {
     'students': 'learners'
   };
   
-  let drifted = text;
+  // let drifted = text;
   const paragraphs = text.split(/\n\n+/);
   const midPoint = Math.floor(paragraphs.length / 2);
   

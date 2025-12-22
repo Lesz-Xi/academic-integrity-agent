@@ -17,8 +17,7 @@ export interface SurgicalResult {
 export async function applySurgicalEdits(
   input: string, 
   apiKey: string, 
-  threshold: 'HIGH' | 'MEDIUM' = 'HIGH',
-  userId?: string
+  threshold: 'HIGH' | 'MEDIUM' = 'HIGH'
 ): Promise<SurgicalResult> {
   
   try {
@@ -51,12 +50,12 @@ export async function applySurgicalEdits(
     });
 
     const result = await chat.sendMessage({ message: input });
-    const editedText = result.text() || input; // Fallback to input if empty
+    const editedText = result.text || input; // Correct accessor (getter)
 
     // Calculate simple stats
     // Note: detailed diffing would require more complex logic, here we estimate
-    const inputSentences = input.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    const outputSentences = editedText.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const inputSentences = input.split(/[.!?]+/).filter((s: string) => s.trim().length > 0);
+    const outputSentences = editedText.split(/[.!?]+/).filter((s: string) => s.trim().length > 0);
     
     // Crude estimation of edited count based on length diff of sentences (mock logic for now)
     // In a real implementation, we'd align sentences and check Levenshtein distance

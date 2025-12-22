@@ -88,7 +88,7 @@ function prepareExcerpt(text: string): string {
 /**
  * Analyze a document and return structured analysis
  */
-export async function analyzeDocument(text: string, fileName: string): Promise<FileAnalysis> {
+export async function analyzeDocument(text: string, _fileName: string): Promise<FileAnalysis> {
   try {
     const apiKey = getApiKey();
     const ai = new GoogleGenAI({ apiKey });
