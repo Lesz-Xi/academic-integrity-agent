@@ -185,6 +185,10 @@ const InputPanel: React.FC<InputPanelProps> = ({
         return "Describe the code or technical concept you need help with...";
       case 'paraphrase':
         return "Paste the text you'd like to rewrite or humanize...";
+      case 'polish':
+        return "Paste the text you'd like to polish and refine...";
+      case 'casual':
+        return "Paste the text you'd like to make more natural and conversational...";
       case 'essay':
       default:
         return "What would you like to research or write about today?";
