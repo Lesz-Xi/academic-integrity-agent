@@ -1,0 +1,21 @@
+================================================================================
+PILOT STUDY: Condition 2 (Multi-Stage with Memory Decay)
+================================================================================
+
+Topic: The environmental impact of compostable packaging in university canteens
+
+================================================================================
+
+[1/3] Generating document with memory decay constraints...
+
+[Condition2] Starting generation for topic: The environmental impact of compostable packaging in university canteens
+ApiError: {"error":{"code":404,"message":"models/gemini-2.0-flash-lite-preview-09-2025 is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.","status":"NOT_FOUND"}}
+    at throwErrorIfNotOK (/Users/lesz/Downloads/academic-integrity-agent/node_modules/@google/genai/src/_api_client.ts:854:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async <anonymous> (/Users/lesz/Downloads/academic-integrity-agent/node_modules/@google/genai/src/_api_client.ts:487:9)
+    at async Models.Models.generateContent (/Users/lesz/Downloads/academic-integrity-agent/node_modules/@google/genai/src/models.ts:69:14)
+    at async generateOutline (/Users/lesz/Downloads/academic-integrity-agent/src/services/condition2Service.ts:89:20)
+    at async generateCondition2 (/Users/lesz/Downloads/academic-integrity-agent/src/services/condition2Service.ts:60:19)
+    at async runPilot (/Users/lesz/Downloads/academic-integrity-agent/src/scripts/runCondition2Pilot.ts:27:18) {
+  status: 404
+}

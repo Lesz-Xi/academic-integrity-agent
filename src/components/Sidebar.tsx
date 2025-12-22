@@ -7,9 +7,12 @@ import {
   Moon, 
   Crown, 
   X,
-  PanelLeft
+  PanelLeft,
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react';
-import { HistoryItem } from '../types';
+import { Disclosure, Transition } from '@headlessui/react';
+import { HistoryItem, Mode } from '../types';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -24,8 +27,23 @@ interface SidebarProps {
   toggleTheme: () => void;
   onSignOut: () => void;
   onUpgrade: () => void;
-  onDeleteHistoryItem: (id: string, e: React.MouseEvent) => void;
+  onDeleteHistoryItem: (item: HistoryItem, e: React.MouseEvent) => void;
 }
+
+const MODE_LABELS: Record<string, string> = {
+  essay: 'Essay & Research',
+  cs: 'Computer Science',
+  paraphrase: 'Paraphrase',
+  polish: 'Professional',
+  casual: 'Casual'
+};
+
+const VALID_MODES: Mode[] = ['essay', 'cs', 'paraphrase', 'polish', 'casual'];
+
+const normalizeMode = (mode: string): Mode => {
+  if (VALID_MODES.includes(mode as Mode)) return mode as Mode;
+  return 'essay'; // Default fallback for legacy/unknown modes
+};
 
 const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
@@ -42,6 +60,46 @@ const Sidebar: React.FC<SidebarProps> = ({
   onUpgrade,
   onDeleteHistoryItem
 }) => {
+  // Group history by mode and deduplicate by input
+  // Store all IDs for a given group to support batch deletion
+  const groupedHistory = React.useMemo(() => {
+    const groups: Record<string, { representative: HistoryItem; allIds: string[] }[]> = {};
+    const groupMap: Record<string, { representative: HistoryItem; allIds: string[] }> = {};
+
+    history.forEach(item => {
+      const mode = normalizeMode(item.mode || 'essay');
+      const dedupKey = `${mode}:${item.input.trim()}`;
+      
+      if (!groups[mode]) {
+        groups[mode] = [];
+      }
+
+      if (groupMap[dedupKey]) {
+        // Add ID to existing group
+        groupMap[dedupKey].allIds.push(item.id);
+      } else {
+        // Create new group
+        const newGroup = { representative: item, allIds: [item.id] };
+        groups[mode].push(newGroup);
+        groupMap[dedupKey] = newGroup;
+      }
+    });
+    return groups;
+  }, [history]);
+
+  // Calculate total visible items (unique groups) for the header count
+  const totalVisibleItems = React.useMemo(() => {
+    return Object.values(groupedHistory).reduce((acc, items) => acc + items.length, 0);
+  }, [groupedHistory]);
+
+  const modeOrder: Mode[] = ['essay', 'cs', 'paraphrase', 'polish', 'casual'];
+
+  const handleBatchDelete = (representative: HistoryItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Delete by content group (onion peeling fix)
+    onDeleteHistoryItem(representative, e);
+  }; 
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -104,7 +162,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex-1 overflow-y-auto custom-scrollbar p-2 mt-4 space-y-1">
           <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 flex items-center justify-between">
             <span>Recent Activity</span>
-            {history.length > 0 && <span>{history.length}</span>}
+            {totalVisibleItems > 0 && <span>{totalVisibleItems}</span>}
           </div>
           
           {history.length === 0 ? (
@@ -113,24 +171,70 @@ const Sidebar: React.FC<SidebarProps> = ({
               <p className="text-xs text-gray-400">No recent activity</p>
             </div>
           ) : (
-            history.map((item) => (
-              <div key={item.id} className="group relative">
-                <button
-                  onClick={() => onHistoryItemClick(item)}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-all"
-                >
-                  <div className="w-2 h-2 rounded-full bg-[#F2E8CF] group-hover:bg-[#85683F] transition-colors flex-shrink-0" />
-                  <span className="truncate flex-1 pr-6">{item.input}</span>
-                </button>
-                <button
-                  onClick={(e) => onDeleteHistoryItem(item.id, e)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 opacity-0 group-hover:opacity-100 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-all rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
-                  title="Delete generation"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))
+            <div className="space-y-1">
+              {modeOrder.map(mode => {
+                const groups = groupedHistory[mode];
+                if (!groups || groups.length === 0) return null;
+
+                return (
+                  <Disclosure key={mode} defaultOpen={true}>
+                    {({ open }) => (
+                      <>
+                        <Disclosure.Button className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 uppercase tracking-wider transition-colors group">
+                          <span className="flex items-center gap-2">
+                            {open ? (
+                              <ChevronDown className="w-3 h-3 text-gray-400" />
+                            ) : (
+                              <ChevronRight className="w-3 h-3 text-gray-400" />
+                            )}
+                            {MODE_LABELS[mode] || mode}
+                          </span>
+                          <span className="bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded text-[10px] text-gray-500">
+                            {groups.length}
+                          </span>
+                        </Disclosure.Button>
+                        
+                        <Transition
+                          enter="transition duration-100 ease-out"
+                          enterFrom="transform scale-95 opacity-0"
+                          enterTo="transform scale-100 opacity-100"
+                          leave="transition duration-75 ease-out"
+                          leaveFrom="transform scale-100 opacity-100"
+                          leaveTo="transform scale-95 opacity-0"
+                        >
+                          <Disclosure.Panel className="space-y-1 pb-2">
+                            {groups.map(({ representative: item, allIds }) => (
+                              <div key={item.id} className="group relative pl-2">
+                                <button
+                                  onClick={() => onHistoryItemClick(item)}
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-all"
+                                >
+                                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${
+                                    mode === 'essay' ? 'bg-[#F2E8CF]' :
+                                    mode === 'cs' ? 'bg-gray-400' :
+                                    mode === 'paraphrase' ? 'bg-[#E69F88]' :
+                                    mode === 'polish' ? 'bg-[#CC785C]' :
+                                    'bg-yellow-400'
+                                  }`} />
+                                  <span className="truncate flex-1 pr-6 text-xs sm:text-sm">{item.input}</span>
+                                </button>
+                                <button
+                                  onClick={(e) => handleBatchDelete(item, e)}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 opacity-0 group-hover:opacity-100 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-all rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  title={`Delete generation${allIds.length > 1 ? ` (and ${allIds.length - 1} duplicates)` : ''}`}
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </Disclosure.Panel>
+                        </Transition>
+                      </>
+                    )}
+                  </Disclosure>
+                );
+              })}
+            </div>
           )}
         </div>
 

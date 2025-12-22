@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { HistoryItem } from '../types'
+import type { HistoryItem, Mode } from '../types'
 import { GenerationService } from '../services/generationService'
 import { SyncService } from '../services/syncService'
 import { useAuth } from '../contexts/AuthContext'
 
 const STORAGE_KEY = 'generationHistory'
 const SYNC_FLAG_KEY = 'hasSyncedToSupabase' // Store sync status per user
-const MAX_LOCAL_ITEMS = 20
+const MAX_LOCAL_ITEMS = 100
 
 export function useGenerationHistory() {
   const { user, isAuthenticated } = useAuth()
@@ -216,24 +216,26 @@ export function useGenerationHistory() {
 
         // Optimistic update using functional state
         setHistory(prev => prev.filter((item) => item.id !== id))
-
-        if (isAuthenticated && user) {
-          // For authenticated users: ONLY delete from Supabase
-          // Do NOT touch localStorage - it will cause re-migration issues
-          await GenerationService.deleteGeneration(id, user.id)
-        } else {
-          // For guest users: Update localStorage
-          const stored = localStorage.getItem(STORAGE_KEY)
-          if (stored) {
-            try {
-              const parsed = JSON.parse(stored)
-              const updated = parsed.filter((item: HistoryItem) => item.id !== id)
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-            } catch {
-              // Ignore parse errors
-            }
+        
+        // ALWAYS delete from localStorage to keep it consistent
+        // This prevents "zombie" items from reappearing if:
+        // 1. The user refreshes (and initially loads from localStorage before auth)
+        // 2. The sync service runs again
+        const stored = localStorage.getItem(STORAGE_KEY)
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored)
+            const updated = parsed.filter((item: HistoryItem) => item.id !== id)
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+          } catch {
+            // Ignore parse errors
           }
         }
+
+        if (isAuthenticated && user) {
+          // For authenticated users: ALSO delete from Supabase
+          await GenerationService.deleteGeneration(id, user.id)
+        } 
       } catch (err) {
         console.error('Failed to delete history item:', err)
         setError(err instanceof Error ? err.message : 'Failed to delete')
@@ -258,12 +260,63 @@ export function useGenerationHistory() {
     }
   }, [user, isAuthenticated])
 
+  const deleteHistoryGroup = useCallback(
+    async (item: HistoryItem) => {
+      try {
+        const mode = normalizeMode(item.mode || 'essay');
+        const input = item.input;
+        
+        // Optimistic update: Remove ALL items with matching mode and input
+        setHistory(prev => prev.filter((i) => {
+           const iMode = normalizeMode(i.mode || 'essay');
+           const iInput = i.input;
+           // If mode and input match, filter it out
+           return !(iMode === mode && iInput === input);
+        }));
+
+        // Clean up localStorage for all matching items
+        const stored = localStorage.getItem(STORAGE_KEY)
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored)
+            const updated = parsed.filter((i: HistoryItem) => {
+               const iMode = normalizeMode(i.mode || 'essay');
+               const iInput = i.input;
+               return !(iMode === mode && iInput === input);
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+          } catch {
+            // Ignore parse errors
+          }
+        }
+
+        if (isAuthenticated && user) {
+          // Verify with backend deletion (batch delete by content)
+          await GenerationService.deleteGenerationsByContent(user.id, input, mode)
+        }
+      } catch (err) {
+        console.error('Failed to delete history group:', err)
+        setError(err instanceof Error ? err.message : 'Failed to delete group')
+        await loadHistory()
+      }
+    },
+    [user, isAuthenticated]
+  )
+  
+  // Helper to normalize mode (internal use)
+  const normalizeMode = (mode: string): Mode => {
+     const VALID_MODES: Mode[] = ['essay', 'cs', 'paraphrase', 'polish', 'casual'];
+     if (VALID_MODES.includes(mode as Mode)) return mode as Mode;
+     return 'essay';
+  };
+
   return {
     history,
     loading,
     error,
     addItem,
     deleteItem,
+    deleteHistoryGroup, // Export new method
     clearHistory,
     refresh: loadHistory,
   }

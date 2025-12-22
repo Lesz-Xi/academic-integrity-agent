@@ -1,6 +1,6 @@
 // Core types for the Academic Integrity Agent
 
-export type Mode = 'essay' | 'cs' | 'paraphrase';
+export type Mode = 'essay' | 'cs' | 'paraphrase' | 'polish' | 'casual';
 export type EssayLength = 'short' | 'medium' | 'long';
 
 
@@ -42,6 +42,14 @@ export interface DetectionMetrics {
   riskInterpretation: string;
 }
 
+export interface HumanEditFlag {
+  sentence: string;
+  index: number;
+  riskLevel: 'HIGH' | 'MEDIUM';
+  issues: string[];
+  suggestion: string | null;
+}
+
 export interface GenerationRequest {
   mode: Mode;
   input: string;
@@ -52,6 +60,13 @@ export interface GenerationResponse {
   text: string;
   metrics: DetectionMetrics;
   warnings: string[];
+  humanEditFlags?: HumanEditFlag[];  // Sentences flagged for human review
+  editStats?: {
+    totalSentences: number;
+    highRisk: number;
+    mediumRisk: number;
+    lowRisk: number;
+  };
 }
 
 export interface ChatMessage {

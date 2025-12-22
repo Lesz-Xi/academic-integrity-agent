@@ -1,6 +1,7 @@
 import React from 'react';
 import { Mode } from '../types';
-import { Terminal, Feather, RefreshCw, ChevronDown } from 'lucide-react';
+import { Terminal, Feather, RefreshCw, ChevronDown, PenTool, Coffee } from 'lucide-react';
+
 import { Menu, Transition } from '@headlessui/react';
 
 interface CompactModeSelectorProps {
@@ -15,9 +16,11 @@ const CompactModeSelector: React.FC<CompactModeSelectorProps> = ({
   disabled = false
 }) => {
   const modes: { id: Mode; label: string; icon: React.ReactNode }[] = [
-    { id: 'essay', label: 'Essay & Research', icon: <Feather className="w-4 h-4" /> }, // Renamed from "Essay" to match generic feel if desired, but sticking to logic. Actually Claude uses "Claude 3.5 Sonnet" etc. Let's stick to our modes but make it look like a model selector.
+    { id: 'essay', label: 'Essay & Research', icon: <Feather className="w-4 h-4" /> },
     { id: 'cs', label: 'Computer Science', icon: <Terminal className="w-4 h-4" /> },
     { id: 'paraphrase', label: 'Paraphrase', icon: <RefreshCw className="w-4 h-4" /> },
+    { id: 'polish', label: 'Professional', icon: <PenTool className="w-4 h-4" /> },
+    { id: 'casual', label: 'Casual', icon: <Coffee className="w-4 h-4" /> },
   ];
 
   const currentMode = modes.find(m => m.id === selectedMode) || modes[0];

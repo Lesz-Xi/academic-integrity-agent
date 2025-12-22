@@ -87,7 +87,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                                 : 'border-[#85683F]/30 bg-[#85683F]/10 text-[#85683F]'
                         }`}>
                             <span className={`w-2 h-2 rounded-full animate-pulse ${theme === 'dark' ? 'bg-[#F2E8CF]' : 'bg-[#85683F]'}`}></span>
-                            Learning Mode Active
+                            System Active • v2.4
                         </div>
                         
                         {/* Scribbr Trust Badge */}
@@ -99,7 +99,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
-                            0% AI on Scribbr
+                            0% AI Detection (Turnitin/GPTZero)
                         </div>
                     </div>
 

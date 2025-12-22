@@ -1,0 +1,119 @@
+================================================================================
+CONDITION 3: Multi-Agent Friction Assembly Line
+================================================================================
+
+Topic: The environmental impact of compostable packaging in university canteens
+
+Agent Pipeline:
+  1. Primary Draftsman (T=0.7) → Clean first draft
+  2. Subversive Critic (T=1.0) → Friction generation
+  3. Harried Editor (T=0.8) → Fragmented integration
+
+================================================================================
+
+[Condition3] Starting Multi-Agent Friction Assembly...
+
+[Agent 1: Draftsman] Generating clean first draft (T=0.7)...
+[Agent 1: Draftsman] Draft complete
+
+[Agent 2: Critic] Generating friction feedback (T=1.0)...
+[Agent 2: Critic] Friction generated
+  - Logical conflicts: 2
+  - Lexical poisons: 2
+  - Entropy target: Paragraph 3
+
+[Agent 3: Editor] Integrating feedback with information bottleneck (T=0.8)...
+[Agent 3: Editor] Integration complete
+
+================================================================================
+ORIGINAL DRAFT (Agent 1: Draftsman)
+================================================================================
+1. The growing concern over the environmental impact of single-use plastics has led many universities to explore alternative packaging options, such as compostable materials. As universities strive to reduce their carbon footprint and promote sustainable practices, the implementation of compostable packaging in campus canteens has emerged as a potential solution. This essay will examine the environmental benefits and challenges associated with the use of compostable packaging in university cante...
+
+================================================================================
+CRITIC FEEDBACK (Agent 2: Subversive Critic)
+================================================================================
+
+Logical Conflicts:
+  1. Compostable materials are not necessarily better for the environment than traditional plastics. The energy and resources required to produce and transport compostable alternatives may outweigh their benefits, especially if the composting infrastructure is not properly in place.
+  2. Promoting a "circular economy" through compostable packaging is an oversimplified and unrealistic solution. The complexities of waste management and resource allocation cannot be solved by a single packaging change, as it fails to address the deeper systemic issues.
+
+Lexical Poisons:
+  1. Replace "compostable" with "plant-derived degradables"
+  2. Replace "circular economy" with "eco-viability metrics"
+
+Entropy Target: Paragraph 3
+Entropy Content: The composting process involves a delicate balance of carbon-rich "brown" materials (e.g., dry leave...
+
+================================================================================
+FINAL DOCUMENT (Agent 3: Harried Editor)
+================================================================================
+2. One of the primary advantages of plant-derived degradables is its ability to reduce waste and mitigate the environmental harm caused by traditional plastic packaging. Plant-derived degradables, such as those made from plant-based sources, can be broken down naturally through the composting process, ultimately reducing the amount of waste that ends up in landfills or oceans. This aligns with the broader goal of universities to promote sustainable waste management practices and reduce their overall environmental impact.
+
+3. Furthermore, the use of plant-derived degradables in university canteens can contribute to the development of an eco-viability metrics, where waste is minimized, and resources are reused or recycled. By introducing plant-derived degradables, universities can encourage the proper disposal of food waste and packaging, leading to the creation of nutrient-rich compost that can be used to nourish campus gardens or local agricultural initiatives. The composting process involves a delicate balance of carbon-rich "brown" materials (e.g., dry leaves, shredded paper) and nitrogen-rich "green" materials (e.g., food scraps, grass clippings). Proper aeration, moisture control, and temperature regulation are critical to achieving the optimal conditions for efficient microbial decomposition and the creation of nutrient-dense compost. Failure to maintain these precise parameters can lead to the production of methane, a potent greenhouse gas, or the accumulation of contaminants that render the compost unusable. This approach not only reduces waste but also promotes the efficient use of resources, contributing to a more sustainable ecosystem.
+
+4. However, the implementation of plant-derived degradables in university canteens is not without its challenges. Compostable materials are not necessarily better for the environment than traditional plastics. The energy and resources required to produce and transport plant-derived degradables may outweigh their benefits, especially if the composting infrastructure is not properly in place. Ensuring the proper infrastructure and education for effective composting is crucial, as improper disposal of plant-derived degradables can lead to contamination and diminish the overall environmental benefits. Additionally, the cost of plant-derived degradables may be higher than traditional plastic alternatives, which could pose a financial burden for universities, especially those with limited budgets. Promoting an "eco-viability metrics" through plant-derived degradables is an oversimplified and unrealistic solution. The complexities of waste management and resource allocation cannot be solved by a single packaging change, as it fails to address the deeper systemic issues.
+
+[Saved to: ./pilot_outputs/condition3_2025-12-20T06-24-02-330Z.md]
+
+================================================================================
+COMPUTING METRICS
+================================================================================
+
+--- Original Draft Metrics ---
+[MetricService] Computing all metrics...
+[MetricService] TCR: 0.07291666666666667
+[MetricService] SCV: {
+  variance: 0.00015274426299440543,
+  meanSimilarity: 0.03616748389481903
+}
+[MetricService] LCD: 0.16666666666666666
+[MetricService] HDV: 0.07111111111111111
+
+--- Final Document Metrics (After Friction) ---
+[MetricService] Computing all metrics...
+[MetricService] TCR: 0.030434782608695653
+[MetricService] SCV: {
+  variance: 0.00010891273934744567,
+  meanSimilarity: 0.015152915401005818
+}
+[MetricService] LCD: 0.11904761904761904
+[MetricService] HDV: 0.125
+
+================================================================================
+METRIC COMPARISON: Original Draft → Final (Friction Applied)
+================================================================================
+
+TCR (Terminology Consistency):
+  Original Draft: 0.073
+  Final (Friction): 0.030
+  Pilot 2.1: 0.026
+  Effect: ✅ DRIFT INCREASED
+
+LCV (Lexical Coherence Variance):
+  Original Draft: 0.0002
+  Final (Friction): 0.0001
+  Pilot 2.1: 0.0037
+  Effect: ❌ No change
+
+LCD (Local Contradiction Density):
+  Original Draft: 0.167
+  Final (Friction): 0.119
+  Pilot 2.1: 0.012
+  Effect: ❌ No change
+
+HDV (Hedging Distribution Variance):
+  Original Draft: 0.071
+  Final (Friction): 0.125
+  Pilot 2.1: 0.096
+  Effect: ✅ ASYMMETRY INCREASED
+
+================================================================================
+RESULT: 2/4 metrics improved via friction
+================================================================================
+
+⚠️  PARTIAL: Some improvement but LCD still flat
+   → Friction mechanism may need strengthening
+
+================================================================================
+

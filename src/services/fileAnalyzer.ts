@@ -124,7 +124,7 @@ export async function analyzeDocument(text: string, fileName: string): Promise<F
     } catch (parseError) {
       console.error('Failed to parse analysis JSON:', parseError);
       // Return default analysis on parse failure
-      return getDefaultAnalysis(fileName);
+      return getDefaultAnalysis();
     }
     
     // Validate and sanitize the response
@@ -132,7 +132,7 @@ export async function analyzeDocument(text: string, fileName: string): Promise<F
     
   } catch (error) {
     console.error('Document analysis failed:', error);
-    return getDefaultAnalysis(fileName);
+    return getDefaultAnalysis();
   }
 }
 
@@ -175,7 +175,7 @@ function sanitizeAnalysis(raw: any): FileAnalysis {
 /**
  * Get default analysis when LLM fails
  */
-function getDefaultAnalysis(fileName: string): FileAnalysis {
+function getDefaultAnalysis(): FileAnalysis {
   return {
     documentType: 'unknown',
     confidence: 0,
@@ -186,7 +186,7 @@ function getDefaultAnalysis(fileName: string): FileAnalysis {
       hasConclusion: false,
       estimatedSections: []
     },
-    summary: `Document "${fileName}" uploaded. Analysis unavailable.`,
+    summary: ``,
     suggestedActions: ['Humanize this document', 'Summarize key points', 'Paraphrase sections']
   };
 }

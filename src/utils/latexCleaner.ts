@@ -92,8 +92,14 @@ function cleanLatexContent(content: string): string {
   result = result.replace(/\\([a-zA-Z]+)/g, '$1');
 
   // Clean up extra spaces and braces
+  // Clean up extra spaces and braces
   result = result.replace(/[{}]/g, '');
-  result = result.replace(/\s+/g, ' ').trim();
-
-  return result;
+  
+  // Collapse multiple spaces/tabs into single space, BUT preserve newlines
+  result = result.replace(/[ \t]+/g, ' ');
+  
+  // Normalize multiple newlines to max 2 (paragraph break)
+  result = result.replace(/\n{3,}/g, '\n\n');
+  
+  return result.trim();
 }

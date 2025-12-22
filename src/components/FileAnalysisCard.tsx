@@ -8,12 +8,10 @@ import { FileAnalysis } from '../services/fileAnalyzer';
 import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPE_COLORS } from '../prompts/fileAnalysisPrompt';
 import { 
   ChevronDown, 
-  ChevronUp, 
   FileText, 
   Beaker, 
   Users, 
   BarChart3,
-  Sparkles,
   Loader2
 } from 'lucide-react';
 
@@ -22,13 +20,19 @@ interface FileAnalysisCardProps {
   isLoading?: boolean;
   onActionSelect: (action: string) => void;
   theme?: 'light' | 'dark';
+  characterCount?: number;
+  fileName?: string;
+  onClear?: () => void;
 }
 
 const FileAnalysisCard: React.FC<FileAnalysisCardProps> = ({
   analysis,
   isLoading = false,
   onActionSelect,
-  theme = 'dark'
+  theme = 'dark',
+  characterCount,
+  fileName,
+  onClear
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -56,11 +60,28 @@ const FileAnalysisCard: React.FC<FileAnalysisCardProps> = ({
       <div className={`mt-3 p-3 rounded-xl border ${
         isDark ? 'bg-[#252525] border-white/10' : 'bg-gray-50 border-gray-200'
       } animate-pulse`}>
-        <div className="flex items-center gap-2">
-          <Loader2 className="w-4 h-4 animate-spin text-[#C1A87D]" />
-          <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-            Analyzing document...
-          </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+             <div className="w-8 h-8 rounded-lg bg-gray-700/50 flex items-center justify-center">
+                 <Loader2 className="w-4 h-4 animate-spin text-[#C1A87D]" />
+             </div>
+             <div>
+               <p className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                  {fileName || 'Analyzing...'}
+               </p>
+               <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Analyzing document structure...
+               </p>
+             </div>
+          </div>
+          {onClear && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); onClear(); }}
+              className={`p-1 rounded-full opacity-50 hover:opacity-100 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-200'}`}
+            >
+              <ChevronDown className="w-4 h-4" /> 
+            </button>
+          )} 
         </div>
       </div>
     );
@@ -72,38 +93,63 @@ const FileAnalysisCard: React.FC<FileAnalysisCardProps> = ({
     }`}>
       {/* Header - Always visible */}
       <div 
-        className="p-3 cursor-pointer hover:bg-white/5 transition-colors"
+        className="p-4 cursor-pointer hover:bg-white/5 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {/* Document Type Badge */}
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${typeColor}`}>
-              {getMethodologyIcon()}
-              {typeLabel}
-            </span>
-            
-            {/* Confidence */}
-            {analysis.confidence > 0 && (
-              <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                {Math.round(analysis.confidence * 100)}% confidence
-              </span>
-            )}
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0 mr-4">
+             {/* Filename & Close Row */}
+             <div className="flex items-center justify-between mb-3">
+                <h3 className={`text-sm font-semibold truncate pr-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                   {fileName}
+                </h3>
+             </div>
+
+             <div className="flex items-center gap-2 flex-wrap">
+                {/* Document Type Badge */}
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${typeColor}`}>
+                  {getMethodologyIcon()}
+                  {typeLabel}
+                </span>
+                
+                {/* Confidence & Char Count */}
+                <div className="flex items-center gap-3 ml-1">
+                  {analysis.confidence > 0 && (
+                    <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                      {Math.round(analysis.confidence * 100)}% confidence
+                    </span>
+                  )}
+                  {characterCount && (
+                    <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                      {characterCount.toLocaleString()} chars
+                    </span>
+                  )}
+                </div>
+            </div>
           </div>
           
-          <button className={`p-1 rounded ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-200'}`}>
-            {isExpanded ? (
-              <ChevronUp className="w-4 h-4 text-gray-400" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-gray-400" />
+          {/* Controls */}
+          <div className="flex items-center gap-1">
+
+            {onClear && (
+               <button 
+                 onClick={(e) => { e.stopPropagation(); onClear(); }}
+                 className={`p-1.5 rounded-lg hover:text-red-400 transition-colors ${isDark ? 'hover:bg-red-500/10 text-gray-400' : 'hover:bg-red-50 text-gray-500'}`}
+                 title="Remove file"
+               >
+                 {/* Importing X from lucide-react if not available would be needed, but assume parent imports or icons available. Wait, need to check imports. */}
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+               </button>
             )}
-          </button>
+          </div>
         </div>
         
-        {/* Summary - Always visible */}
-        <p className={`mt-2 text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          {analysis.summary}
-        </p>
+        {/* Summary - Only visible if has content */}
+        {analysis.summary && (
+          <p className={`mt-3 text-[15px] leading-relaxed font-serif ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            {analysis.summary}
+          </p>
+        )}
       </div>
       
       {/* Expanded Details */}
@@ -183,14 +229,11 @@ const FileAnalysisCard: React.FC<FileAnalysisCardProps> = ({
               key={idx}
               onClick={() => onActionSelect(action)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                idx === 0 
-                  ? 'bg-[#C1A87D] text-black hover:bg-[#D4BC91]' 
-                  : isDark 
-                    ? 'bg-white/10 text-gray-300 hover:bg-white/20' 
-                    : 'bg-white text-gray-700 hover:bg-gray-200 border border-gray-300'
+                isDark 
+                  ? 'bg-white/10 text-gray-300 hover:bg-white/20' 
+                  : 'bg-white text-gray-700 hover:bg-gray-200 border border-gray-300'
               }`}
             >
-              {idx === 0 && <Sparkles className="w-3 h-3" />}
               {action}
             </button>
           ))}

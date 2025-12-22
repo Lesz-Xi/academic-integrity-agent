@@ -67,7 +67,7 @@ const FooterSection: React.FC<FooterSectionProps> = ({ theme }) => {
             <div className="space-y-6">
               <h4 className="text-xs font-bold tracking-widest text-gray-500 uppercase">Connect</h4>
               <ul className="space-y-4 text-sm font-medium text-gray-300">
-                <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#F2E8CF] transition-colors"><Instagram className="w-4 h-4" /> Instagram</a></li>
+                <li><a href="https://www.instagram.com/ichrhin3y/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#F2E8CF] transition-colors"><Instagram className="w-4 h-4" /> Instagram</a></li>
                 <li><a href="https://github.com/leszIO" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#F2E8CF] transition-colors"><Github className="w-4 h-4" /> GitHub</a></li>
                 <li><a href="mailto:support@academicintegrityagent.com" className="flex items-center gap-2 hover:text-[#F2E8CF] transition-colors"><Mail className="w-4 h-4" /> Email</a></li>
               </ul>

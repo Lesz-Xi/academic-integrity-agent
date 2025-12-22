@@ -1,8 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database.types'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const getEnv = (key: string) => {
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    return import.meta.env[key]
+  }
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env[key]
+  }
+  return undefined
+}
+
+const supabaseUrl = getEnv('VITE_SUPABASE_URL')
+const supabaseAnonKey = getEnv('VITE_SUPABASE_ANON_KEY')
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(

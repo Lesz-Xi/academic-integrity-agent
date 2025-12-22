@@ -70,11 +70,13 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
   const cleanedText = cleanLatex(text);
   const linkedText = linkifySources(cleanedText);
   const rawHtml = markdownToHtml(linkedText);
+  
   // Sanitize HTML to prevent XSS attacks
   const htmlContent = DOMPurify.sanitize(rawHtml, {
     ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'hr', 'ul', 'ol', 'li', 
-                   'strong', 'em', 'code', 'pre', 'blockquote', 'a', 'table', 'tr', 'td', 'th', 'thead', 'tbody'],
-    ALLOWED_ATTR: ['href', 'target', 'rel'],
+                   'strong', 'em', 'code', 'pre', 'blockquote', 'a', 'table', 'tr', 'td', 'th', 'thead', 'tbody',
+                   'div', 'span'], // Added div, span for layout
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class'], // Added class for styling
   });
 
   return (

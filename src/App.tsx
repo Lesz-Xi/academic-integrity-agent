@@ -19,6 +19,7 @@ import Sidebar from './components/Sidebar';
 import InputPanel from './components/InputPanel';
 import OutputPanel from './components/OutputPanel';
 import MetricsPanel from './components/MetricsPanel';
+import FlaggedSentencesPanel from './components/FlaggedSentencesPanel';
 import EthicsDisclaimer from './components/EthicsDisclaimer';
 import RevealOnScroll from './components/RevealOnScroll';
 import LimitReachedModal from './components/LimitReachedModal';
@@ -32,7 +33,9 @@ const AuthPage = lazy(() => import('./components/AuthPage'));
 function AppContent() {
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated, signOut, loading: authLoading } = useAuth();
-  const { history, addItem, deleteItem } = useGenerationHistory();
+  const { history, addItem, deleteHistoryGroup } = useGenerationHistory();
+  
+
 
   // Default to 'essay' so the UI is ready immediately
   const [selectedMode, setSelectedMode] = useState<Mode>('essay');
@@ -78,7 +81,10 @@ function AppContent() {
       try {
         const premium = await SubscriptionService.isPremium(user.id);
         if (!mounted || isSigningOutRef.current) return;
+        
         setIsPremium(premium);
+        // Cache the successful result
+        localStorage.setItem(`cachedPremiumStatus_${user.id}`, String(premium));
 
         // If false, retry up to 5 times (propagation lag)
         if (!premium && retries < 5) {
@@ -90,12 +96,16 @@ function AppContent() {
           console.error('[App] Failed to check premium status:', error);
           // Fail Safe: If we encounter an error (network/timeout), DO NOT downgrade the user
           // Only update state if we get a successful 'false' from the service.
-          // If we were already premium, keep it that way until we can verify otherwise.
+          // If we were already premium (via cache or prev state), keep it.
           setIsPremium(prev => {
             if (prev) {
               console.warn('[App] Keeping existing Premium status despite check failure');
               return true;
             }
+            // Try to recover from cache one last time if prev is null
+            const cached = localStorage.getItem(`cachedPremiumStatus_${user.id}`);
+            if (cached === 'true') return true;
+            
             return false;
           });
         }
@@ -103,7 +113,17 @@ function AppContent() {
 
     if (user) {
       isSigningOutRef.current = false;
-      setIsPremium(null);
+      
+      // Optimistic Load from Cache
+      const cached = localStorage.getItem(`cachedPremiumStatus_${user.id}`);
+      if (cached === 'true') {
+        setIsPremium(true);
+      } else if (cached === 'false') {
+        setIsPremium(false);
+      } else {
+        setIsPremium(null);
+      }
+
       const timeoutId = setTimeout(() => {
         if (mounted) checkPremiumStatus();
       }, 1000);
@@ -237,7 +257,7 @@ function AppContent() {
     setGeneratedContent(null);
 
     try {
-      const response = await generateContent(modeToUse, input, additionalInstructions, undefined, useSearch, selectedLength);
+      const response = await generateContent(modeToUse, input, additionalInstructions, undefined, useSearch, selectedLength, user?.id);
       setGeneratedContent(response);
       addItem({
         mode: modeToUse,
@@ -391,9 +411,9 @@ function AppContent() {
             toggleTheme={toggleTheme}
             onSignOut={handleSignOut}
             onUpgrade={() => setShowUpgradeModal(true)}
-            onDeleteHistoryItem={(id, e) => {
+            onDeleteHistoryItem={(item, e) => {
               e.stopPropagation();
-              deleteItem(id);
+              deleteHistoryGroup(item);
             }}
           />
 
@@ -456,7 +476,7 @@ function AppContent() {
                 />
 
                 {!generatedContent && (
-                    <div className="flex-1 flex flex-col items-center justify-center px-4 w-full min-h-[75vh] sm:min-h-[85vh] animate-in fade-in duration-700">
+                    <div className="flex-1 flex flex-col items-center justify-start pt-20 sm:pt-32 px-4 w-full min-h-[75vh] sm:min-h-[85vh] animate-in fade-in duration-700">
                         <div className="text-center mb-6 sm:mb-12">
                              <h1 className="text-3xl sm:text-5xl font-serif text-[#2D2D2D] dark:text-[#EAEAEA] mb-3">
                                 {getGreeting()}, <span className="text-[#C1A87D] dark:text-[#F2E8CF] italic">{user?.email?.split('@')[0] || 'Academic Agent'}</span>
@@ -499,6 +519,14 @@ function AppContent() {
                              <RevealOnScroll>
                                  <MetricsPanel metrics={generatedContent.metrics} />
                              </RevealOnScroll>
+                             {generatedContent.humanEditFlags && generatedContent.humanEditFlags.length > 0 && (
+                               <RevealOnScroll delay={50}>
+                                 <FlaggedSentencesPanel
+                                   flags={generatedContent.humanEditFlags}
+                                   stats={generatedContent.editStats}
+                                 />
+                               </RevealOnScroll>
+                             )}
                              <RevealOnScroll delay={100}>
                                  <OutputPanel
                                      ref={outputContainerRef}

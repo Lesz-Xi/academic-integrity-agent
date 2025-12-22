@@ -33,16 +33,16 @@ const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme }) 
     },
     {
       id: 2,
-      title: "Entropy Engineering",
-      description: "Synthesizing varied sentence structures to mirror natural human writing patterns using advanced linguistic harmony.",
+      title: "Dual-Path Engineering",
+      description: "Switching between 'Structural Density' (Professional) and 'Entropy Injection' (Casual) to perfectly match your target persona.",
       icon: Zap,
       label: "03. ENGINEER"
     },
     {
       id: 3,
-      title: "Verified Output",
-      description: "Delivering an authentically synthesized artifact that preserves original intent and meets the highest standards of integrity.",
-      icon: CheckCircle, // This might need a fix if CheckCircle isn't exported directly like this
+      title: "Integrity Verification",
+      description: "Delivering an authentically synthesized artifact that upholds the highest standards of academic integrity and accurate citation.",
+      icon: CheckCircle, 
       label: "04. SYNTHESIZE"
     }
   ];
@@ -61,7 +61,7 @@ const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme }) 
           }`} />
 
           {/* The Stack */}
-          <div className="relative transform-style-3d rotate-x-60 rotate-z-45 duration-700 transition-transform">
+          <div className="relative transform-style-3d rotate-x-60 rotate-z-45 duration-700 transition-transform translate-y-12">
             {steps.map((step, index) => (
               <div
                 key={step.id}
@@ -110,11 +110,10 @@ const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme }) 
           <div className="space-y-4">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tighter">
               From Draft <br />
-              <span className="invisible">Fro</span>
-              <span className="text-[#85683F] opacity-50">to Integrity</span>
+              <span className="text-[#85683F]">to Verified Integrity</span>
             </h2>
             <p className={`text-lg max-w-md ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              We strip away the unnecessary, focusing on structural purity and parametric efficiency to deliver timeless monuments of text.
+              We deploy two distinct architectural paths—Structural Density for professionals and Entropy Injection for students—to ensure your work is indistinguishable from human effort.
             </p>
           </div>
 

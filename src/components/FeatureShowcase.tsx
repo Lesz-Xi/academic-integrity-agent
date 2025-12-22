@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Feather, Terminal, RefreshCw, CheckCircle, Code } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Feather, Terminal, RefreshCw, CheckCircle, Code, MessageSquare, Briefcase } from 'lucide-react';
 
 interface FeatureShowcaseProps {
   theme: 'light' | 'dark';
@@ -7,18 +7,51 @@ interface FeatureShowcaseProps {
 
 const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
   const [activeTab, setActiveTab] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const containerRef = useRef<HTMLElement>(null);
+
+  // Auto-play when in view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsAutoPlaying(true);
+            observer.disconnect(); // Start once and unbind
+          }
+        });
+      },
+      { threshold: 0.2 } // Trigger earlier
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   // Auto-rotate tabs
   useEffect(() => {
     if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
-      setActiveTab((prev) => (prev + 1) % 3);
-    }, 5000);
+      setActiveTab((prev) => (prev + 1) % 5);
+    }, 2500); // Faster cycle (2.5s) for "line by line" feel
 
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
+
+  // Resume auto-play after interaction (Smart Idle)
+  useEffect(() => {
+    if (isAutoPlaying) return;
+
+    const timeout = setTimeout(() => {
+      setIsAutoPlaying(true);
+    }, 6000); // Resume after 6 seconds of idle
+
+    return () => clearTimeout(timeout);
+  }, [isAutoPlaying, activeTab]);
 
   const features = [
     {
@@ -106,11 +139,65 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
            </div>
          </div>
       )
+    },
+    {
+      id: 3,
+      title: "Casual Mode",
+      description: "Authentic Student Voice. Preserves natural linguistic patterns and genuine expression, ensuring your work reflects your true understanding and original thought.",
+      icon: MessageSquare,
+      color: "#D2B48C",
+      metric: "Human-Grade Flow",
+      preview: (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between mb-2">
+             <div className="text-xs font-mono opacity-60">Persona: Student</div>
+             <div className="px-2 py-1 bg-[#D2B48C]/20 text-[#D2B48C] rounded text-xs font-bold">Authentic</div>
+          </div>
+          <div className={`p-4 rounded-lg text-sm leading-relaxed border-l-2 border-[#D2B48C] ${theme === 'dark' ? 'bg-[#252525] text-gray-200' : 'bg-white text-gray-800'}`}>
+            <p>
+              Honestly, I kinda think the whole premise is broken. Like, why are we even optimized for this? It just feels weird.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+             <div className={`p-2 rounded text-xs text-center ${theme === 'dark' ? 'bg-[#333]' : 'bg-gray-100'}`}>
+               Score: <span className="text-[#D2B48C]">Original</span>
+             </div>
+             <div className={`p-2 rounded text-xs text-center ${theme === 'dark' ? 'bg-[#333]' : 'bg-gray-100'}`}>
+                Style: <span className="text-[#D2B48C]">Natural</span>
+             </div>
+           </div>
+        </div>
+      )
+    },
+    {
+      id: 4,
+      title: "Professional Mode",
+      description: "Apple-Style Corporate Polish. Dense, concise, and grammatically perfect without being robotic. Removes fluff and enhances authority.",
+      icon: Briefcase,
+      color: "#6B7280",
+      metric: "Executive Ready",
+      preview: (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between mb-2">
+             <div className="text-xs font-mono opacity-60">Style: Corporate</div>
+             <div className="px-2 py-1 bg-gray-500/10 text-gray-500 rounded text-xs font-bold">High Density</div>
+          </div>
+          <div className={`p-4 rounded-lg text-sm leading-relaxed border-l-2 border-gray-400 ${theme === 'dark' ? 'bg-[#252525] text-gray-200' : 'bg-white text-gray-800'}`}>
+            <p>
+              The premise appears fundamentally flawed. Optimization for this metric yields diminishing returns and misaligns with core objectives.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 mt-2 justify-center text-xs opacity-50">
+             <CheckCircle className="w-3 h-3" /> No Fluff
+             <CheckCircle className="w-3 h-3" /> Passive Voice
+          </div>
+        </div>
+      )
     }
   ];
 
   return (
-    <section id="features" className={`py-20 px-6 relative overflow-hidden transition-colors duration-500 ${
+    <section id="features" ref={containerRef} className={`py-20 px-6 relative overflow-hidden transition-colors duration-500 ${
       theme === 'dark' ? 'bg-[#111]' : 'bg-[#F5F3EE]' // Seamless blend with global background
     }`}>
       
@@ -135,8 +222,8 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
              <div 
                className="absolute left-0 w-1 bg-[#D2B48C] transition-all duration-500 ease-in-out"
                style={{ 
-                 top: `${activeTab * 33.33}%`, 
-                 height: '33.33%' 
+                 top: `${activeTab * 20}%`, 
+                 height: '20%' 
                }}
              />
 
@@ -147,8 +234,10 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                     setActiveTab(index);
                     setIsAutoPlaying(false);
                   }}
-                  className={`text-left pl-8 py-8 pr-4 transition-all duration-300 group ${
-                    activeTab === index ? 'opacity-100' : 'opacity-40 hover:opacity-70'
+                  className={`text-left pl-8 pr-4 transition-all duration-500 group ${
+                    activeTab === index 
+                        ? 'py-6 opacity-100' 
+                        : 'py-4 opacity-40 hover:opacity-70'
                   }`}
                 >
                   <h3 className={`text-xl font-bold mb-2 flex items-center gap-3 ${
@@ -159,18 +248,22 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                     {activeTab === index && <span className="w-2 h-2 rounded-full bg-[#D2B48C] animate-pulse" />}
                     {feature.title}
                   </h3>
-                  <p className={`text-sm leading-relaxed max-w-md ${
-                     theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                  } ${activeTab === index ? 'block' : 'hidden md:block'}`}>
-                    {feature.description}
-                  </p>
+                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                      activeTab === index ? 'max-h-48 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'
+                  }`}>
+                    <p className={`text-sm leading-relaxed max-w-md ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                        {feature.description}
+                    </p>
+                  </div>
                 </button>
              ))}
           </div>
 
           {/* Right Column: Preview Area */}
           <div className="relative">
-             <div className={`relative rounded-3xl border shadow-2xl overflow-hidden min-h-[500px] transition-colors duration-500 ${
+             <div className={`relative rounded-3xl border shadow-2xl overflow-hidden min-h-[550px] transition-colors duration-500 ${
                 theme === 'dark' ? 'bg-[#1a1a1a] border-[#333]' : 'bg-white border-gray-100'
              }`}>
                 

@@ -6,7 +6,7 @@ import SearchToggle from './SearchToggle';
 import CompactModeSelector from './CompactModeSelector';
 import CompactLengthSelector from './CompactLengthSelector';
 import FileAnalysisCard from './FileAnalysisCard';
-import { ArrowUp, Paperclip, FileUp, X, Loader, Edit3 } from 'lucide-react';
+import { ArrowUp, Paperclip, Loader, Edit3 } from 'lucide-react';
 
 interface InputPanelProps {
   mode: Mode;
@@ -177,7 +177,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
 
   const getPlaceholder = () => {
     if (uploadedFile) {
-      return `What should I do with "${uploadedFile.fileName}"? (e.g. "Write my section", "Paraphrase", "Check for AI")`;
+      return `Enter your main instruction... (e.g. "Summarize findings", "Evaluate methodology")`; 
     }
 
     switch (mode) {
@@ -225,39 +225,25 @@ const InputPanel: React.FC<InputPanelProps> = ({
           disabled={isGenerating || isProcessingFile}
         />
 
-        {/* Uploaded File Preview */}
+        {/* Unified File Analysis Card */}
         {uploadedFile && (
-            <div className="px-4 pt-4 pb-0">
-                 <div className="flex items-center gap-3 p-3 bg-white dark:bg-[#424242] rounded-xl border border-gray-200 dark:border-gray-600 max-w-md">
-                     <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
-                         <FileUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                     </div>
-                     <div className="flex-1 min-w-0">
-                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                             {uploadedFile.fileName}
-                         </p>
-                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                             {uploadedFile.characterCount.toLocaleString()} chars
-                         </p>
-                     </div>
-                     <button 
-                        onClick={clearFile}
-                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full transition-colors"
-                     >
-                         <X className="w-4 h-4 text-gray-500" />
-                     </button>
-                 </div>
-                 
-                 {/* File Analysis Card */}
-                 {(isAnalyzing || fileAnalysis) && (
-                   <FileAnalysisCard
-                     analysis={fileAnalysis || { documentType: 'unknown', confidence: 0, structure: { hasAbstract: false, hasMethodology: false, hasResults: false, hasConclusion: false, estimatedSections: [] }, summary: '', suggestedActions: [] }}
-                     isLoading={isAnalyzing}
-                     onActionSelect={handleAnalysisAction}
-                     theme={theme}
-                   />
-                 )}
-            </div>
+           <div className="px-4 pt-1">
+             <FileAnalysisCard
+               analysis={fileAnalysis || { 
+                 documentType: 'unknown', 
+                 confidence: 0, 
+                 structure: { hasAbstract: false, hasMethodology: false, hasResults: false, hasConclusion: false, estimatedSections: [] }, 
+                 summary: isAnalyzing ? 'Analyzing document...' : 'Ready for your instructions.', 
+                 suggestedActions: [] 
+               }}
+               isLoading={isAnalyzing}
+               onActionSelect={handleAnalysisAction}
+               theme={theme}
+               characterCount={uploadedFile.characterCount}
+               fileName={uploadedFile.fileName}
+               onClear={clearFile}
+             />
+           </div>
         )}
 
         {/* Main Input Area */}
@@ -287,12 +273,6 @@ const InputPanel: React.FC<InputPanelProps> = ({
         {showInstructions && (
             <div className="px-1 py-1 sm:px-4 sm:py-3 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-black/10 animate-in slide-in-from-top-2 duration-300">
                 <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-1">
-                            Custom Instructions
-                        </span>
-                    </div>
-                    
                     <div className="animate-in fade-in slide-in-from-top-1 duration-200">
                         <textarea
                             value={additionalInstructions}

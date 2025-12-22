@@ -1,0 +1,65 @@
+================================================================================
+CONDITION 4: The Shatterer (Syntactic Entropy)
+================================================================================
+
+Topic: The environmental impact of compostable packaging in university canteens
+
+Constraints:
+  1. Forbidden Transitions (No "Furthermore", "However", etc.)
+  2. Rhythmic Spiking (Short <6 words → Long >35 words)
+  3. Lexical Rarity (Tier-2/3 synonyms)
+  4. Voice Dysphonia (Clinical → Frustrated → Philosophical)
+
+================================================================================
+
+[Condition4] Starting The Shatterer (Syntactic Entropy)...
+
+================================================================================
+THE SHATTERER OUTPUT
+================================================================================
+The environmental impact of compostable packaging in university canteens is a complex and multifaceted issue. Undoubtedly, the utilization of compostable alternatives to traditional plastics holds promise. Yet, the implementation within university settings requires meticulous planning and analysis. 
+
+Against this backdrop, a clinical examination reveals several critical considerations. The embodied energy and carbon footprint of compostable materials can, in certain cases, eclipse that of conventional plastics. Furthermore, the efficacy of campus-based composting infrastructure remains a point of contention. Proper segregation and processing of compostable waste streams prove essential yet challenging to orchestrate.
+
+So, a frustrated student might argue, why not simply revert to the familiar plastic paradigm? The answer, though, lies in the long-term vision. Compostable packaging, when coupled with robust composting systems, has the potential to divert significant waste from landfills and incineration. This philosophical stance emphasizes the need to embrace innovative solutions, despite their inherent complexities.
+
+Moving to the broader implications, the adoption of compostable packaging in university canteens represents a microcosm of the larger sustainability transition. It exemplifies the delicate balance between technological advancement, logistical feasibility, and cultural shifts. Ultimately, the path forward requires a holistic, systems-level approach that transcends simplistic either/or dichotomies.
+
+In conclusion, the environmental impact of compostable packaging in university canteens is a nuanced and evolving landscape. Careful evaluation, collaborative problem-solving, and a willingness to navigate uncharted territory will be essential in realizing the full potential of this emergent field.
+
+[Saved to: ./pilot_outputs/condition4_2025-12-20T06-57-08-843Z.md]
+
+================================================================================
+COMPUTING METRICS
+================================================================================
+[MetricService] Computing all metrics...
+[MetricService] TCR: 0.03
+[MetricService] SCV: {
+  variance: 0.00004798227163883824,
+  meanSimilarity: 0.01627615455232111
+}
+[MetricService] LCD: 0
+[MetricService] HDV: 0.040000000000000015
+[MetricService] SLE: 3.452819531114783
+
+================================================================================
+METRIC RESULTS
+================================================================================
+
+SLE (Sentence Length Entropy) [NEW]:
+  Value: 3.453
+  Target: > 3.0 (High Burstiness)
+  Status: ✅ BURSTINESS ACHIEVED
+
+TCR (Terminology Consistency):
+  Value: 0.030
+  Context: Lower is better (drift)
+
+HDV (Hedging Variance):
+  Value: 0.040
+
+Check Constraints:
+  Forbidden words found: furthermore, in conclusion, ultimately
+
+================================================================================
+

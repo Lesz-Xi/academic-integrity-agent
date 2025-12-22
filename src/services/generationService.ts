@@ -8,7 +8,7 @@ export class GenerationService {
    */
   static async getHistory(
     userId: string,
-    limit: number = 20,
+    limit: number = 100,
     offset: number = 0
   ): Promise<HistoryItem[]> {
     console.log('[GenerationService] getHistory called for user:', userId)
@@ -95,6 +95,10 @@ export class GenerationService {
    * Soft delete generation by ID (sets deleted_at timestamp)
    * This preserves the record for usage counting but hides it from history
    */
+  /**
+   * Soft delete generation by ID (sets deleted_at timestamp)
+   * This preserves the record for usage counting but hides it from history
+   */
   static async deleteGeneration(id: string, userId: string): Promise<void> {
     console.log('[GenerationService] Soft deleting generation:', { id, userId });
     
@@ -111,11 +115,35 @@ export class GenerationService {
       console.error('[GenerationService] Soft delete error:', error);
       throw error;
     }
+  }
+
+  /**
+   * Soft delete ALL generations matching specific content and mode.
+   * This fixes the "infinite zombie" issue where deleting visible duplicates 
+   * just reveals older ones from previous pages.
+   */
+  static async deleteGenerationsByContent(userId: string, input: string, mode: Mode): Promise<void> {
+    console.log('[GenerationService] Batch soft deleting by content:', { userId, mode });
     
-    if (!data || data.length === 0) {
-      console.warn('[GenerationService] No rows updated - check if record exists and RLS policies allow update');
+    let query = supabase
+      .from('generations')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('input', input) // Delete all instances of this exact input
+      .is('deleted_at', null);
+
+    // Handle legacy data: 'essay' mode in UI might map to NULL in DB
+    if (mode === 'essay') {
+      query = query.or('mode.eq.essay,mode.is.null');
     } else {
-      console.log('[GenerationService] Successfully soft deleted:', data[0]?.id);
+      query = query.eq('mode', mode);
+    }
+
+    const { error } = await query;
+
+    if (error) {
+      console.error('[GenerationService] Batch soft delete error:', error);
+      throw error;
     }
   }
 
