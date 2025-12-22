@@ -6,7 +6,7 @@ import SearchToggle from './SearchToggle';
 import CompactModeSelector from './CompactModeSelector';
 import CompactLengthSelector from './CompactLengthSelector';
 import FileAnalysisCard from './FileAnalysisCard';
-import { ArrowUp, Paperclip, Loader, Edit3, X } from 'lucide-react';
+import { ArrowUp, Paperclip, Loader, Edit3 } from 'lucide-react';
 
 interface InputPanelProps {
   mode: Mode;
@@ -346,10 +346,13 @@ const InputPanel: React.FC<InputPanelProps> = ({
                  {isGenerating ? (
                    <button
                       onClick={onStop}
-                      className="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300 bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20 hover:scale-105 active:scale-95"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium"
                       title="Stop Generation"
                    >
-                      <X className="w-5 h-5" strokeWidth={3} />
+                      <div className="w-4 h-4 rounded-sm border-2 border-current flex items-center justify-center">
+                        <div className="w-2 h-2 bg-current rounded-[1px]" />
+                      </div>
+                      <span>Stop</span>
                    </button>
                  ) : (
                    <button
