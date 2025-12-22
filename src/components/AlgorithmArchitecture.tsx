@@ -113,7 +113,7 @@ const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme }) 
               <span className="text-[#85683F]">to Verified Integrity</span>
             </h2>
             <p className={`text-lg max-w-md ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              We deploy two distinct architectural paths—Structural Density for professionals and Entropy Injection for students—to ensure your work is indistinguishable from human effort.
+              We deploy two distinct architectural paths—Structural Density for professionals and Authentic Voice Synthesis for students—to ensure your work upholds the highest standards of academic integrity and accurate citation.
             </p>
           </div>
 
