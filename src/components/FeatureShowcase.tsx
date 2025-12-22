@@ -215,18 +215,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
           
           {/* Left Column: Navigation Tabs */}
           <div className="flex flex-col gap-2 relative">
-             {/* Progress Line Track */}
-             <div className={`absolute left-0 top-0 bottom-0 w-1 ${theme === 'dark' ? 'bg-[#333]' : 'bg-gray-200'}`} />
-             
-             {/* Animated Progress Indicator */}
-             <div 
-               className="absolute left-0 w-1 bg-[#D2B48C] transition-all duration-300 ease-out"
-               style={{ 
-                 top: `${activeTab * 20}%`, 
-                 height: '20%',
-                 transform: 'translateZ(0)' // GPU acceleration
-               }}
-             />
+
 
              {features.map((feature, index) => (
                 <button
