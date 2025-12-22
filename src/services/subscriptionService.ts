@@ -79,6 +79,29 @@ export class SubscriptionService {
         latestError = error;
         console.warn(`[SubscriptionService] Query failed (attempt ${attempt}):`, error.message);
         
+        // Critical Fallback: Check localStorage if network fails
+        // This allows Chrome users with strict blockers/network issues to stay premium if previously verified
+        if (typeof window !== 'undefined') {
+            const cachedParams = localStorage.getItem(`cachedPremiumStatus_${userId}`);
+            if (cachedParams === 'true') {
+                console.log('[SubscriptionService] Recovered Premium status from local cache');
+                return {
+                    id: 'cached_fallback',
+                    userId: userId,
+                    plan: 'premium',
+                    status: 'active',
+                    billingCycle: 'monthly',
+                    stripeCustomerId: null,
+                    stripeSubscriptionId: null,
+                    paypalSubscriptionId: null,
+                    currentPeriodStart: new Date(),
+                    currentPeriodEnd: new Date(Date.now() + 86400000), // Valid for 24h
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                };
+            }
+        }
+        
         if (attempt < 3) {
           console.log('[SubscriptionService] Retrying in 1s...');
           await new Promise(r => setTimeout(r, 1000));
