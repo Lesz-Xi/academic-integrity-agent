@@ -362,7 +362,7 @@ STYLE RULES:
           
           // Helper to chunk array
           const chunkArray = (arr: any[], size: number) => {
-            return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+            return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
               arr.slice(i * size, i * size + size)
             );
           };

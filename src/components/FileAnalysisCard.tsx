@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { FileAnalysis } from '../services/fileAnalyzer';
-import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPE_COLORS } from '../prompts/fileAnalysisPrompt';
+import { DOCUMENT_TYPE_LABELS } from '../prompts/fileAnalysisPrompt';
 import { 
   ChevronDown, 
   FileText, 

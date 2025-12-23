@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Copy, Check, ShieldAlert, FileText, Download, Scale, BookOpen } from 'lucide-react';
+import { X, Copy, Check, ShieldAlert, FileText, Scale, BookOpen } from 'lucide-react';
 
 interface DefenseToolkitProps {
   isOpen: boolean;

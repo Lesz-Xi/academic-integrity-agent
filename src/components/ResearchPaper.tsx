@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { X, Download, Share2, FileText } from 'lucide-react';
 
 interface ResearchPaperProps {
@@ -8,7 +8,6 @@ interface ResearchPaperProps {
 }
 
 const ResearchPaper: React.FC<ResearchPaperProps> = ({ isOpen, onClose, theme }) => {
-  const contentRef = useRef<HTMLDivElement>(null);
 
   if (!isOpen) return null;
 

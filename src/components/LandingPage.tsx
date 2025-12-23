@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, ArrowRight, Sparkles, ShieldAlert, FileCheck } from 'lucide-react';
+import { Sun, Moon, ArrowRight, Sparkles, ShieldAlert, FileCheck, MousePointerClick } from 'lucide-react';
 import FeatureShowcase from './FeatureShowcase';
 import AlgorithmArchitecture from './AlgorithmArchitecture';
 
@@ -169,6 +169,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                 <div className="mt-2 flex justify-between items-end">
                     <span className="text-2xl font-bold">Verified</span>
                     <span className={`text-xs font-medium ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Peer Reviewed</span>
+                </div>
+                
+                {/* Hand Click Animation */}
+                <div className="absolute -bottom-4 -right-4 p-2 bg-white dark:bg-[#333] rounded-full shadow-lg animate-bounce z-40 block lg:block">
+                     <MousePointerClick className="w-5 h-5 text-[#CC785C]" />
                 </div>
             </div>
 
