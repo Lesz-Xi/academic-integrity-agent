@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, ArrowRight, Sparkles, ShieldAlert, FileCheck } from 'lucide-react';
+import { Sun, Moon, ArrowRight, Sparkles, ShieldAlert, FileCheck, ArrowUpRight } from 'lucide-react';
 import FeatureShowcase from './FeatureShowcase';
 import AlgorithmArchitecture from './AlgorithmArchitecture';
 
@@ -171,29 +171,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                     <span className={`text-xs font-medium ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Peer Reviewed</span>
                 </div>
                 
-                {/* Hand Click Animation */}
-                <div className="absolute -bottom-6 -right-6 p-3 bg-white dark:bg-[#333] rounded-full shadow-2xl animate-bounce z-40 block lg:block border border-gray-100 dark:border-gray-700">
-                     <svg 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        className={`w-6 h-6 ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}
-                     >
-                        {/* Hand Outline */}
-                        <path d="M14 9L14.45 6.3C14.65 5.1 15.82 4.3 17.04 4.5L17.76 4.6C18.67 4.8 19.26 5.7 19.09 6.6L18.47 9.9C18.23 11.2 17.11 12.1 15.81 12.1H15.69" />
-                        <path d="M4.33 12.6H5.91C6.98 12.6 7.96 13.2 8.46 14.2L10.33 17.8" />
-                        <path d="M11.96 3.9L11.54 7.4C11.39 8.6 10.41 9.4 9.24 9.4H8.82" />
-                        <path d="M8.28 9.4V5.6C8.28 4.4 9.18 3.5 10.29 3.5C11.08 3.5 11.78 4 12.09 4.7" />
-                        <path d="M8.28 9.4V15C8.28 16 7.5 16.7 6.54 16.7H4.67C3.21 16.7 2.15 15.4 2.46 14L2.83 12.3C3.06 11.2 4 10.4 5.07 10.4H5.97" />
-                        
-                        {/* Rays */}
-                        <path d="M12 2V4" />
-                        <path d="M16.2 3.8L15.5 5.5" />
-                        <path d="M7.8 3.8L8.5 5.5" />
-                     </svg>
+                {/* Interactive Indicator */}
+                <div className="absolute -bottom-4 -right-4 p-3 bg-white dark:bg-[#333] rounded-full shadow-lg animate-bounce z-40 block lg:block border border-gray-100 dark:border-gray-700">
+                     <ArrowUpRight className={`w-5 h-5 ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`} />
                 </div>
             </div>
 
