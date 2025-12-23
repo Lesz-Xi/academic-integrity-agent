@@ -59,13 +59,13 @@ const PricingSection: React.FC<PricingSectionProps> = ({ theme, onSelectPlan, on
       id: 'premium',
       name: 'Premium',
       price: getPremiumPrice(),
-      description: 'For students who need the best results.',
+      description: 'For students who demand absolute sovereignty over their work.',
       features: [
         'Unlimited Generations',
-        'Web Search Integration',
-        'Advanced Perplexity Optimization',
-        'Priority Model Access (Claude)',
-        'Email Support'
+        'Defense Toolkit & Appeals',
+        'Attestation Audit Logs',
+        'Research Verification (Lesz et al.)',
+        'Priority Claude Access'
       ],
       cta: 'Go Premium',
       icon: Sparkles,
@@ -135,7 +135,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ theme, onSelectPlan, on
             <p className={`text-lg max-w-2xl mx-auto ${
                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
             }`}>
-              Invest in your academic integrity. Simple, transparent pricing.
+              Invest in your academic sovereignty. Secure your future with verifiable proof.
             </p>
 
             {/* Billing Cycle Selector */}

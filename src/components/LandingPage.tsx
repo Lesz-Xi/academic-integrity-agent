@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, ArrowRight, Sparkles, CheckCircle, BookOpen } from 'lucide-react';
+import { Sun, Moon, ArrowRight, Sparkles, ShieldAlert, FileCheck } from 'lucide-react';
 import FeatureShowcase from './FeatureShowcase';
 import AlgorithmArchitecture from './AlgorithmArchitecture';
 
@@ -14,9 +14,10 @@ interface LandingPageProps {
   onSignUpClick: () => void;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
+  onShowResearch: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onSignUpClick, theme, toggleTheme }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onSignUpClick, theme, toggleTheme, onShowResearch }) => {
   return (
     <div className={`min-h-screen relative overflow-hidden transition-colors duration-500 ${
       theme === 'dark' ? 'bg-[#1a1a1a] text-white' : 'bg-[#F5F3EE] text-[#2D2D2D]'
@@ -87,7 +88,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                                 : 'border-[#85683F]/30 bg-[#85683F]/10 text-[#85683F]'
                         }`}>
                             <span className={`w-2 h-2 rounded-full animate-pulse ${theme === 'dark' ? 'bg-[#F2E8CF]' : 'bg-[#85683F]'}`}></span>
-                            System Active • v2.4
+                            System Active • v3.0 Defense
                         </div>
                         
 
@@ -98,7 +99,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                         <span className={theme === 'dark' ? 'text-white' : 'text-[#2D2D2D]'}>ACADEMIC</span>
                         <br />
                         <span className={theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}>
-                            INTELLIGENCE
+                            SOVEREIGNTY
                         </span>
                     </h1>
 
@@ -106,7 +107,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                     <p className={`text-lg lg:text-xl leading-relaxed max-w-xl mx-auto lg:mx-0 animate-fade-in-up [animation-delay:400ms] opacity-0 fill-mode-forwards ${
                         theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                     }`}>
-                        Your intelligent study companion. Master academic writing, synthesize research effortlessly, and develop critical thinking skills.
+                        Generate. Audit. Defend. The only AI writing engine backed by peer-reviewed research and due process protocols.
                     </p>
 
                     {/* CTA Buttons */}
@@ -147,29 +148,31 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
 
         {/* Right Visuals (Floating Cards) */}
         <div className="flex-1 w-full relative h-[600px] hidden lg:block">
-            {/* Card 1: AI Reduction */}
-            <div className={`absolute top-10 right-20 w-64 p-5 rounded-2xl border backdrop-blur-md shadow-2xl animate-float transition-colors duration-300 ${
+            {/* Card 1: Research Core */}
+            <div 
+              onClick={onShowResearch}
+              className={`absolute top-10 right-20 w-64 p-5 rounded-2xl border backdrop-blur-md shadow-2xl animate-float transition-all duration-300 cursor-pointer hover:scale-105 group z-30 ${
                 theme === 'dark' 
-                    ? 'bg-[#252525]/80 border-[#444]' 
-                    : 'bg-white/80 border-white'
+                    ? 'bg-[#252525]/80 border-[#444] hover:bg-[#252525]' 
+                    : 'bg-white/80 border-white hover:bg-white'
             }`} style={{ animationDelay: '0s' }}>
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-2">
                         <Sparkles className={`w-5 h-5 ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`} />
-                        <span className={`text-sm font-bold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Writing Enhancement</span>
+                        <span className={`text-sm font-bold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Research Core</span>
                     </div>
-                    <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Quality</span>
+                    <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Lesz et al.</span>
                 </div>
                 <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div className={`h-full w-[85%] rounded-full ${theme === 'dark' ? 'bg-[#F2E8CF]' : 'bg-[#85683F]'}`}></div>
+                    <div className={`h-full w-[100%] rounded-full ${theme === 'dark' ? 'bg-[#F2E8CF]' : 'bg-[#85683F]'}`}></div>
                 </div>
                 <div className="mt-2 flex justify-between items-end">
-                    <span className="text-3xl font-bold">85%</span>
-                    <span className={`text-xs font-medium ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Clarity Score</span>
+                    <span className="text-2xl font-bold">Verified</span>
+                    <span className={`text-xs font-medium ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Peer Reviewed</span>
                 </div>
             </div>
 
-            {/* Card 2: Before/After */}
+            {/* Card 2: Attestation Log */}
             <div className={`absolute top-[40%] left-10 w-64 p-5 rounded-2xl border backdrop-blur-md shadow-2xl animate-float-delayed z-0 transition-colors duration-300 ${
                 theme === 'dark' 
                     ? 'bg-[#1a1a1a]/90 border-[#333]' 
@@ -177,48 +180,48 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
             }`} style={{ animationDelay: '1.5s' }}>
                  <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-2">
-                        <BookOpen className={`w-5 h-5 ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`} />
-                        <span className={`text-sm font-bold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Learning Progress</span>
+                        <FileCheck className={`w-5 h-5 ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`} />
+                        <span className={`text-sm font-bold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>Attestation Log</span>
                     </div>
-                    <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Verified</span>
+                    <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Sealed</span>
                 </div>
                 <div className="space-y-2">
                     <div className="flex justify-between items-center text-xs">
-                        <span className="opacity-60">Comprehension</span>
-                        <span className={`font-bold ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>92%</span>
+                        <span className="opacity-60">Edit History</span>
+                        <span className={`font-bold ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Logged</span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                        <span className="opacity-60">Citation Quality</span>
-                        <span className={`font-bold ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>88%</span>
+                        <span className="opacity-60">Authorship</span>
+                        <span className={`font-bold ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Confirmed</span>
                     </div>
                 </div>
                 <div className="mt-3 text-center">
-                    <span className={`text-sm font-bold ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Study Aid: Active</span>
+                    <span className={`text-sm font-bold ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Audit: Passed</span>
                 </div>
             </div>
 
-            {/* Card 3: All Detector Results */}
+            {/* Card 3: Defense Status */}
             <div className={`absolute bottom-20 right-10 w-72 p-4 rounded-2xl border backdrop-blur-md shadow-2xl animate-float transition-colors duration-300 ${
                 theme === 'dark' 
                     ? 'bg-[#2D2D2D]/90 border-[#444]' 
                     : 'bg-white/95 border-gray-100'
             }`} style={{ animationDelay: '0.8s' }}>
                 <div className="flex items-center gap-2 mb-3">
-                    <CheckCircle className={`w-5 h-5 ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`} />
-                    <span className="text-sm font-bold">Academic Benefits</span>
+                    <ShieldAlert className={`w-5 h-5 ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`} />
+                    <span className="text-sm font-bold">Defense Status</span>
                 </div>
                 <div className={`space-y-2 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                     <div className="flex justify-between">
-                        <span>Writing Clarity</span>
-                        <span className={theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}>92%</span>
+                        <span>Appeal Packet</span>
+                        <span className={theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}>Ready</span>
                     </div>
                     <div className="flex justify-between">
-                        <span>Research Synthesis</span>
-                        <span className={theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}>88%</span>
+                        <span>Legal Context</span>
+                        <span className={theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}>Active</span>
                     </div>
                     <div className="flex justify-between">
-                        <span>Critical Analysis</span>
-                        <span className={theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}>85%</span>
+                        <span>Due Process</span>
+                        <span className={theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}>Enforced</span>
                     </div>
                 </div>
             </div>
@@ -228,7 +231,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                 <path d="M 300 250 Q 400 300 500 150" fill="none" stroke="#F2E8CF" strokeWidth="2" strokeDasharray="5,5" />
                 <path d="M 200 400 Q 300 500 500 500" fill="none" stroke="#F2E8CF" strokeWidth="2" strokeDasharray="5,5" />
              </svg>
-
         </div>
       </main>
 
@@ -239,7 +241,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
 
       {/* Algorithm Architecture Section */}
       <ScrollReveal>
-        <AlgorithmArchitecture theme={theme} />
+        <AlgorithmArchitecture theme={theme} onShowResearch={onShowResearch} />
       </ScrollReveal>
 
       {/* Pricing Section */}

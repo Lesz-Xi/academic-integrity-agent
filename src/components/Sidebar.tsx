@@ -9,7 +9,9 @@ import {
   X,
   PanelLeft,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  FileText,
+  ShieldAlert
 } from 'lucide-react';
 import { Disclosure, Transition } from '@headlessui/react';
 import { HistoryItem, Mode } from '../types';
@@ -28,6 +30,8 @@ interface SidebarProps {
   onSignOut: () => void;
   onUpgrade: () => void;
   onDeleteHistoryItem: (item: HistoryItem, e: React.MouseEvent) => void;
+  onShowResearch: () => void;
+  onShowDefense: () => void;
 }
 
 const MODE_LABELS: Record<string, string> = {
@@ -58,7 +62,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   toggleTheme,
   onSignOut,
   onUpgrade,
-  onDeleteHistoryItem
+  onDeleteHistoryItem,
+  onShowResearch,
+  onShowDefense
 }) => {
   // Group history by mode and deduplicate by input
   // Store all IDs for a given group to support batch deletion
@@ -240,6 +246,23 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-100 dark:border-white/5 space-y-1">
+          <div className="grid grid-cols-2 gap-2 mb-3">
+             <button
+                onClick={onShowResearch}
+                className="flex items-center gap-2 px-3 py-2.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-white/5 hover:bg-[#F2E8CF] hover:text-[#85683F] dark:hover:bg-[#85683F]/20 dark:hover:text-[#F2E8CF] rounded-xl transition-all group"
+             >
+               <FileText className="w-4 h-4" />
+               <span>Research</span>
+             </button>
+             <button
+                onClick={onShowDefense}
+                className="flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-[#CC785C] bg-red-50 dark:bg-red-900/10 hover:bg-[#CC785C] hover:text-white rounded-xl transition-all group"
+             >
+               <ShieldAlert className="w-4 h-4" />
+               <span>Defense</span>
+             </button>
+          </div>
+
           {isAuthenticated && (
             <div className="flex items-center gap-3 px-3 py-3 mb-2 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
               <div className="w-8 h-8 rounded-full bg-[#F2E8CF] flex items-center justify-center text-[#85683F] font-bold text-xs shadow-sm">

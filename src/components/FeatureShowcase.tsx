@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Feather, Terminal, RefreshCw, CheckCircle, Code, MessageSquare, Briefcase } from 'lucide-react';
+import { Feather, Terminal, RefreshCw, CheckCircle, Code, MessageSquare, Briefcase, ShieldAlert } from 'lucide-react';
 
 interface FeatureShowcaseProps {
   theme: 'light' | 'dark';
@@ -146,6 +146,44 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
              <CheckCircle className="w-3 h-3" /> No Fluff
              <CheckCircle className="w-3 h-3" /> Passive Voice
           </div>
+        </div>
+      )
+    },
+    {
+      id: 5,
+      title: "Defense & Appeal",
+      description: "Generate scientifically rigorous appeal packets backed by internal research (Lesz et al.). Cite specific false-positive vectors to defend your sovereignty.",
+      icon: ShieldAlert,
+      color: "#CC785C",
+      metric: "Due Process Enforced",
+      preview: (
+        <div className="space-y-4">
+           {/* Header Simulation */}
+           <div className="flex items-center justify-between mb-2">
+              <div className="text-xs font-mono opacity-60">Action: Appeal</div>
+              <div className="px-2 py-1 bg-red-100 text-red-600 rounded text-xs font-bold">Scientific Defense</div>
+           </div>
+
+           {/* Input Simulation */}
+           <div className={`p-3 rounded-lg border border-dashed mb-2 ${theme === 'dark' ? 'border-gray-700 bg-[#222]' : 'border-gray-200 bg-gray-50'}`}>
+               <div className="flex justify-between text-xs mb-1 opacity-50">
+                   <span>Detector: GPTZero</span>
+                   <span>Score: 40% (False Positive)</span>
+               </div>
+               <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+                   <div className="h-full w-[40%] bg-red-400"></div>
+               </div>
+           </div>
+
+           {/* Generated Output */}
+           <div className={`p-4 rounded-lg text-sm leading-relaxed shadow-sm ${theme === 'dark' ? 'bg-[#252525] text-gray-200' : 'bg-white text-gray-800'}`}>
+             <p className="font-serif">
+                "I respectfully appeal this flag. My work utilizes high-perplexity academic structures which research (Lesz et al., 2023) proves triggers false positives in commercial detectors."
+             </p>
+             <div className="mt-2 flex items-center gap-2 text-[10px] text-[#CC785C] font-bold uppercase tracking-wider">
+                <ShieldAlert className="w-3 h-3" /> Citation Attached
+             </div>
+           </div>
         </div>
       )
     }

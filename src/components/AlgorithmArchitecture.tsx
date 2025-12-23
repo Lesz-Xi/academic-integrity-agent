@@ -3,9 +3,10 @@ import { Search, GitBranch, Zap, CheckCircle } from 'lucide-react';
 
 interface AlgorithmArchitectureProps {
   theme: 'light' | 'dark';
+  onShowResearch?: () => void;
 }
 
-const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme }) => {
+const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme, onShowResearch }) => {
   const [activeStep, setActiveStep] = useState(0);
 
   // Auto-cycle through steps for the visualization
@@ -19,31 +20,40 @@ const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme }) 
   const steps = [
     {
       id: 0,
-      title: "Context Analysis",
-      description: "We decode the semantic structure, analyzing perplexity and burstiness to establish the project's constraints.",
+      title: "Latent Space Analysis",
+      description: (
+        <span>
+            Decoding high-dimensional perplexity vectors to map the project's statistical bounds (Lesz et al. 2025). 
+            {onShowResearch && (
+                <button onClick={(e) => { e.stopPropagation(); onShowResearch(); }} className="ml-1 underline text-[#D2B48C] hover:text-[#b09a6d] transition-colors">
+                    Read Report
+                </button>
+            )}
+        </span>
+      ),
       icon: Search,
       label: "01. ANALYZE"
     },
     {
       id: 1,
-      title: "Smart Source Selection",
-      description: "Advanced LLM-based Ranking intelligently evaluates and ranks research sources for informativeness, relevance, and authority.",
+      title: "Citation Verification",
+      description: "Cross-referencing claims against ScienceDirect and arXiv APIs to prevent hallucination and ensure academic rigor.",
       icon: GitBranch,
-      label: "02. SELECT"
+      label: "02. VERIFY"
     },
     {
       id: 2,
-      title: "Dual-Path Engineering",
-      description: "Switching between 'Structural Density' (Professional) and 'Entropy Injection' (Casual) to perfectly match your target persona.",
+      title: "Adversarial Structuring",
+      description: "Injecting specific 'burstiness' patterns that disrupt detector probability maps while maintaining formal tone.",
       icon: Zap,
       label: "03. ENGINEER"
     },
     {
       id: 3,
-      title: "Integrity Verification",
-      description: "Delivering an authentically synthesized artifact that upholds the highest standards of academic integrity and accurate citation.",
+      title: "Pre-emptive Defense",
+      description: "Generating a sealed Attestation Log and Appeal Packet before submission, ensuring due process is guaranteed.",
       icon: CheckCircle, 
-      label: "04. SYNTHESIZE"
+      label: "04. DEFEND"
     }
   ];
 
@@ -113,7 +123,7 @@ const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme }) 
               <span className="text-[#85683F]">to Verified Integrity</span>
             </h2>
             <p className={`text-lg max-w-md ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              We deploy two distinct architectural paths—Structural Density for professionals and Authentic Voice Synthesis for students—to ensure your work upholds the highest standards of academic integrity and accurate citation.
+              We deploy a rigorous verification engine—from Latent Analysis to Pre-emptive Defense—to ensuring your work is not just original, but mathematically proven to be so.
             </p>
           </div>
 

@@ -3,7 +3,7 @@
  * Analyzes uploaded documents to detect type, structure, and research methodology
  */
 
-import { GoogleGenAI } from '@google/genai';
+import Anthropic from '@anthropic-ai/sdk';
 import { FILE_ANALYSIS_PROMPT } from '../prompts/fileAnalysisPrompt';
 
 // Types
@@ -33,9 +33,9 @@ export interface FileAnalysis {
 
 // Use environment variable for API key
 const getApiKey = (): string => {
-  const key = import.meta.env.VITE_GEMINI_API_KEY;
+  const key = import.meta.env.VITE_CLAUDE_API_KEY;
   if (!key) {
-    throw new Error('VITE_GEMINI_API_KEY is not configured');
+    throw new Error('VITE_CLAUDE_API_KEY is not configured');
   }
   return key;
 };
@@ -91,7 +91,10 @@ function prepareExcerpt(text: string): string {
 export async function analyzeDocument(text: string, _fileName: string): Promise<FileAnalysis> {
   try {
     const apiKey = getApiKey();
-    const ai = new GoogleGenAI({ apiKey });
+    const anthropic = new Anthropic({ 
+      apiKey,
+      dangerouslyAllowBrowser: true 
+    });
     
     const excerpt = prepareExcerpt(text);
     
@@ -101,37 +104,53 @@ export async function analyzeDocument(text: string, _fileName: string): Promise<
     let contentParts: any[] = [];
     
     if (base64ImageMatch) {
-      // It's an image. Send as image part + prompt
+      // It's an image. Send as image block + text prompt
       const mimeType = base64ImageMatch[1] === 'jpg' ? 'jpeg' : base64ImageMatch[1];
       const base64Data = base64ImageMatch[2];
       
-      console.log(`[FileAnalyzer] Analyzing image document (${mimeType})`);
+      console.log(`[FileAnalyzer] Analyzing image document (${mimeType}) with Claude`);
       
       contentParts = [
         {
-          inlineData: {
-            mimeType: `image/${mimeType}`,
-            data: base64Data
-          }
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: `image/${mimeType}`,
+            data: base64Data,
+          },
         },
-        { text: FILE_ANALYSIS_PROMPT + "\n\n(This document is an image/screenshot. Analyze its visual contents.)" }
+        { 
+          type: "text", 
+          text: FILE_ANALYSIS_PROMPT + "\n\n(This document is an image/screenshot. Analyze its visual contents.)" 
+        }
       ];
     } else {
       // Text document
-      contentParts = [{ text: FILE_ANALYSIS_PROMPT + excerpt }];
+      contentParts = [{ 
+        type: "text", 
+        text: FILE_ANALYSIS_PROMPT + excerpt 
+      }];
     }
     
-    // Use Gemini Flash Lite for fast, cheap analysis
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-lite',
-      contents: [{ role: 'user', parts: contentParts }],
-      config: {
-        responseMimeType: 'application/json',
-        temperature: 0.1, 
-      }
+    // Use Claude 3.5 Sonnet (or v4 as per environment) for high quality analysis
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1024,
+      temperature: 0.1,
+      messages: [
+        {
+          role: "user",
+          content: contentParts
+        }
+      ]
     });
 
-    const responseText = response.text?.trim() || '';
+    // Extract text content from the response
+    const responseText = message.content
+      .filter(block => block.type === 'text')
+      .map(block => block.text)
+      .join('\n')
+      .trim();
     
     // Parse JSON response
     let analysis: FileAnalysis;

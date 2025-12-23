@@ -1,16 +1,20 @@
 import { forwardRef, useState } from 'react';
-import { Copy, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Copy, CheckCircle, AlertTriangle, FileCheck, Lock } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { markdownToHtml } from '../utils/markdownRenderer';
 import { cleanLatex } from '../utils/latexCleaner';
 import { linkifySources } from '../utils/sourceLinkifier';
 import { exportToDocx, exportToPdf } from '../utils/documentExporter';
+import AttestationModal from './AttestationModal';
 
 interface OutputPanelProps {
   text: string;
   warnings: string[];
   onCopy: () => void;
   copied: boolean;
+  theme?: 'light' | 'dark';
+  isPremium?: boolean | null;
+  onUpgrade?: () => void;
 }
 
 const DocxIcon = ({ className }: { className?: string }) => (
@@ -31,8 +35,9 @@ const PdfIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnings, onCopy, copied }, ref) => {
+const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnings, onCopy, copied, theme = 'light', isPremium, onUpgrade }, ref) => {
   const [isExporting, setIsExporting] = useState<'docx' | 'pdf' | null>(null);
+  const [showAttestation, setShowAttestation] = useState(false);
 
   const handleExportDocx = async () => {
     setIsExporting('docx');
@@ -80,6 +85,7 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
   });
 
   return (
+    <>
 
     <div className="w-full max-w-5xl mx-auto px-0 sm:px-6 scroll-mt-20">
       <div 
@@ -93,7 +99,7 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
             <button
               onClick={handleExportDocx}
               disabled={isExporting !== null}
-              className="p-2.5 text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-50"
+              className="p-2 text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-50"
               title="Download as Word"
             >
               <DocxIcon className="w-5 h-5" />
@@ -103,7 +109,7 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
             <button
               onClick={handleExportPdf}
               disabled={isExporting !== null}
-              className="p-2.5 text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-50"
+              className="p-2 text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-50"
               title="Download as PDF"
             >
               <PdfIcon className="w-5 h-5" />
@@ -111,10 +117,28 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
 
             <div className="w-[1px] h-5 bg-gray-200 dark:bg-white/10 mx-1" />
 
+            {/* Attestation Button */}
+            <button
+              onClick={() => {
+                if (!isPremium && onUpgrade) {
+                    onUpgrade();
+                } else {
+                    setShowAttestation(true);
+                }
+              }}
+              className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
+              title={!isPremium ? "Premium Feature: AI Attestation" : "Generate AI Attestation Statement"}
+            >
+              {!isPremium ? <Lock className="w-3.5 h-3.5" /> : <FileCheck className="w-4 h-4" />}
+              <span className="hidden sm:inline">ATTEST</span>
+            </button>
+
+            <div className="w-[1px] h-5 bg-gray-200 dark:bg-white/10 mx-1" />
+
             {/* Copy Button */}
             <button
               onClick={onCopy}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all ${
                 copied 
                   ? 'bg-[#C1A87D] text-white shadow-md transform scale-105' 
                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
@@ -174,6 +198,15 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
         </p>
       </div>
     </div>
+
+      {/* Attestation Modal */}
+      <AttestationModal
+        isOpen={showAttestation}
+        onClose={() => setShowAttestation(false)}
+        theme={theme}
+        modesUsed={{ professional: true }}
+      />
+    </>
   );
 });
 

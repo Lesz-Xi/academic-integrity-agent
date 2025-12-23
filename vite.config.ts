@@ -5,6 +5,13 @@ export default defineConfig({
   server: {
     port: 3001,
     host: '0.0.0.0',
+    proxy: {
+      '/api/anthropic': {
+        target: 'https://api.anthropic.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/anthropic/, ''),
+      },
+    },
   },
   plugins: [react()],
   build: {

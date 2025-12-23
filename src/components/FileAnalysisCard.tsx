@@ -12,7 +12,8 @@ import {
   Beaker, 
   Users, 
   BarChart3,
-  Loader2
+  Loader2,
+  Laptop
 } from 'lucide-react';
 
 interface FileAnalysisCardProps {
@@ -37,7 +38,8 @@ const FileAnalysisCard: React.FC<FileAnalysisCardProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   
   const typeLabel = DOCUMENT_TYPE_LABELS[analysis.documentType] || '📄 Document';
-  const typeColor = DOCUMENT_TYPE_COLORS[analysis.documentType] || DOCUMENT_TYPE_COLORS.unknown;
+  // Override color lookup to enforce theme aesthetic
+  const typeColor = 'border-[#C1A87D]/30 bg-[#C1A87D]/10 text-[#C1A87D]'; 
   
   const isDark = theme === 'dark';
   
@@ -50,6 +52,8 @@ const FileAnalysisCard: React.FC<FileAnalysisCardProps> = ({
         return <Users className="w-3.5 h-3.5" />;
       case 'mixed_methods':
         return <Beaker className="w-3.5 h-3.5" />;
+      case 'technical_doc':
+        return <Laptop className="w-3.5 h-3.5" />; // Laptop icon for technical docs
       default:
         return <FileText className="w-3.5 h-3.5" />;
     }

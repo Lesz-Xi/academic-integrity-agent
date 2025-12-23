@@ -25,6 +25,9 @@ import RevealOnScroll from './components/RevealOnScroll';
 import LimitReachedModal from './components/LimitReachedModal';
 import CheckoutModal from './components/CheckoutModal';
 
+import ResearchPaper from './components/ResearchPaper';
+import { DefenseToolkit } from './components/DefenseToolkit';
+
 // Lazy load route-level components for code splitting
 const OnboardingTour = lazy(() => import('./components/OnboardingTour'));
 const LandingPage = lazy(() => import('./components/LandingPage'));
@@ -51,6 +54,8 @@ function AppContent() {
   const [showTour, setShowTour] = useState(false);
   const [searchEnabled, setSearchEnabled] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showResearch, setShowResearch] = useState(false);
+  const [showDefense, setShowDefense] = useState(false);
   
   // Track sign-out to prevent race conditions
   const isSigningOutRef = useRef(false);
@@ -202,6 +207,14 @@ function AppContent() {
       setShowDisclaimer(true);
     } else {
       setDisclaimerAccepted(true);
+    }
+  }, []);
+
+  // Handle Research Paper Deep Link
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('research') === 'true') {
+      setShowResearch(true);
     }
   }, []);
 
@@ -392,6 +405,14 @@ function AppContent() {
     }
   };
 
+  const checkPremiumGate = () => {
+    if (!isPremium) {
+      setShowUpgradeModal(true);
+      return false;
+    }
+    return true;
+  };
+
   const mainClasses = `min-h-screen font-sans selection:bg-[#CC785C] selection:text-white transition-colors duration-300 ${
     theme === 'dark' ? 'bg-[#1a1a1a] text-[#e5e5e5]' : 'bg-[#F5F3EE] text-[#2D2D2D]'
   }`;
@@ -410,6 +431,7 @@ function AppContent() {
             onSignUpClick={handleSignUp}
             theme={theme}
             toggleTheme={toggleTheme}
+            onShowResearch={() => setShowResearch(true)}
           />
         </Suspense>
       )}
@@ -440,6 +462,10 @@ function AppContent() {
             toggleTheme={toggleTheme}
             onSignOut={handleSignOut}
             onUpgrade={() => setShowUpgradeModal(true)}
+            onShowResearch={() => setShowResearch(true)}
+            onShowDefense={() => {
+              if (checkPremiumGate()) setShowDefense(true);
+            }}
             onDeleteHistoryItem={(item, e) => {
               e.stopPropagation();
               deleteHistoryGroup(item);
@@ -466,6 +492,9 @@ function AppContent() {
 
 
                   <div className="flex items-center gap-2">
+
+                      
+                      {/* Theme Toggle */}
                       <button
                         onClick={toggleTheme}
                         className="p-2 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-white/10"
@@ -503,6 +532,8 @@ function AppContent() {
                     usageCount={usageCount}
                     limit={MONTHLY_LIMIT}
                 />
+
+
 
                 {!generatedContent && (
                     <div className="flex-1 flex flex-col items-center justify-start pt-20 sm:pt-32 px-4 w-full min-h-[75vh] sm:min-h-[85vh] animate-in fade-in duration-700">
@@ -547,7 +578,7 @@ function AppContent() {
                                  </button>
                              </div>
                              <RevealOnScroll>
-                                 <MetricsPanel metrics={generatedContent.metrics} />
+                                 <MetricsPanel metrics={generatedContent.metrics} theme={theme} />
                              </RevealOnScroll>
                              {generatedContent.humanEditFlags && generatedContent.humanEditFlags.length > 0 && (
                                <RevealOnScroll delay={50}>
@@ -564,6 +595,9 @@ function AppContent() {
                                      warnings={generatedContent.warnings}
                                      onCopy={handleCopy}
                                      copied={copied}
+                                     theme={theme}
+                                     isPremium={isPremium}
+                                     onUpgrade={() => setShowUpgradeModal(true)}
                                  />
                              </RevealOnScroll>
                              
@@ -605,6 +639,25 @@ function AppContent() {
           }}
         />
       )}
+
+      <ResearchPaper
+        isOpen={showResearch}
+        onClose={() => {
+          setShowResearch(false);
+          // Optional: clear query param on close so refresh doesn't reopen?
+          // For now, keep it simple.
+          const url = new URL(window.location.href);
+          url.searchParams.delete('research');
+          window.history.replaceState({}, '', url);
+        }}
+        theme={theme}
+      />
+
+      <DefenseToolkit
+        isOpen={showDefense}
+        onClose={() => setShowDefense(false)}
+        theme={theme}
+      />
     </>
   );
 }

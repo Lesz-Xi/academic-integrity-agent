@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DetectionMetrics } from '../types';
-import { Activity } from 'lucide-react';
+import { Activity, HelpCircle } from 'lucide-react';
+import DetectionExplainer from './DetectionExplainer';
 
 interface MetricsPanelProps {
   metrics: DetectionMetrics | null;
+  theme?: 'light' | 'dark';
 }
 
-const MetricsPanel: React.FC<MetricsPanelProps> = ({ metrics }) => {
+const MetricsPanel: React.FC<MetricsPanelProps> = ({ metrics, theme = 'light' }) => {
+  const [showExplainer, setShowExplainer] = useState(false);
   // Calculate histogram data from sentence lengths
   // Histogram data removed to save vertical space as requested
 
@@ -57,6 +60,14 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ metrics }) => {
             <Activity className="w-4 h-4 text-[#C1A87D]" />
             Integrity Metrics
           </h3>
+          <button
+            onClick={() => setShowExplainer(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-[#C1A87D] hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+            title="Learn about detection scores"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>What does this mean?</span>
+          </button>
         </div>
 
         {/* Overall Risk Card */}
@@ -110,6 +121,15 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({ metrics }) => {
 
 
       </div>
+
+      {/* Detection Explainer - Inline Toggle */}
+      <DetectionExplainer
+        isOpen={showExplainer}
+        onClose={() => setShowExplainer(false)}
+        theme={theme}
+        currentScore={metrics.overallRisk}
+        mode="inline"
+      />
     </div>
   );
 };
