@@ -175,27 +175,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                 <div className="absolute -bottom-6 -right-6 p-3 bg-white dark:bg-[#333] rounded-full shadow-2xl animate-bounce z-40 block lg:block border border-gray-100 dark:border-gray-700">
                      <svg 
                         viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2.5" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
+                        fill="currentColor" 
                         className={`w-6 h-6 ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}
                      >
-                        {/* Hand */}
-                        <path d="M14 9l-.9 5.4c-.1.7-.8 1.2-1.5 1.1-.7-.1-1.2-.8-1.1-1.5l1.9-11.4c.1-.7-.4-1.3-1.1-1.4-.7-.1-1.3.4-1.4 1.1L8.5 10c-.7 3.9-3.3 6.9-6.3 8.3" transform="rotate(-15 12 12)" />
-                        <path d="M12 15c2 2 5 2 7 0" transform="rotate(-15 12 12)" />
-                        
-                        {/* Alternative Simpler Hand */}
-                        <path d="M8 13.5v-6a2 2 0 1 1 4 0v4" />
-                        <path d="M8 13.5a2 2 0 0 0-4 0v1.5a7 7 0 0 0 7 7h1.5a6.5 6.5 0 0 0 6.5-6.5v-3a1.5 1.5 0 0 0-3 0v1" />
-                        
-                        {/* Rays */}
-                        <line x1="12" y1="2" x2="12" y2="4" />
-                        <line x1="17" y1="3" x2="16.3" y2="4.8" />
-                        <line x1="20" y1="7" x2="18.1" y2="7.7" />
-                        <line x1="6.5" y1="3" x2="7.5" y2="4.8" />
-                        <line x1="3.5" y1="7" x2="5.5" y2="7.7" />
+                        {/* Rays (Click Effect) */}
+                        <path d="M12 2C12.55 2 13 2.45 13 3V5C13 5.55 12.55 6 12 6C11.45 6 11 5.55 11 5V3C11 2.45 11.45 2 12 2Z" />
+                        <path d="M6.34 4.93C6.73 4.54 7.36 4.54 7.75 4.93L9.17 6.34C9.56 6.73 9.56 7.36 9.17 7.75C8.78 8.14 8.15 8.14 7.76 7.75L6.34 6.34C5.95 5.95 5.95 5.32 6.34 4.93Z" />
+                        <path d="M17.66 4.93C18.05 5.32 18.05 5.95 17.66 6.34L16.24 7.75C15.85 8.14 15.22 8.14 14.83 7.75C14.44 7.36 14.44 6.73 14.83 6.34L16.24 4.93C16.63 4.54 17.26 4.54 17.66 4.93Z" />
+
+                        {/* Hand Body - Material 'Touch App' simplified */}
+                        <path d="M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5V11.24C15.21 10.43 16 9.06 16 7.5C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5C7 9.06 7.79 10.43 9 11.24Z" opacity="0.3"/> 
+                        <path d="M13.97 12.63L13.97 7.5C13.97 6.12 12.85 5 11.47 5C10.09 5 8.97 6.12 8.97 7.5V15.74L8.4 15.62C8.28 15.59 8.17 15.59 8.06 15.59C7.62 15.59 7.21 15.77 6.92 16.07L6 17L10.94 21.94C11.34 22.34 11.89 22.56 12.47 22.56H17.47C18.57 22.56 19.42 21.76 19.59 20.68L20.68 13.03C20.69 12.93 20.7 12.83 20.7 12.74C20.7 11.83 20.08 11.08 19.23 10.9L13.97 12.63Z" />
                      </svg>
                 </div>
             </div>
