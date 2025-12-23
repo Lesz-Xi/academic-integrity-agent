@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, ArrowRight, Sparkles, ShieldAlert, FileCheck, MousePointerClick } from 'lucide-react';
+import { Sun, Moon, ArrowRight, Sparkles, ShieldAlert, FileCheck } from 'lucide-react';
 import FeatureShowcase from './FeatureShowcase';
 import AlgorithmArchitecture from './AlgorithmArchitecture';
 
@@ -172,8 +172,25 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                 </div>
                 
                 {/* Hand Click Animation */}
-                <div className="absolute -bottom-4 -right-4 p-2 bg-white dark:bg-[#333] rounded-full shadow-lg animate-bounce z-40 block lg:block">
-                     <MousePointerClick className="w-5 h-5 text-[#CC785C]" />
+                <div className="absolute -bottom-6 -right-6 p-3 bg-white dark:bg-[#333] rounded-full shadow-2xl animate-bounce z-40 block lg:block border border-gray-100 dark:border-gray-700">
+                     <svg 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        className={`w-6 h-6 ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}
+                     >
+                        <path d="M14 9L14.4503 6.29837C14.6548 5.07137 15.8236 4.25419 17.0423 4.49658L17.7552 4.6384C18.6656 4.81947 19.2635 5.72266 19.0911 6.64161L18.4727 9.93988C18.2323 11.2217 17.1121 12.1368 15.8093 12.1368H15.6888" />
+                        <path d="M4.33203 12.6318H5.90848C6.98031 12.6318 7.96207 13.238 8.46083 14.1953L10.332 17.7854" />
+                        <path d="M11.9634 3.94727L11.5361 7.4225C11.3934 8.58334 10.4079 9.44498 9.23891 9.44498H8.81665" />
+                        <path d="M8.2832 9.44482L8.2832 5.55621C8.2832 4.44521 9.18371 3.54466 10.2947 3.54466C11.0827 3.54466 11.7766 4.00844 12.086 4.71764" />
+                        <path d="M8.28362 9.44485L8.2832 14.9758C8.2832 15.9385 7.5027 16.719 6.54001 16.719H4.66551C3.21008 16.719 2.14666 15.3621 2.45892 13.947L2.83017 12.2612C3.06283 11.205 3.99264 10.4448 5.07353 10.4448H5.97233" />
+                        <line x1="8" y1="1" x2="8" y2="3" />
+                        <line x1="3" y1="4" x2="4.5" y2="5.5" />
+                        <line x1="13" y1="4" x2="11.5" y2="5.5" />
+                     </svg>
                 </div>
             </div>
 
