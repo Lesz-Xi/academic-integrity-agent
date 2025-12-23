@@ -16,7 +16,7 @@ const ResearchPaper: React.FC<ResearchPaperProps> = ({ isOpen, onClose, theme })
   };
 
   const handleShare = () => {
-    const url = `${window.location.origin}${window.location.pathname}?research=true`;
+    const url = "https://thesislens.space/?research=true";
     const text = `Check out our research: "Adversarial Perturbation of LLM Latent Space for Detection Evasion" - ${url}`;
     navigator.clipboard.writeText(text);
     alert("Shareable link copied to clipboard!"); 
