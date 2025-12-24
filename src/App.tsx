@@ -32,6 +32,7 @@ import { DefenseToolkit } from './components/DefenseToolkit';
 const OnboardingTour = lazy(() => import('./components/OnboardingTour'));
 const LandingPage = lazy(() => import('./components/LandingPage'));
 const AuthPage = lazy(() => import('./components/AuthPage'));
+const EditorPage = lazy(() => import('./components/EditorPage'));
 
 function AppContent() {
   const { theme, toggleTheme } = useTheme();
@@ -48,7 +49,7 @@ function AppContent() {
   const [copied, setCopied] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
-  const [view, setView] = useState<'landing' | 'auth' | 'app'>('landing');
+  const [view, setView] = useState<'landing' | 'auth' | 'app' | 'editor'>('landing');
   const [initAuthSignup, setInitAuthSignup] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [showTour, setShowTour] = useState(false);
@@ -64,6 +65,16 @@ function AppContent() {
   
   // Abort controller for cancelling generation
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const handleShowEditor = () => {
+    setView('editor');
+    setIsSidebarOpen(false); // Close sidebar for Zen mode
+  };
+  
+  const handleBackFromEditor = () => {
+    setView('app');
+  };
+
 
   // Keyboard shortcut for sidebar: Cmd + .
   useEffect(() => {
@@ -219,7 +230,7 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated && user && view !== 'app' && !isSigningOut && !isSigningOutRef.current) {
+    if (isAuthenticated && user && (view === 'landing' || view === 'auth') && !isSigningOut && !isSigningOutRef.current) {
       handleEnterApp()
     }
   }, [isAuthenticated, user, view, isSigningOut])
@@ -421,6 +432,16 @@ function AppContent() {
     return <LoadingSpinner fullScreen message="Loading..." />;
   }
 
+  if (view === 'editor') {
+    return (
+      <div className={theme}>
+        <Suspense fallback={<LoadingSpinner fullScreen message="Loading Editor..." />}>
+          <EditorPage onBack={handleBackFromEditor} />
+        </Suspense>
+      </div>
+    );
+  }
+
   return (
     <>
       {view === 'landing' && (
@@ -466,6 +487,7 @@ function AppContent() {
             onShowDefense={() => {
               if (checkPremiumGate()) setShowDefense(true);
             }}
+            onShowEditor={handleShowEditor}
             onDeleteHistoryItem={(item, e) => {
               e.stopPropagation();
               deleteHistoryGroup(item);

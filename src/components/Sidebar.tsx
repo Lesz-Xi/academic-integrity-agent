@@ -32,6 +32,7 @@ interface SidebarProps {
   onDeleteHistoryItem: (item: HistoryItem, e: React.MouseEvent) => void;
   onShowResearch: () => void;
   onShowDefense: () => void;
+  onShowEditor: () => void;
 }
 
 const MODE_LABELS: Record<string, string> = {
@@ -64,7 +65,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onUpgrade,
   onDeleteHistoryItem,
   onShowResearch,
-  onShowDefense
+  onShowDefense,
+  onShowEditor
 }) => {
   // Group history by mode and deduplicate by input
   // Store all IDs for a given group to support batch deletion
@@ -262,6 +264,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                <span>Defense</span>
              </button>
           </div>
+          
+          <button
+             onClick={onShowEditor}
+             className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mb-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 rounded-xl transition-all group"
+          >
+             <FileText className="w-4 h-4 opacity-70" />
+             <span>Drafting Canvas</span>
+          </button>
 
           {isAuthenticated && (
             <div className="flex items-center gap-3 px-3 py-3 mb-2 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">

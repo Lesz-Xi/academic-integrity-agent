@@ -171,6 +171,74 @@ export interface Database {
             referencedColumns: ['id']
           }
         ]
+      },
+      drafts: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          current_content: string
+          last_updated: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          current_content: string
+          last_updated?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          current_content?: string
+          last_updated?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'drafts_user_id_fkey'
+            columns: ['user_id']
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          }
+        ]
+      },
+      draft_snapshots: {
+        Row: {
+          id: string
+          draft_id: string
+          timestamp: string
+          content_diff: string | null
+          char_count_delta: number
+          paste_event_detected: boolean
+        }
+        Insert: {
+          id?: string
+          draft_id: string
+          timestamp?: string
+          content_diff?: string | null
+          char_count_delta: number
+          paste_event_detected?: boolean
+        }
+        Update: {
+          id?: string
+          draft_id?: string
+          timestamp?: string
+          content_diff?: string | null
+          char_count_delta?: number
+          paste_event_detected?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'draft_snapshots_draft_id_fkey'
+            columns: ['draft_id']
+            referencedRelation: 'drafts'
+            referencedColumns: ['id']
+          }
+        ]
       }
     }
     Views: {

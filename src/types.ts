@@ -82,3 +82,21 @@ export interface HistoryItem {
   metrics: DetectionMetrics;
   timestamp: number;
 }
+
+export interface Draft {
+  id: string;
+  userId: string;
+  title: string;
+  currentContent: string;
+  lastUpdated: string;
+  createdAt: string;
+}
+
+export interface DraftSnapshot {
+  id: string;
+  draftId: string;
+  timestamp: string;
+  contentDiff: string | null;
+  charCountDelta: number;
+  pasteEventDetected: boolean;
+}

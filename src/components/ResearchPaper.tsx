@@ -144,7 +144,7 @@ const ResearchPaper: React.FC<ResearchPaperProps> = ({ isOpen, onClose, theme })
 
                   <h3 className="font-bold italic text-sm mb-1">2.2 Phase II: Deterministic Pattern Matching</h3>
                   <p className="indent-4 mb-3 text-sm">
-                    Regex-based synonym substitution reduced scores to ~70% but left detectable syntactic rhythms unaddressed.
+                    We implemented a deterministic adversarial attack targeting specific "AI marker" tokens (e.g., "delve", "pivotal"). While regex-based synonym substitution successfully lowered detection confidence to ~70%, it failed to mask the underlying <strong>syntactic periodicity</strong>. The resulting text, though lexically diverse, retained the predictable cadence of the source model, which high-dimensional classifiers could still discern via n-gram frequency analysis.
                   </p>
                   
                   <h3 className="font-bold italic text-sm mb-1">2.3 Phase III: On-Device Model Variance (The Breakthrough)</h3>
@@ -211,7 +211,10 @@ const ResearchPaper: React.FC<ResearchPaperProps> = ({ isOpen, onClose, theme })
                 <section>
                   <h2 className="text-sm font-bold uppercase tracking-wide mb-2 border-b border-black/20 dark:border-white/20 pb-1">5. Conclusion</h2>
                   <p className="indent-4 mb-2">
-                    The efficacy of accessible localized rewriting tools renders statistical detection obsolete. Academic institutions must transition from probabilistic policing to deterministic process verification, such as the Attestation Protocols proposed in this framework.
+                    The efficacy of accessible localized rewriting tools renders statistical detection obsolete, exposing it as a security theater rather than a valid academic metric. As the "Arms Race" between generation and detection reaches a stalemate, academic institutions must pivot.
+                  </p>
+                  <p className="indent-4">
+                    We advocate for a transition from probabilistic policing—inherently biased against non-native speakers—to <strong>deterministic process verification</strong>. The future of academic integrity lies not in analyzing the final artifact, but in cryptographically attesting to the rigorous human workflow that produced it.
                   </p>
                 </section>
 

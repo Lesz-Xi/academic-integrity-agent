@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Feather, Terminal, RefreshCw, CheckCircle, Code, MessageSquare, Briefcase, ShieldAlert } from 'lucide-react';
+import { Feather, Terminal, RefreshCw, CheckCircle, Code, MessageSquare, Briefcase, ShieldAlert, ArrowRight } from 'lucide-react';
 
 interface FeatureShowcaseProps {
   theme: 'light' | 'dark';
@@ -11,6 +11,41 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
   const features = [
     {
       id: 0,
+      title: "Sovereignty Engine",
+      description: "Write in our Drafting Canvas. We track every keystroke and generate Proof of Work certificates, proving human authorship to defeat false positive accusations.",
+      icon: ShieldAlert,
+      color: "#10B981", // Green for verification
+      metric: "Verified Human",
+      preview: (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between mb-2">
+             <div className="text-xs font-mono opacity-60">Drafting Canvas</div>
+             <div className="px-2 py-1 bg-green-500/10 text-green-500 rounded text-xs font-bold">Live</div>
+          </div>
+          
+          {/* Simulated Timeline */}
+          <div className={`p-4 rounded-lg text-sm ${theme === 'dark' ? 'bg-[#222]' : 'bg-gray-50'}`}>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+              <span className={`text-xs ${theme === 'dark' ? 'text-green-400' : 'text-green-600'} font-bold`}>SOVEREIGNTY: 94%</span>
+            </div>
+            <div className="space-y-2 text-xs opacity-70">
+              <div className="flex justify-between"><span>11:35 AM</span><span className="text-green-500">+45 chars (Typed)</span></div>
+              <div className="flex justify-between"><span>11:33 AM</span><span className="text-red-500">+520 chars (Paste)</span></div>
+              <div className="flex justify-between"><span>11:30 AM</span><span className="text-green-500">+89 chars (Typed)</span></div>
+            </div>
+          </div>
+
+          {/* PDF Button Simulation */}
+          <div className={`p-3 rounded-lg border border-dashed flex items-center justify-between ${theme === 'dark' ? 'border-green-900 bg-green-900/20' : 'border-green-200 bg-green-50'}`}>
+            <span className="text-xs font-bold text-green-600">Generate Proof of Work PDF</span>
+            <ArrowRight className="w-4 h-4 text-green-500" />
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 1,
       title: "Essay & Research",
       description: "Generate original arguments with high semantic richness. Our agent helps develop critical thinking through structured academic writing.",
       icon: Feather,
@@ -36,7 +71,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
       )
     },
     {
-      id: 1,
+      id: 2,
       title: "Computer Science",
       description: "Technical documentation and explanation with a conversational, developer-friendly tone. Perfect for logic explanation without the robotic feel.",
       icon: Terminal,
@@ -69,7 +104,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
       )
     },
     {
-      id: 2,
+      id: 3,
       title: "Paraphrase & Humanize",
       description: "Deep syntactic restructuring for existing text. We don't just swap synonyms; we rebuild the sentence logic entirely.",
       icon: RefreshCw,
@@ -96,7 +131,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
       )
     },
     {
-      id: 3,
+      id: 4,
       title: "Casual Mode",
       description: "Authentic Student Voice. Preserves natural linguistic patterns and genuine expression, ensuring your work reflects your true understanding and original thought.",
       icon: MessageSquare,
@@ -125,7 +160,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
       )
     },
     {
-      id: 4,
+      id: 5,
       title: "Professional Mode",
       description: "Apple-Style Corporate Polish. Dense, concise, and grammatically perfect without being robotic. Removes fluff and enhances authority.",
       icon: Briefcase,
@@ -150,7 +185,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
       )
     },
     {
-      id: 5,
+      id: 6,
       title: "Defense & Appeal",
       description: "Generate scientifically rigorous appeal packets backed by internal research (Lesz et al.). Cite specific false-positive vectors to defend your sovereignty.",
       icon: ShieldAlert,
