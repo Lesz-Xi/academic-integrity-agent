@@ -97,7 +97,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ theme }) => {
         
         {/* Support Link */}
         <div className={`mt-12 text-center text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-            Still have questions? <a href="mailto:support@academicintegrityagent.com" className="text-[#F2E8CF] font-medium hover:underline">Chat with us</a>
+            Still have questions? <a href="mailto:support@thesislens.space" className="text-[#F2E8CF] font-medium hover:underline">Chat with us</a>
         </div>
 
       </div>

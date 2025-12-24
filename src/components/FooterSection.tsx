@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PenTool, Shield, FileText, Instagram, Github, Mail } from 'lucide-react';
+import { PenTool, Shield, FileText, Instagram, Linkedin, Mail } from 'lucide-react';
 import LegalModal, { LegalType } from './LegalModal'; // Assumes LegalModal is in same directory
 
 interface FooterSectionProps {
@@ -68,8 +68,8 @@ const FooterSection: React.FC<FooterSectionProps> = ({ theme }) => {
               <h4 className="text-xs font-bold tracking-widest text-gray-500 uppercase">Connect</h4>
               <ul className="space-y-4 text-sm font-medium text-gray-300">
                 <li><a href="https://www.instagram.com/ichrhin3y/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#F2E8CF] transition-colors"><Instagram className="w-4 h-4" /> Instagram</a></li>
-                <li><a href="https://github.com/leszIO" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#F2E8CF] transition-colors"><Github className="w-4 h-4" /> GitHub</a></li>
-                <li><a href="mailto:support@academicintegrityagent.com" className="flex items-center gap-2 hover:text-[#F2E8CF] transition-colors"><Mail className="w-4 h-4" /> Email</a></li>
+                <li><a href="https://www.linkedin.com/in/rhine-lesther-tague-4b604a246" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[#F2E8CF] transition-colors"><Linkedin className="w-4 h-4" /> LinkedIn</a></li>
+                <li><a href="mailto:support@thesislens.space" className="flex items-center gap-2 hover:text-[#F2E8CF] transition-colors"><Mail className="w-4 h-4" /> Email</a></li>
               </ul>
             </div>
 
