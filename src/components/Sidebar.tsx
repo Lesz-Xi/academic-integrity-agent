@@ -11,8 +11,7 @@ import {
   ChevronRight,
   ChevronDown,
   FileText,
-  ShieldAlert,
-  Lock
+  ShieldAlert
 } from 'lucide-react';
 import { Disclosure, Transition } from '@headlessui/react';
 import { HistoryItem, Mode } from '../types';
@@ -40,7 +39,7 @@ const MODE_LABELS: Record<string, string> = {
   essay: 'Essay & Research',
   cs: 'Computer Science',
   paraphrase: 'Paraphrase',
-  polish: 'Professional',
+  polish: 'Academic',
   casual: 'Casual'
 };
 
@@ -267,13 +266,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
           
           <button
-             onClick={isPremium ? onShowEditor : onUpgrade}
+             onClick={onShowEditor}
              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mb-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 rounded-xl transition-all group relative overflow-hidden"
           >
-             {!isPremium && <div className="absolute inset-0 bg-gray-100/50 dark:bg-black/50 backdrop-blur-[1px] z-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Lock className="w-4 h-4 text-gray-500 dark:text-gray-400" /></div>}
              <FileText className="w-4 h-4 opacity-70" />
              <span>Drafting Canvas</span>
-             {!isPremium && <Lock className="w-3 h-3 ml-auto opacity-40" />}
+             <div className="ml-auto px-1.5 py-0.5 bg-green-500/10 text-green-600 dark:text-green-400 text-[9px] rounded font-bold uppercase tracking-wider">
+               Free
+             </div>
           </button>
 
           {isAuthenticated && (

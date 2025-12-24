@@ -22,7 +22,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
              <div className="text-xs font-mono opacity-60">Drafting Canvas</div>
              <div className="flex gap-2">
                 <div className="px-2 py-1 bg-[#F2E8CF] text-[#85683F] rounded text-xs font-bold flex items-center gap-1">
-                  <Crown className="w-3 h-3" /> Premium
+                  <Crown className="w-3 h-3" /> Free for Launch
                 </div>
                 <div className="px-2 py-1 bg-green-500/10 text-green-500 rounded text-xs font-bold">Live</div>
              </div>
@@ -110,7 +110,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
     },
     {
       id: 3,
-      title: "Paraphrase & Humanize",
+      title: "Paraphrase",
       description: "Deep syntactic restructuring for existing text. We don't just swap synonyms; we rebuild the sentence logic entirely.",
       icon: RefreshCw,
       color: "#E5AA70",
@@ -166,15 +166,15 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
     },
     {
       id: 5,
-      title: "Professional Mode",
-      description: "Apple-Style Corporate Polish. Dense, concise, and grammatically perfect without being robotic. Removes fluff and enhances authority.",
+      title: "Academic Mode",
+      description: "Apple-Style Academic Polish. Dense, concise, and grammatically perfect without being robotic. Removes fluff and enhances authority.",
       icon: Briefcase,
       color: "#6B7280",
       metric: "Executive Ready",
       preview: (
         <div className="space-y-4">
           <div className="flex items-center justify-between mb-2">
-             <div className="text-xs font-mono opacity-60">Style: Corporate</div>
+             <div className="text-xs font-mono opacity-60">Style: Academic</div>
              <div className="px-2 py-1 bg-gray-500/10 text-gray-500 rounded text-xs font-bold">High Density</div>
           </div>
           <div className={`p-4 rounded-lg text-sm leading-relaxed border-l-2 border-gray-400 ${theme === 'dark' ? 'bg-[#252525] text-gray-200' : 'bg-white text-gray-800'}`}>

@@ -19,7 +19,7 @@ const CompactModeSelector: React.FC<CompactModeSelectorProps> = ({
     { id: 'essay', label: 'Essay & Research', icon: <Feather className="w-4 h-4" /> },
     { id: 'cs', label: 'Computer Science', icon: <Terminal className="w-4 h-4" /> },
     { id: 'paraphrase', label: 'Paraphrase', icon: <RefreshCw className="w-4 h-4" /> },
-    { id: 'polish', label: 'Professional', icon: <PenTool className="w-4 h-4" /> },
+    { id: 'polish', label: 'Academic', icon: <PenTool className="w-4 h-4" /> },
     { id: 'casual', label: 'Casual', icon: <Coffee className="w-4 h-4" /> },
   ];
 
