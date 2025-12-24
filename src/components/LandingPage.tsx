@@ -35,8 +35,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
       {/* Header */}
       <header className="relative z-50 pl-4 pr-6 sm:px-6 py-4 sm:py-6 flex items-center justify-between max-w-7xl mx-auto">
         <div className="flex items-center gap-2 sm:gap-3">
-          <img src="/logo.svg" alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl shadow-lg flex-shrink-0" />
-          <span className="font-bold text-xs sm:text-lg tracking-tight whitespace-nowrap">Academic Agent</span>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#F2E8CF] rounded-xl flex items-center justify-center text-[#85683F] font-bold text-lg sm:text-xl shadow-lg flex-shrink-0">
+            A
+          </div>
+          <span className="font-bold text-xs sm:text-lg tracking-tight whitespace-nowrap">ThesisLens</span>
         </div>
         
         <div className="flex items-center gap-1.5 sm:gap-4">
