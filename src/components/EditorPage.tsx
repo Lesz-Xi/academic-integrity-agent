@@ -234,7 +234,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
         <div className="flex-1 relative flex justify-center overflow-y-auto">
           <div className="w-full max-w-3xl py-12 px-8">
             <textarea
-              className="w-full h-full min-h-[80vh] bg-transparent resize-none outline-none text-lg leading-relaxed placeholder-gray-300 dark:placeholder-gray-700"
+              className="w-full h-full min-h-[80vh] bg-transparent resize-none outline-none text-lg leading-relaxed placeholder-gray-400/40 dark:placeholder-gray-600/40 text-gray-800 dark:text-gray-200"
               placeholder="Start drafting here to prove your process..."
               value={content}
               onChange={handleContentChange}
