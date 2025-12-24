@@ -24,6 +24,7 @@ const ResearchPaper: React.FC<ResearchPaperProps> = ({ isOpen, onClose, theme })
       await new Promise(resolve => setTimeout(resolve, 100));
       
       // @ts-ignore - scale is valid in v1+ but types might be outdated
+      // @ts-ignore
       const canvas = await html2canvas(paperRef.current, {
         scale: 2,
         useCORS: true,

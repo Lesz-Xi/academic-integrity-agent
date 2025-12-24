@@ -241,16 +241,69 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
 
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
           
-          {/* Left Column: Navigation Tabs */}
-          <div className="flex flex-col gap-2 relative">
+          {/* Mobile Navigation (Horizontal Scroll) */}
+          <div className="lg:hidden w-full overflow-x-auto pb-4 scrollbar-hide -mx-6 px-6 snap-x">
+             <div className="flex gap-3">
+                {features.map((feature, index) => (
+                   <button
+                     key={feature.id}
+                     onClick={() => setActiveTab(index)}
+                     className={`flex-shrink-0 snap-center flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-200 ${
+                        activeTab === index 
+                           ? (theme === 'dark' ? 'bg-white text-black border-white' : 'bg-[#2D2D2D] text-white border-[#2D2D2D]')
+                           : (theme === 'dark' ? 'bg-[#222] text-gray-400 border-[#333]' : 'bg-white text-gray-600 border-gray-200')
+                     }`}
+                   >
+                     {React.createElement(feature.icon, { 
+                        className: "w-4 h-4",
+                        color: activeTab === index ? (theme === 'dark' ? '#000' : '#fff') : feature.color 
+                     })}
+                     <span className="text-sm font-bold whitespace-nowrap">{feature.title}</span>
+                   </button>
+                ))}
+             </div>
+          </div>
 
+          {/* Mobile Content Display (Focused Card) */}
+          <div className="lg:hidden animate-fade-in">
+             <div className={`p-6 rounded-3xl border shadow-xl ${theme === 'dark' ? 'bg-[#1a1a1a] border-[#333]' : 'bg-white border-gray-100'}`}>
+                
+                {/* Mobile Card Header */}
+                <div className="flex items-center gap-3 mb-4">
+                   <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-[#333]' : 'bg-gray-50'}`}>
+                      {React.createElement(features[activeTab].icon, { 
+                         className: "w-5 h-5",
+                         color: features[activeTab].color 
+                      })}
+                   </div>
+                   <div>
+                      <h3 className="font-bold text-lg">{features[activeTab].title}</h3>
+                      <div className="flex items-center gap-2 text-xs opacity-60">
+                         <CheckCircle className="w-3 h-3" />
+                         <span>{features[activeTab].metric}</span>
+                      </div>
+                   </div>
+                </div>
 
+                <p className={`text-sm leading-relaxed mb-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                   {features[activeTab].description}
+                </p>
+
+                {/* Mobile Preview Container */}
+                <div className={`rounded-xl border border-dashed overflow-hidden ${theme === 'dark' ? 'border-[#333] bg-[#222]' : 'border-gray-200 bg-gray-50'}`}>
+                    <div className="w-full">
+                       {features[activeTab].preview}
+                    </div>
+                </div>
+             </div>
+          </div>
+
+          {/* Desktop Navigation (Vertical List) - Hidden on Mobile */}
+          <div className="hidden lg:flex flex-col gap-2 relative">
              {features.map((feature, index) => (
                 <button
                   key={feature.id}
-                  onClick={() => {
-                    setActiveTab(index);
-                  }}
+                  onClick={() => setActiveTab(index)}
                   className={`text-left pl-8 pr-4 transition-all duration-200 group ${
                     activeTab === index 
                         ? 'py-6 opacity-100' 
@@ -269,22 +322,12 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                     className={`overflow-hidden transition-all duration-300 ease-out ${
                       activeTab === index ? 'max-h-48 opacity-100 py-2' : 'max-h-0 opacity-0 py-0'
                     }`}
-                    style={{ transform: 'translateZ(0)' }} // GPU acceleration for accordion
                   >
                     <p className={`text-sm leading-relaxed max-w-md ${
                         theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                     }`}>
                         {feature.description}
                     </p>
-
-                    {/* Mobile Only: Inline Preview */}
-                    <div className="lg:hidden mt-4">
-                       <div className={`rounded-xl border border-dashed overflow-hidden ${theme === 'dark' ? 'border-[#333]' : 'border-gray-200'}`}>
-                           <div className="w-full">
-                              {feature.preview}
-                           </div>
-                       </div>
-                    </div>
                   </div>
                 </button>
              ))}
