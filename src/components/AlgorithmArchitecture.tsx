@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, GitBranch, GraduationCap, CheckCircle } from 'lucide-react';
+import { Search, GitBranch, Zap, GraduationCap } from 'lucide-react';
 
 interface AlgorithmArchitectureProps {
   theme: 'light' | 'dark';
@@ -43,16 +43,16 @@ const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme, on
     },
     {
       id: 2,
-      title: "Adversarial Structuring",
-      description: "Injecting specific 'burstiness' patterns that disrupt detector probability maps while maintaining formal tone.",
-      icon: GraduationCap,
+      title: "Academic Structuring",
+      description: "Enhancing sentence precision and syntactic depth to align with university-level discourse, ensuring your voice remains authentic yet professional.",
+      icon: Zap,
       label: "03. ENGINEER"
     },
     {
       id: 3,
       title: "Pre-emptive Defense",
       description: "Generating a sealed Attestation Log and Appeal Packet before submission, ensuring due process is guaranteed.",
-      icon: CheckCircle, 
+      icon: GraduationCap, 
       label: "04. DEFEND"
     }
   ];
@@ -95,7 +95,7 @@ const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme, on
                 <div className={`absolute -left-12 top-1/2 -translate-y-1/2 flex items-center gap-4 transition-all duration-300 ${
                     index === activeStep ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
                 }`}>
-                    <div className={`text-xs font-mono font-bold whitespace-nowrap w-40 py-1.5 flex justify-start items-center pl-4 rounded-full border border-[#D2B48C]/50 ${
+                    <div className={`text-xs font-mono font-bold whitespace-nowrap w-40 py-1.5 flex justify-center items-center rounded-full border border-[#D2B48C]/50 ${
                          theme === 'dark' ? 'text-[#D2B48C] bg-black/80' : 'text-[#85683F] bg-white/80'
                     }`}>
                         {step.label}
