@@ -10,6 +10,10 @@ const FAQSection: React.FC<FAQSectionProps> = ({ theme }) => {
 
   const faqs = [
     {
+      question: "How can I prove I wrote this myself?",
+      answer: "Use our Drafting Canvas. We track your writing process—keystrokes, edits, and time spent—to generate a 'Certificate of Sovereignty.' This verifiable PDF proves your human effort, distinguishing your work from generated text."
+    },
+    {
       question: "How does the agent preserve my academic voice?",
       answer: "Our system is engineered for 'Ethical Synthesis', prioritizing your original intent. By enhancing your existing drafts with varied sentence structures and precise vocabulary, it helps clarify your arguments without replacing your unique perspective or critical thinking."
     },

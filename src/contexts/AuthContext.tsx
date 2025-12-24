@@ -10,8 +10,7 @@ interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<void>
   signUpWithEmail: (email: string, password: string) => Promise<{ needsConfirmation: boolean }>
   signInWithGoogle: () => Promise<void>
-  signInWithFacebook: () => Promise<void>
-  signInWithInstagram: () => Promise<void>
+  signInWithLinkedin: () => Promise<void>
   signOut: () => Promise<void>
   isAuthenticated: boolean
 }
@@ -159,22 +158,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error
   }
 
-  const signInWithFacebook = async () => {
+  const signInWithLinkedin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'facebook',
+      provider: 'linkedin_oidc',
       options: {
         redirectTo: `${window.location.origin}/`,
       },
     })
 
     if (error) throw error
-  }
-
-  const signInWithInstagram = async () => {
-    // Note: Supabase does NOT support Instagram as an OAuth provider directly.
-    // Instagram login is available through Facebook Login (users can link their accounts).
-    // Showing an alert to inform the user.
-    throw new Error('Instagram login is available through Facebook. Please use Facebook to sign in with your Instagram-linked account.')
   }
 
   const signOut = async () => {
@@ -208,8 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithEmail,
     signUpWithEmail,
     signInWithGoogle,
-    signInWithFacebook,
-    signInWithInstagram,
+    signInWithLinkedin,
     signOut,
     isAuthenticated: !!user,
   }

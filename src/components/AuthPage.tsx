@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Facebook, ArrowLeft, Check, Loader, AlertCircle } from 'lucide-react';
+import { Linkedin, ArrowLeft, Check, Loader, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface AuthPageProps {
@@ -10,7 +10,7 @@ interface AuthPageProps {
 }
 
 const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, theme, initialIsSignUp = false }) => {
-  const { signInWithEmail, signUpWithEmail, signInWithGoogle, signInWithFacebook, signInWithInstagram } = useAuth();
+  const { signInWithEmail, signUpWithEmail, signInWithGoogle, signInWithLinkedin } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(initialIsSignUp);
@@ -57,26 +57,14 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, theme, initialIsSi
     }
   };
 
-  const handleFacebookAuth = async () => {
+  const handleLinkedinAuth = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      await signInWithFacebook();
+      await signInWithLinkedin();
     } catch (err: any) {
-      setError(err.message || 'Facebook sign-in failed');
-      setLoading(false);
-    }
-  };
-
-  const handleInstagramAuth = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      await signInWithInstagram();
-    } catch (err: any) {
-      setError(err.message || 'Instagram sign-in failed');
+      setError(err.message || 'LinkedIn sign-in failed');
       setLoading(false);
     }
   };
@@ -258,38 +246,27 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, theme, initialIsSi
                     </button>
                     <button 
                         type="button"
-                        onClick={handleFacebookAuth}
+                        onClick={handleLinkedinAuth}
                         disabled={loading}
                         className={`flex items-center justify-center py-2.5 rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                          theme === 'dark' ? 'border-[#444] hover:bg-[#252525]' : 'border-gray-300 hover:bg-white'
                         }`}
-                        title="Sign in with Facebook"
+                        title="Sign in with LinkedIn"
                     >
-                        <Facebook className="w-5 h-5 text-[#1877F2]" fill="#1877F2" strokeWidth={0} />
+                        <Linkedin className="w-5 h-5 text-[#0077B5]" fill="#0077B5" strokeWidth={0} />
                     </button>
                     <button 
                         type="button"
-                        onClick={handleInstagramAuth}
-                        disabled={loading}
-                        className={`flex items-center justify-center py-2.5 rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                         theme === 'dark' ? 'border-[#444] hover:bg-[#252525]' : 'border-gray-300 hover:bg-white'
+                        disabled={true}
+                        className={`flex items-center justify-center py-2.5 rounded-lg border transition-all opacity-30 cursor-not-allowed ${
+                         theme === 'dark' ? 'border-[#444]' : 'border-gray-300'
                         }`}
-                        title="Sign in with Instagram"
+                        title="Coming Soon"
                     >
-                         {/* Instagram Gradient Icon */}
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <defs>
-                                <linearGradient id="instaGradient" x1="2" y1="22" x2="22" y2="2">
-                                    <stop offset="0%" stopColor="#f09433"/>
-                                    <stop offset="25%" stopColor="#e6683c"/>
-                                    <stop offset="50%" stopColor="#dc2743"/>
-                                    <stop offset="75%" stopColor="#cc2366"/>
-                                    <stop offset="100%" stopColor="#bc1888"/>
-                                </linearGradient>
-                            </defs>
-                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#instaGradient)" fill="none" />
-                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="url(#instaGradient)" />
-                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="url(#instaGradient)" />
+                         <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="16" />
+                            <line x1="8" y1="12" x2="16" y2="12" />
                         </svg>
                     </button>
                 </div>
