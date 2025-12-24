@@ -1,5 +1,7 @@
-import React from 'react';
-import { X, Download, Share2, FileText } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { X, Download, Share2, FileText, Loader2 } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 interface ResearchPaperProps {
   isOpen: boolean;
@@ -8,11 +10,44 @@ interface ResearchPaperProps {
 }
 
 const ResearchPaper: React.FC<ResearchPaperProps> = ({ isOpen, onClose, theme }) => {
+  const paperRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleDownload = () => {
-    window.print();
+  const handleDownload = async () => {
+    if (!paperRef.current) return;
+    
+    setIsDownloading(true);
+    try {
+      // Small timeout to allow UI to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // @ts-ignore - scale is valid in v1+ but types might be outdated
+      const canvas = await html2canvas(paperRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor:  theme === 'dark' ? '#1a1a1a' : '#ffffff'
+      });
+      
+      const imgWidth = 210; // A4 width mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: [imgWidth, imgHeight]
+      });
+      
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save('Research_Paper.pdf');
+    } catch (e) {
+      console.error(e);
+      alert('Download failed. Please try "Print" instead.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleShare = () => {
@@ -49,10 +84,11 @@ const ResearchPaper: React.FC<ResearchPaperProps> = ({ isOpen, onClose, theme })
           <div className="flex items-center gap-2">
             <button 
                onClick={handleDownload}
-               className={`p-2 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${mutedColor}`} 
-               title="Print / Save as PDF"
+               disabled={isDownloading}
+               className={`p-2 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${mutedColor} disabled:opacity-50`} 
+               title="Download PDF"
             >
-               <Download className="w-5 h-5" />
+               {isDownloading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
             </button>
             <button 
                onClick={handleShare}
@@ -73,7 +109,7 @@ const ResearchPaper: React.FC<ResearchPaperProps> = ({ isOpen, onClose, theme })
 
         {/* Scrollable Paper Content */}
         <div className="flex-1 overflow-y-auto bg-gray-100 dark:bg-[#111] p-4 sm:p-8">
-          <div className={`max-w-[1000px] mx-auto min-h-[1200px] ${paperColor} shadow-lg py-16 px-8 sm:px-12 lg:px-16 text-justify`} style={{ fontFamily: '"Times New Roman", Times, serif' }}>
+          <div ref={paperRef} className={`max-w-[1000px] mx-auto min-h-[1200px] ${paperColor} shadow-lg py-16 px-8 sm:px-12 lg:px-16 text-justify`} style={{ fontFamily: '"Times New Roman", Times, serif' }}>
             
             {/* Title Section */}
             <div className="text-center mb-8 border-b-2 border-black/10 dark:border-white/10 pb-8">
