@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Clock, ShieldCheck, AlertTriangle, Download } from 'lucide-react';
+import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle } from 'lucide-react';
 import { DraftService } from '../services/draftService';
 import { AttestationService } from '../services/attestationService';
 import { Draft, DraftSnapshot } from '../types';
@@ -223,8 +222,13 @@ export default function EditorPage({ onBack }: EditorPageProps) {
 
         {/* Sidebar: Version History (Simplified for MVP) */}
         {showHistory && (
-          <aside className="w-80 border-l border-black/5 dark:border-white/5 bg-white/50 dark:bg-black/50 backdrop-blur p-6 overflow-y-auto">
-            <h3 className="text-xs font-bold uppercase tracking-wider opacity-50 mb-6">Timeline</h3>
+          <aside className="fixed inset-y-0 right-0 z-50 w-80 border-l border-black/5 dark:border-white/5 bg-white/95 dark:bg-black/95 backdrop-blur p-6 overflow-y-auto shadow-2xl sm:relative sm:w-80 sm:bg-white/50 sm:dark:bg-black/50 sm:shadow-none sm:h-auto top-16 sm:top-0">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xs font-bold uppercase tracking-wider opacity-50">Timeline</h3>
+              <button onClick={() => setShowHistory(false)} className="sm:hidden p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5">
+                <X className="w-4 h-4 opacity-50" />
+              </button>
+            </div>
             
             <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-0 before:w-px before:bg-black/5 dark:before:bg-white/5">
               
