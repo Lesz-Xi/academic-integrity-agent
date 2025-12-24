@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon, RotateCcw } from 'lucide-react';
 import { DraftService } from '../services/draftService';
 import { AttestationService } from '../services/attestationService';
 import { Draft, DraftSnapshot } from '../types';
@@ -29,26 +29,22 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   // 1. Initialize Draft on Mount
   useEffect(() => {
     if (!user) return;
-    
-    // For MVP, we'll create a new draft or load the last one.
-    // Ideally, we'd have a DraftPicker. defaulting to "New Draft" for now.
-    async function init() {
-      // Logic to fetch existing or create new would go here.
-      // Simulating "New Draft" for demo speed.
-      const newDraft = await DraftService.createDraft(user!.id, 'Untitled Essay');
-      if (newDraft) {
-        setDraft(newDraft);
-        setTitle(newDraft.title);
-        setLastSaved(new Date());
-        
-        // Load initial state if any (though new draft is empty)
-        // In a real app we'd load existing draft logic here
-        const snaps = await DraftService.getSnapshots(newDraft.id);
-        setSnapshots(snaps);
-      }
-    }
-    init();
+    initializeDraft();
   }, [user]);
+  
+  const initializeDraft = async () => {
+    if (!user) return;
+    const newDraft = await DraftService.createDraft(user.id, 'Untitled Essay');
+    if (newDraft) {
+      setDraft(newDraft);
+      setTitle(newDraft.title);
+      setLastSaved(new Date());
+      setSnapshots([]);
+      setSovereigntyScore(100);
+      setContent('');
+      previousContentRef.current = '';
+    }
+  };
 
   const isPasteRef = useRef(false);
 
@@ -141,6 +137,15 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
     if (!draft) return;
     await AttestationService.generateCertificate(draft, snapshots, sovereigntyScore);
   };
+  
+  const handleReset = async () => {
+    if (content.trim().length > 0) {
+      if (!window.confirm("Are you sure you want to start a new draft? The current content will be cleared.")) {
+        return;
+      }
+    }
+    await initializeDraft();
+  };
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#0A0A0A] text-gray-900 dark:text-gray-100 font-sans flex flex-col">
@@ -178,6 +183,13 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
         </div>
 
         <div className="flex items-center gap-2 sm:gap-6 flex-shrink-0">
+          <button 
+            onClick={handleReset}
+            className="p-1.5 sm:p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors flex-shrink-0"
+            title="Start New Draft / Reset"
+          >
+            <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5 opacity-70 hover:opacity-100 transition-opacity" />
+          </button>
           <button 
              onClick={toggleTheme}
              className="p-1.5 sm:p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors flex-shrink-0"
