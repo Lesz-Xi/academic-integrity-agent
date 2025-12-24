@@ -436,7 +436,11 @@ function AppContent() {
     return (
       <div className={theme}>
         <Suspense fallback={<LoadingSpinner fullScreen message="Loading Editor..." />}>
-          <EditorPage onBack={handleBackFromEditor} />
+          <EditorPage 
+            onBack={handleBackFromEditor} 
+            theme={theme}
+            toggleTheme={toggleTheme}
+          />
         </Suspense>
       </div>
     );

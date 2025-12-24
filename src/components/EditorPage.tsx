@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon } from 'lucide-react';
 import { DraftService } from '../services/draftService';
 import { AttestationService } from '../services/attestationService';
 import { Draft, DraftSnapshot } from '../types';
@@ -7,9 +7,11 @@ import { useAuth } from '../contexts/AuthContext';
 
 interface EditorPageProps {
   onBack: () => void;
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
 }
 
-export default function EditorPage({ onBack }: EditorPageProps) {
+export default function EditorPage({ onBack, theme, toggleTheme }: EditorPageProps) {
   const { user } = useAuth();
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('Untitled Essay');
@@ -176,8 +178,19 @@ export default function EditorPage({ onBack }: EditorPageProps) {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-6 flex-shrink-0">
-          {/* Score Pill */}
-          <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border ${
+          <button 
+             onClick={toggleTheme}
+             className="p-1.5 sm:p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors flex-shrink-0"
+             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+           >
+             {theme === 'dark' ? (
+               <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-[#C1A87D]" />
+             ) : (
+               <Moon className="w-4 h-4 sm:w-5 sm:h-5 opacity-70" />
+             )}
+           </button>
+
+           <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border ${
             sovereigntyScore > 80 
               ? 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400' 
               : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400'
