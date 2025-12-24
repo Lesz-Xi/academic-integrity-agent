@@ -265,12 +265,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           
           <button
              onClick={onShowEditor}
-             className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mb-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 rounded-xl transition-all group relative overflow-hidden"
+             className="w-full flex items-center justify-center gap-2 px-3 py-3 mb-2 text-xs font-bold text-gray-900 dark:text-white bg-[#F2E8CF]/30 dark:bg-[#C1A87D]/10 border border-[#C1A87D]/50 hover:border-[#C1A87D] hover:shadow-md hover:shadow-[#C1A87D]/10 rounded-xl transition-all group relative overflow-hidden"
           >
-             <FileText className="w-4 h-4 opacity-70" />
+             <FileText className="w-4 h-4 text-[#C1A87D]" />
              <span>Drafting Canvas</span>
-             <div className="ml-auto px-1.5 py-0.5 bg-green-500/10 text-green-600 dark:text-green-400 text-[9px] rounded font-bold uppercase tracking-wider">
-               Free
+             <div className="ml-auto px-2 py-0.5 bg-[#C1A87D]/20 text-[#85683F] dark:text-[#F2E8CF] text-[9px] rounded-full font-bold uppercase tracking-wider">
+               Beta
              </div>
           </button>
 
