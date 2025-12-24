@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon, RotateCcw, Wand2 } from 'lucide-react';
 import { DraftService } from '../services/draftService';
 import { AttestationService } from '../services/attestationService';
+import { AnalysisService, SimplificationSuggestion } from '../services/analysisService';
 import { Draft, DraftSnapshot } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -20,7 +21,11 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [sovereigntyScore, setSovereigntyScore] = useState(100);
-  const [showHistory, setShowHistory] = useState(true);
+  const [showHistory, setShowHistory] = useState(false);
+  
+  // Anti-Thesaurus State
+  const [showAntiThesaurus, setShowAntiThesaurus] = useState(false);
+  const [simplifications, setSimplifications] = useState<SimplificationSuggestion[]>([]);
 
   // Debounce ref
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -31,6 +36,18 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
     if (!user) return;
     initializeDraft();
   }, [user]);
+  
+  // Anti-Thesaurus Auto-Scan
+  useEffect(() => {
+    if (showAntiThesaurus && content) {
+        // Debounce scan slightly to avoid lag on huge texts
+        const timer = setTimeout(() => {
+            const suggestions = AnalysisService.scanForSimplification(content);
+            setSimplifications(suggestions);
+        }, 500);
+        return () => clearTimeout(timer);
+    }
+  }, [content, showAntiThesaurus]);
   
   const initializeDraft = async () => {
     if (!user) return;
@@ -73,13 +90,6 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
        
        // Optimistic Score Update
        const allSnaps = [optimisticSnapshot, ...snapshots];
-       
-       // computeScore expects Newest->Oldest (standard for getSnapshots) or generic list?
-       // My implementation reverses it internally if needed, but let's check.
-       // The service implementation: `const chronological = [...snapshots].reverse();`
-       // This assumes `snapshots` passed to it are Newest First.
-       // `allSnaps` here is [Newest, ...Older], so it is Newest First. Correct.
-       
        const newScore = DraftService.computeScore(allSnaps);
        setSovereigntyScore(newScore);
     }
@@ -95,7 +105,6 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
            setDraft(updated);
            setLastSaved(new Date());
            // Re-fetch authoritative state to replace optimistic one
-           // This prevents drift over time
            const [score, latestSnapshots] = await Promise.all([
             DraftService.calculateSovereigntyScore(draft.id),
             DraftService.getSnapshots(draft.id)
@@ -131,6 +140,24 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
 
   const handlePaste = () => {
     isPasteRef.current = true;
+  };
+  
+  const handleApplySimplification = (original: string, replacement: string) => {
+      // Create a regex to replace ONLY the first occurrence or specific instance?
+      // For simplicity/robustness in V1, we'll replace global or just the text.
+      // But replacing 'use' everywhere might be bad.
+      // Better approach: Replace ALL occurrences of that specific word to be safe, 
+      // or rely on user context. For V1 panel, let's do safe global replace of that word pattern?
+      // No, that's dangerous.
+      // Let's do a smart replace: Replace the FIRST occurrence found? 
+      // Or simply: Content.replace(original, replacement) <- replaces first occurrence only.
+      // This works if the list re-renders and finds the next one.
+      
+      const regex = new RegExp(`\\b${original}\\b`, 'i'); // Find first match, case insensitive
+      const newContent = content.replace(regex, replacement);
+      
+      setContent(newContent);
+      saveDraft(newContent, false);
   };
 
   const handleAttest = async () => {
@@ -190,6 +217,23 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
           >
             <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5 opacity-70 hover:opacity-100 transition-opacity" />
           </button>
+          
+          {/* Anti-Thesaurus Toggle */}
+          <button 
+             onClick={() => {
+                 setShowAntiThesaurus(!showAntiThesaurus);
+                 setShowHistory(false);
+             }}
+             className={`p-1.5 sm:p-2 rounded-full transition-all flex-shrink-0 ${
+                 showAntiThesaurus 
+                   ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' 
+                   : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100'
+             }`}
+             title="Anti-Thesaurus (Simplify Vocabulary)"
+           >
+             <Wand2 className="w-4 h-4 sm:w-5 sm:h-5" />
+           </button>
+
           <button 
              onClick={toggleTheme}
              className="p-1.5 sm:p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors flex-shrink-0"
@@ -212,11 +256,18 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
           </div>
 
           <button 
-            className="p-1.5 sm:p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors relative"
+            className={`p-1.5 sm:p-2 rounded-full transition-colors relative ${
+                showHistory 
+                  ? 'bg-black/10 dark:bg-white/10 opacity-100' 
+                  : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-70'
+            }`}
             title="Version History"
-            onClick={() => setShowHistory(!showHistory)}
+            onClick={() => {
+                setShowHistory(!showHistory);
+                setShowAntiThesaurus(false);
+            }}
           >
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5 opacity-70" />
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           
           <button 
@@ -234,7 +285,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
         <div className="flex-1 relative flex justify-center overflow-y-auto">
           <div className="w-full max-w-3xl py-12 px-8">
             <textarea
-              className="w-full h-full min-h-[80vh] bg-transparent resize-none outline-none text-lg leading-relaxed placeholder-gray-400/40 dark:placeholder-gray-600/40 text-gray-800 dark:text-gray-200"
+              className="w-full h-full min-h-[80vh] bg-transparent resize-none outline-none text-lg leading-relaxed placeholder-gray-400/40 dark:placeholder-gray-600/40 text-gray-800 dark:text-gray-200 selection:bg-purple-100 dark:selection:bg-purple-900/30"
               placeholder="Start drafting here to prove your process..."
               value={content}
               onChange={handleContentChange}
@@ -245,7 +296,56 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
           </div>
         </div>
 
-        {/* Sidebar: Version History (Simplified for MVP) */}
+        {/* Sidebar: Anti-Thesaurus Panel */}
+        {showAntiThesaurus && (
+           <aside className="fixed inset-y-0 right-0 z-50 w-80 border-l border-black/5 dark:border-white/5 bg-white/95 dark:bg-black/95 backdrop-blur p-6 overflow-y-auto shadow-2xl sm:relative sm:w-80 sm:bg-white/50 sm:dark:bg-black/50 sm:shadow-none sm:h-auto top-16 sm:top-0 border-l-purple-500/10 bg-purple-50/50 dark:bg-purple-900/10">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                 <Wand2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                 <h3 className="text-xs font-bold uppercase tracking-wider text-purple-900 dark:text-purple-200">Anti-Thesaurus</h3>
+              </div>
+              <button onClick={() => setShowAntiThesaurus(false)} className="sm:hidden p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5">
+                <X className="w-4 h-4 opacity-50" />
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+               AI models love complex words. Use simpler alternatives to increase perplexity and sound more human.
+            </p>
+
+            <div className="space-y-4">
+               {simplifications.length === 0 ? (
+                   <div className="text-center py-12 opacity-50">
+                       <ShieldCheck className="w-8 h-8 mx-auto mb-2 text-green-500/50" />
+                       <p className="text-xs font-medium">No complex words found.</p>
+                       <p className="text-[10px]">Your writing is beautifully simple.</p>
+                   </div>
+               ) : (
+                   simplifications.map((item, idx) => (
+                       <div key={idx} className="bg-white dark:bg-gray-900 border border-purple-200 dark:border-purple-800/30 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+                           <div className="flex items-center justify-between mb-2">
+                               <span className="text-sm font-bold text-red-500 line-through decoration-2 decoration-red-200">{item.original}</span>
+                               <span className="text-[10px] text-gray-400 uppercase tracking-wide">Replace with</span>
+                           </div>
+                           <div className="flex flex-wrap gap-2">
+                               {item.replacements.map(rep => (
+                                   <button 
+                                      key={rep}
+                                      onClick={() => handleApplySimplification(item.original, rep)}
+                                      className="px-2 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-xs font-medium rounded hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors"
+                                   >
+                                       {rep}
+                                   </button>
+                               ))}
+                           </div>
+                       </div>
+                   ))
+               )}
+            </div>
+           </aside>
+        )}
+
+        {/* Sidebar: Version History */}
         {showHistory && (
           <aside className="fixed inset-y-0 right-0 z-50 w-80 border-l border-black/5 dark:border-white/5 bg-white/95 dark:bg-black/95 backdrop-blur p-6 overflow-y-auto shadow-2xl sm:relative sm:w-80 sm:bg-white/50 sm:dark:bg-black/50 sm:shadow-none sm:h-auto top-16 sm:top-0">
             <div className="flex items-center justify-between mb-6">
