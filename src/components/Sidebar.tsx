@@ -11,7 +11,8 @@ import {
   ChevronRight,
   ChevronDown,
   FileText,
-  ShieldAlert
+  ShieldAlert,
+  Award
 } from 'lucide-react';
 import { Disclosure, Transition } from '@headlessui/react';
 import { HistoryItem, Mode } from '../types';
@@ -30,7 +31,7 @@ interface SidebarProps {
   onSignOut: () => void;
   onUpgrade: () => void;
   onDeleteHistoryItem: (item: HistoryItem, e: React.MouseEvent) => void;
-  onShowResearch: () => void;
+  onShowCertificates: () => void;
   onShowDefense: () => void;
   onShowEditor: () => void;
 }
@@ -64,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onSignOut,
   onUpgrade,
   onDeleteHistoryItem,
-  onShowResearch,
+  onShowCertificates,
   onShowDefense,
   onShowEditor
 }) => {
@@ -248,11 +249,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-4 border-t border-gray-100 dark:border-white/5 space-y-1">
           <div className="grid grid-cols-2 gap-2 mb-3">
              <button
-                onClick={onShowResearch}
+                onClick={onShowCertificates}
                 className="flex items-center gap-2 px-3 py-2.5 text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-white/5 hover:bg-[#F2E8CF] hover:text-[#85683F] dark:hover:bg-[#85683F]/20 dark:hover:text-[#F2E8CF] rounded-xl transition-all group"
              >
-               <FileText className="w-4 h-4" />
-               <span>Research</span>
+               <Award className="w-4 h-4" />
+               <span>Certificates</span>
              </button>
              <button
                 onClick={onShowDefense}

@@ -33,6 +33,7 @@ const OnboardingTour = lazy(() => import('./components/OnboardingTour'));
 const LandingPage = lazy(() => import('./components/LandingPage'));
 const AuthPage = lazy(() => import('./components/AuthPage'));
 const EditorPage = lazy(() => import('./components/EditorPage'));
+const CertificatesModal = lazy(() => import('./components/CertificatesModal'));
 
 function AppContent() {
   const { theme, toggleTheme } = useTheme();
@@ -56,6 +57,7 @@ function AppContent() {
   const [searchEnabled, setSearchEnabled] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showResearch, setShowResearch] = useState(false);
+  const [showCertificates, setShowCertificates] = useState(false);
   const [showDefense, setShowDefense] = useState(false);
   
   // Track sign-out to prevent race conditions
@@ -487,7 +489,7 @@ function AppContent() {
             toggleTheme={toggleTheme}
             onSignOut={handleSignOut}
             onUpgrade={() => setShowUpgradeModal(true)}
-            onShowResearch={() => setShowResearch(true)}
+            onShowCertificates={() => setShowCertificates(true)}
             onShowDefense={() => {
               if (checkPremiumGate()) setShowDefense(true);
             }}
@@ -665,6 +667,12 @@ function AppContent() {
           }}
         />
       )}
+
+      <CertificatesModal 
+        isOpen={showCertificates}
+        onClose={() => setShowCertificates(false)}
+        theme={theme}
+      />
 
       <ResearchPaper
         isOpen={showResearch}
