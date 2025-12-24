@@ -1,5 +1,6 @@
 
 import { X, Award, ShieldCheck, Calendar, Download } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 
 interface CertificatesModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ export default function CertificatesModal({ isOpen, onClose, theme }: Certificat
   const borderColor = isDark ? 'border-gray-800' : 'border-gray-200';
 
   // Mock data for now
+
   const certificates = [
     {
       id: 1,
@@ -25,6 +27,65 @@ export default function CertificatesModal({ isOpen, onClose, theme }: Certificat
       hash: "0x7F...3A21"
     }
   ];
+
+  const handleDownload = (cert: typeof certificates[0]) => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    // Background
+    doc.setFillColor(253, 251, 247); // #FDFBF7
+    doc.rect(0, 0, 297, 210, 'F');
+
+    // Border
+    doc.setDrawColor(193, 168, 125); // #C1A87D
+    doc.setLineWidth(2);
+    doc.rect(15, 15, 267, 180);
+
+    // Header
+    doc.setTextColor(45, 45, 45);
+    doc.setFont("times", "bold");
+    doc.setFontSize(40);
+    doc.text("Certificate of Sovereignty", 148.5, 60, { align: "center" });
+
+    // Subheader
+    doc.setFontSize(16);
+    doc.setTextColor(100, 100, 100);
+    doc.text("This document certifies that the following work is", 148.5, 80, { align: "center" });
+    doc.text("an attested artifact of human authorship.", 148.5, 88, { align: "center" });
+
+    // Title
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(24);
+    doc.setTextColor(45, 45, 45);
+    doc.text(cert.title, 148.5, 110, { align: "center" });
+
+    // Score Badge
+    doc.setFillColor(193, 168, 125);
+    doc.setDrawColor(193, 168, 125);
+    doc.circle(148.5, 140, 15, 'FD');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.text(`${cert.score}%`, 148.5, 140, { align: "center", baseline: "middle" });
+    doc.setFontSize(10);
+    doc.text("Human", 148.5, 146, { align: "center" });
+
+    // Footer Details
+    doc.setTextColor(100, 100, 100);
+    doc.setFont("courier", "normal");
+    doc.setFontSize(10);
+    doc.text(`Date: ${cert.date}`, 148.5, 170, { align: "center" });
+    doc.text(`Hash: ${cert.hash}`, 148.5, 176, { align: "center" });
+
+    // Verification Link
+    doc.setFontSize(8);
+    doc.setTextColor(193, 168, 125);
+    doc.text("Verified by ThesisLens Sovereignty Engine", 148.5, 185, { align: "center" });
+
+    doc.save(`Certificate_${cert.id}.pdf`);
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
@@ -76,7 +137,11 @@ export default function CertificatesModal({ isOpen, onClose, theme }: Certificat
                                 <div className={`px-3 py-1 rounded-full text-xs font-bold ${isDark ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-700'}`}>
                                     {cert.score}% Score
                                 </div>
-                                <button className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}>
+                                <button 
+                                  onClick={() => handleDownload(cert)}
+                                  className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/5 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                                  title="Download Certificate"
+                                >
                                     <Download className="w-4 h-4" />
                                 </button>
                             </div>
