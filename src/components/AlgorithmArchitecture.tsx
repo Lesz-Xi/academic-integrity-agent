@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, GitBranch, Fingerprint, CheckCircle } from 'lucide-react';
+import { Search, GitBranch, GraduationCap, CheckCircle } from 'lucide-react';
 
 interface AlgorithmArchitectureProps {
   theme: 'light' | 'dark';
@@ -45,7 +45,7 @@ const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme, on
       id: 2,
       title: "Adversarial Structuring",
       description: "Injecting specific 'burstiness' patterns that disrupt detector probability maps while maintaining formal tone.",
-      icon: Fingerprint,
+      icon: GraduationCap,
       label: "03. ENGINEER"
     },
     {
