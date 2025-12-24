@@ -131,10 +131,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Header */}
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5 px-2">
-            <div className="w-8 h-8 rounded-lg bg-[#F2E8CF] flex items-center justify-center shadow-lg shadow-[#F2E8CF]/10">
-              <span className="text-[#85683F] font-serif font-bold text-xl leading-none">A</span>
-            </div>
-            <span className="font-serif font-bold text-xl tracking-tight text-[#2D2D2D] dark:text-white">Academic Agent</span>
+            <img src="/logo.svg" alt="ThesisLens" className="w-8 h-8" />
+            <span className="font-serif font-bold text-xl tracking-tight text-[#2D2D2D] dark:text-white">ThesisLens</span>
           </div>
           <button 
             onClick={onToggle}

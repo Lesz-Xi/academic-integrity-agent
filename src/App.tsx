@@ -565,7 +565,7 @@ function AppContent() {
                     <div className="flex-1 flex flex-col items-center justify-start pt-20 sm:pt-32 px-4 w-full min-h-[75vh] sm:min-h-[85vh] animate-in fade-in duration-700">
                         <div className="text-center mb-6 sm:mb-12">
                              <h1 className="text-3xl sm:text-5xl font-serif text-[#2D2D2D] dark:text-[#EAEAEA] mb-3">
-                                {getGreeting()}, <span className="text-[#C1A87D] dark:text-[#F2E8CF] italic">{user?.email?.split('@')[0] || 'Academic Agent'}</span>
+                                {getGreeting()}, <span className="text-[#C1A87D] dark:text-[#F2E8CF] italic">{user?.email?.split('@')[0] || 'Scholar'}</span>
                              </h1>
                         </div>
 
