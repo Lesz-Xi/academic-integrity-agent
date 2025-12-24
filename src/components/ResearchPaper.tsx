@@ -23,14 +23,12 @@ const ResearchPaper: React.FC<ResearchPaperProps> = ({ isOpen, onClose, theme })
       // Small timeout to allow UI to update
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // @ts-ignore - scale is valid in v1+ but types might be outdated
-      // @ts-ignore
       const canvas = await html2canvas(paperRef.current, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor:  theme === 'dark' ? '#1a1a1a' : '#ffffff'
-      });
+      } as any);
       
       const imgWidth = 210; // A4 width mm
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
