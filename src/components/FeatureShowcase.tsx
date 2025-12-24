@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Feather, Terminal, RefreshCw, CheckCircle, Code, MessageSquare, Briefcase, ShieldAlert, ArrowRight } from 'lucide-react';
+import { Feather, Terminal, RefreshCw, CheckCircle, Code, MessageSquare, Briefcase, ShieldAlert, ArrowRight, Crown } from 'lucide-react';
 
 interface FeatureShowcaseProps {
   theme: 'light' | 'dark';
@@ -20,7 +20,12 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
         <div className="space-y-4">
           <div className="flex items-center justify-between mb-2">
              <div className="text-xs font-mono opacity-60">Drafting Canvas</div>
-             <div className="px-2 py-1 bg-green-500/10 text-green-500 rounded text-xs font-bold">Live</div>
+             <div className="flex gap-2">
+                <div className="px-2 py-1 bg-[#F2E8CF] text-[#85683F] rounded text-xs font-bold flex items-center gap-1">
+                  <Crown className="w-3 h-3" /> Premium
+                </div>
+                <div className="px-2 py-1 bg-green-500/10 text-green-500 rounded text-xs font-bold">Live</div>
+             </div>
           </div>
           
           {/* Simulated Timeline */}
