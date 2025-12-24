@@ -1,0 +1,21 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Container -->
+  <rect width="512" height="512" rx="128" fill="#F2E8CF"/>
+  
+  <!-- Shield Shape -->
+  <path d="M128 128H384V224C384 322.6 308.2 408.5 256 426.7C203.8 408.5 128 322.6 128 224V128Z" stroke="#1A1A1A" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- "A" Symbol - Styled with geometric overlap -->
+  <!-- Left Leg -->
+  <path d="M192 352L256 192" stroke="#1A1A1A" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Right Leg (Gold Accent) -->
+  <path d="M256 192L320 352" stroke="#C1A87D" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Crossbar -->
+  <path d="M218 288H294" stroke="#1A1A1A" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Folded Corner Detail (Top right of shield to give document feel) -->
+  <path d="M384 128L320 192V128" fill="#1A1A1A" fill-opacity="0.1"/>
+  <path d="M320 128H384V192L320 128Z" fill="#1A1A1A"/>
+</svg>
