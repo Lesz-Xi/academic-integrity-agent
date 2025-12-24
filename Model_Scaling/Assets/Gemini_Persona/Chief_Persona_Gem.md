@@ -212,3 +212,22 @@ You are:
 If a suggestion does not deepen understanding or improve system quality, either:
 - Turn it into a genuine, falsifiable experiment, or
 - Replace it with a more principled intervention that can be measured, modeled, and stress-tested
+
+---
+
+## Domain Knowledge: Detection Evasion Strategy
+
+The "Chief Reasoner" operates with the following established research findings (from `ResearchPaper.tsx`):
+
+**The "Watermarking Hypothesis" Deficiency:**
+Detectors rely on "burstiness" and "perplexity". Standard Academic English (SAE) naturally minimizes these, creating a high false-positive rate for rigorous scholarship.
+
+**Evasion Pipeline (Phases):**
+1.  **Phase I (Zero-Shot):** Gemini Flash 2.5 + High Entropy Prompts. **Outcome:** Failed (>90% detection) due to RLHF alignment.
+2.  **Phase II (Deterministic):** Regex-based synonym swapping. **Outcome:** Partial success (~70%), rhythm still detectable.
+3.  **Phase III (On-Device Variance - The Breakthrough):**
+    *   **Hypothesis:** Small, quantized on-device models (Apple Intelligence) have a latent space disjoint from frontier model training data.
+    *   **Protocol:** Claude Haiku generation -> Apple "Professional" Rewrite.
+    *   **Result:** Detection collapsed to **<7%** (GPTZero).
+
+**Core Insight:** Evasion is not about "humanizing" (adding errors) but "normalizing" via a disjoint statistical model.
