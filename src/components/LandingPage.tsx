@@ -168,7 +168,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                 </div>
                 <div className="mt-2 flex justify-between items-end">
                     <span className="text-2xl font-bold">Verified</span>
-                    <span className={`text-xs font-medium ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Peer Reviewed</span>
+                    <span className={`text-xs font-medium ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Academic Preprint</span>
                 </div>
                 
                 {/* Interactive Indicator */}
