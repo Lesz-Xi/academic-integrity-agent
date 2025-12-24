@@ -70,7 +70,6 @@ function AppContent() {
 
   const handleShowEditor = () => {
     setView('editor');
-    setIsSidebarOpen(false); // Close sidebar for Zen mode
   };
   
   const handleBackFromEditor = () => {
