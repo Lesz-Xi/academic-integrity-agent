@@ -9,143 +9,168 @@ export class AttestationService {
   static ALERT_RED = [220, 38, 38] as const; // #DC2626
   
   static async generateCertificate(draft: Draft, snapshots: DraftSnapshot[], score: number) {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
+    const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+    });
+    
+    // Setup Layout Constants
+    const pageWidth = doc.internal.pageSize.getWidth(); // 210mm
+    const pageHeight = doc.internal.pageSize.getHeight(); // 297mm
+    const center = pageWidth / 2;
     const margin = 20;
-    let y = 25;
 
-    // Helper: Centered Text
-    const centerText = (text: string, size: number = 12, isBold: boolean = false, color?: readonly [number, number, number]) => {
-      doc.setFontSize(size);
-      doc.setFont('helvetica', isBold ? 'bold' : 'normal');
-      if (color) doc.setTextColor(color[0], color[1], color[2]);
-      else doc.setTextColor(0, 0, 0);
-      const textWidth = doc.getTextWidth(text);
-      doc.text(text, (pageWidth - textWidth) / 2, y);
-      y += size / 2 + 4;
-    };
-
-    // Helper: Left Text
-    const leftText = (text: string, size: number = 10, isBold: boolean = false) => {
-        doc.setFontSize(size);
-        doc.setFont('helvetica', isBold ? 'bold' : 'normal');
-        doc.setTextColor(60, 60, 60);
-        doc.text(text, margin, y);
-        y += size / 2 + 3;
-    };
+    // --- BACKGROUND & BORDER ---
+    // Beige Background
+    doc.setFillColor(253, 251, 247); // #FDFBF7
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
     
-    // --- HEADER with Gold Accent Line ---
+    // Gold Border
     doc.setDrawColor(...AttestationService.CREME_GOLD);
-    doc.setLineWidth(3);
-    doc.line(margin, margin, pageWidth - margin, margin);
+    doc.setLineWidth(1.5);
+    doc.rect(margin, margin, pageWidth - (margin * 2), pageHeight - (margin * 2));
     
-    y = 38;
-    centerText("CERTIFICATE OF SOVEREIGNTY", 24, true);
-    centerText("ThesisLens | Academic Integrity Defense Platform", 10, false, [100, 100, 100]);
+    // Inner Hairline Border
+    doc.setLineWidth(0.5);
+    doc.rect(margin + 2, margin + 2, pageWidth - (margin * 2) - 4, pageHeight - (margin * 2) - 4);
+
+    let y = 60;
+
+    // --- HEADER ---
+    doc.setTextColor(40, 40, 40);
+    doc.setFont("times", "bold");
+    doc.setFontSize(32);
+    doc.text("Certificate of Sovereignty", center, y, { align: "center" });
     
-    y += 8;
+    y += 15;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text("This document certifies that the following work is", center, y, { align: "center" });
+    y += 6;
+    doc.text("an attested artifact of human authorship.", center, y, { align: "center" });
+
+    // --- TITLE ---
+    y += 25;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(30, 30, 30);
+    const title = draft.title.length > 50 ? draft.title.substring(0, 50) + "..." : draft.title;
+    doc.text(title, center, y, { align: "center" });
+
+    // --- GOLD SEAL / BADGE ---
+    y += 35;
+    const badgeRadius = 18;
+    // Outer Circle
+    doc.setFillColor(...AttestationService.CREME_GOLD);
+    doc.setDrawColor(...AttestationService.CREME_GOLD);
+    doc.circle(center, y, badgeRadius, 'F');
+    
+    // Score
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(`${score}%`, center, y + 1, { align: "center", baseline: "middle" });
+    
+    // "HUMAN" Label
+    doc.setFontSize(7);
+    doc.text("HUMAN", center, y + 8, { align: "center" });
+
+    // --- METADATA GRID ---
+    y += 35;
+    doc.setFont("courier", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    
+    const dateStr = new Date().toLocaleDateString();
+    const hash = draft.id.substring(0, 16) + "..."; // Mock hash from ID
+    
+    doc.text(`Date: ${dateStr}`, center, y, { align: "center" });
+    y += 5;
+    doc.text(`Hash: ${hash}`, center, y, { align: "center" });
+
+    // --- CHAIN OF CUSTODY (Condensed) ---
+    y += 25;
+    
+    // Section Header
+    doc.setFont("times", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(...AttestationService.CREME_GOLD);
+    doc.text("CHAIN OF CUSTODY LOG", center, y, { align: "center" });
+    
+    // Separator
+    y += 3;
     doc.setDrawColor(...AttestationService.CREME_GOLD);
     doc.setLineWidth(0.5);
-    doc.line(margin + 40, y, pageWidth - margin - 40, y);
-    y += 12;
-
-    // --- VERDICT BOX ---
-    const verdictColor = score >= 80 ? AttestationService.VERIFICATION_GREEN : score >= 50 ? AttestationService.CREME_GOLD : AttestationService.ALERT_RED;
-    const verdictText = score >= 80 ? "VERIFIED HUMAN" : score >= 50 ? "MIXED ORIGIN" : "UNVERIFIED";
+    doc.line(center - 30, y, center + 30, y);
     
-    // Draw Verdict Box
-    doc.setFillColor(verdictColor[0], verdictColor[1], verdictColor[2]);
-    doc.roundedRect(margin, y, pageWidth - 2*margin, 35, 4, 4, 'F');
+    y += 15;
     
-    // Verdict Text
-    doc.setFontSize(32);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text(`${score}%`, margin + 15, y + 24);
-    
-    doc.setFontSize(14);
-    doc.text(verdictText, margin + 60, y + 22);
-    
+    // Log Table Header
+    const tableLeft = margin + 15;
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text("Sovereignty Score", margin + 60, y + 30);
-    
-    y += 45;
-    
-    // --- METADATA ---
-    doc.setTextColor(0, 0, 0);
-    leftText(`Document: ${draft.title}`, 11, true);
-    leftText(`Author ID: ${draft.userId}`, 9);
-    leftText(`Generated: ${new Date().toLocaleString()}`, 9);
-    leftText(`Word Count: ${draft.currentContent.split(/\s+/).filter(w => w.length > 0).length}`, 9);
-    leftText(`Total Snapshots: ${snapshots.length}`, 9);
-    
-    y += 8;
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.3);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 12;
-    
-    // --- CHAIN OF CUSTODY (TIMELINE) ---
-    centerText("CHAIN OF CUSTODY LOG", 12, true, [...AttestationService.CREME_GOLD]);
-    y += 4;
-
-    const timeline = [...snapshots].reverse(); // Oldest first
-    const maxEvents = 20;
-    
-    // Header Row
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
     doc.setTextColor(100, 100, 100);
-    doc.text("Time", margin, y);
-    doc.text("Event Type", margin + 35, y);
-    doc.text("Impact", margin + 95, y);
-    y += 7;
-    doc.setLineWidth(0.2);
-    doc.line(margin, y-3, pageWidth - margin, y-3);
+    doc.text("TIME", tableLeft, y);
+    doc.text("ACTION", tableLeft + 40, y);
+    doc.text("IMPACT", tableLeft + 100, y);
+    
+    y += 3;
+    doc.setDrawColor(220, 220, 220);
+    doc.line(tableLeft, y, pageWidth - margin - 15, y);
+    y += 6;
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    timeline.slice(0, maxEvents).forEach(snap => {
-        const time = new Date(snap.timestamp).toLocaleTimeString();
+    // Log Entries
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(60, 60, 60);
+    
+    const timeline = [...snapshots].reverse().slice(0, 10); // Show max 10 events for clean fit in one page
+    
+    timeline.forEach(snap => {
+        const time = new Date(snap.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         let type = "Auto-Save";
         let impact = `${snap.charCountDelta > 0 ? '+' : ''}${snap.charCountDelta} chars`;
         
+        // Highlight logic
         if (snap.pasteEventDetected) {
             doc.setTextColor(...AttestationService.ALERT_RED);
-            type = "⚠ HIGH-VOLUME PASTE";
+            type = "High Volume Paste";
         } else if (Math.abs(snap.charCountDelta) > 500) {
-            doc.setTextColor(180, 100, 0);
+            doc.setTextColor(180, 100, 0); // Dark Orange
             type = "Large Edit";
         } else {
             doc.setTextColor(60, 60, 60);
         }
 
-        doc.text(time, margin, y);
-        doc.text(type, margin + 35, y);
-        doc.text(impact, margin + 95, y);
-        y += 5;
+        doc.text(time, tableLeft, y);
+        doc.text(type, tableLeft + 40, y);
+        doc.text(impact, tableLeft + 100, y);
+        
+        y += 6;
     });
 
-    if (timeline.length > maxEvents) {
-        doc.setTextColor(120, 120, 120);
+    if (snapshots.length > 10) {
+        y += 4;
+        doc.setFont("helvetica", "italic");
         doc.setFontSize(8);
-        doc.text(`...and ${timeline.length - maxEvents} more events recorded.`, margin, y);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`...and ${snapshots.length - 10} earlier events archived.`, center, y, { align: "center" });
     }
-    
+
     // --- FOOTER ---
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.text("This certificate was generated by ThesisLens Sovereignty Engine.", margin, pageHeight - 15);
-    doc.text(`Verification ID: ${draft.id}`, margin, pageHeight - 10);
-    
-    // Footer Accent
+    const footerY = pageHeight - 20;
     doc.setDrawColor(...AttestationService.CREME_GOLD);
-    doc.setLineWidth(2);
-    doc.line(margin, pageHeight - 5, pageWidth - margin, pageHeight - 5);
+    doc.setLineWidth(0.5);
+    doc.line(center - 20, footerY - 5, center + 20, footerY - 5);
+    
+    doc.setFont("times", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(...AttestationService.CREME_GOLD);
+    doc.text("Verified by ThesisLens Sovereignty Engine", center, footerY, { align: "center" });
 
     // Save
-    doc.save(`Sovereignty_Certificate_${draft.title.replace(/\s+/g, '_')}.pdf`);
+    doc.save(`Certificate_${draft.title.replace(/\s+/g, '_')}.pdf`);
   }
 }
