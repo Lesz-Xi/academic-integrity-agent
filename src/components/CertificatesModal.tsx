@@ -93,7 +93,7 @@ export default function CertificatesModal({ isOpen, onClose, theme }: Certificat
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className={`relative w-full ${selectedCert ? 'max-w-4xl' : 'max-w-2xl'} ${bgColor} rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300`}>
+      <div className={`relative w-full ${selectedCert ? 'max-w-3xl' : 'max-w-2xl'} ${bgColor} rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300`}>
         
         {/* Header */}
         <div className={`px-6 py-4 border-b ${borderColor} flex items-center justify-between`}>
@@ -126,33 +126,33 @@ export default function CertificatesModal({ isOpen, onClose, theme }: Certificat
                     <X className="w-4 h-4" /> Back to Vault
                   </button>
 
-                  <div className="relative aspect-[1.414/1] bg-[#FDFBF7] text-[#2D2D2D] p-8 sm:p-12 shadow-xl rounded-lg border border-[#C1A87D]/30 flex flex-col items-center text-center select-none">
+                  <div className="relative aspect-[1.414/1] bg-[#FDFBF7] text-[#2D2D2D] p-6 sm:p-10 shadow-xl rounded-lg border border-[#C1A87D]/30 flex flex-col items-center text-center select-none">
                       {/* Decorative Border */}
-                      <div className="absolute inset-4 border-2 border-[#C1A87D]"></div>
-                      <div className="absolute inset-5 border border-[#C1A87D]/30"></div>
+                      <div className="absolute inset-3 border-2 border-[#C1A87D]"></div>
+                      <div className="absolute inset-4 border border-[#C1A87D]/30"></div>
 
-                      <div className="relative z-10 flex flex-col items-center h-full justify-between py-4">
-                          <div>
-                            <h1 className="font-serif text-3xl sm:text-5xl font-bold mb-4 tracking-tight">Certificate of Sovereignty</h1>
-                            <p className="text-gray-500 text-sm sm:text-lg mb-1">This document certifies that the following work is</p>
-                            <p className="text-gray-500 text-sm sm:text-lg">an attested artifact of human authorship.</p>
+                      <div className="relative z-10 flex flex-col items-center h-full justify-between py-2 sm:py-4">
+                          <div className="mt-2">
+                            <h1 className="font-serif text-2xl sm:text-4xl font-bold mb-3 tracking-tight">Certificate of Sovereignty</h1>
+                            <p className="text-gray-500 text-xs sm:text-base mb-0.5">This document certifies that the following work is</p>
+                            <p className="text-gray-500 text-xs sm:text-base">an attested artifact of human authorship.</p>
                           </div>
 
-                          <h2 className="text-xl sm:text-3xl font-bold max-w-2xl leading-tight">{selectedCert.title}</h2>
+                          <h2 className="text-lg sm:text-2xl font-bold max-w-xl leading-tight my-2">{selectedCert.title}</h2>
 
                           <div className="flex flex-col items-center">
-                             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#C1A87D] flex flex-col items-center justify-center text-white shadow-lg mb-2">
-                                <span className="text-xl sm:text-2xl font-bold">{selectedCert.score}%</span>
-                                <span className="text-[10px] sm:text-xs uppercase tracking-widest font-medium">Human</span>
+                             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#C1A87D] flex flex-col items-center justify-center text-white shadow-lg mb-2">
+                                <span className="text-lg sm:text-xl font-bold">{selectedCert.score}%</span>
+                                <span className="text-[8px] sm:text-[10px] uppercase tracking-widest font-medium">Human</span>
                              </div>
                           </div>
 
-                          <div className="text-xs sm:text-sm font-mono text-gray-500 space-y-1">
+                          <div className="text-[10px] sm:text-xs font-mono text-gray-500 space-y-0.5">
                              <p>Date: {selectedCert.date}</p>
                              <p>Hash: {selectedCert.hash}</p>
                           </div>
 
-                          <div className="text-[10px] text-[#C1A87D] uppercase tracking-widest pt-4 border-t border-[#C1A87D]/30 w-full max-w-md">
+                          <div className="text-[8px] sm:text-[10px] text-[#C1A87D] uppercase tracking-widest pt-3 border-t border-[#C1A87D]/30 w-full max-w-sm">
                              Verified by ThesisLens Sovereignty Engine
                           </div>
                       </div>
