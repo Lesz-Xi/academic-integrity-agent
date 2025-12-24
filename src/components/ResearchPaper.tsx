@@ -61,10 +61,10 @@ const ResearchPaper: React.FC<ResearchPaperProps> = ({ isOpen, onClose, theme })
             >
                <Share2 className="w-5 h-5" />
             </button>
-            <div className={`h-6 w-px mx-2 ${borderColor}`}></div>
+            <div className={`h-6 w-px mx-0.5 sm:mx-2 hidden sm:block ${borderColor}`}></div>
             <button 
               onClick={onClose}
-              className={`p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors ${mutedColor}`}
+              className={`p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors ${mutedColor} z-50`}
             >
               <X className="w-5 h-5" />
             </button>

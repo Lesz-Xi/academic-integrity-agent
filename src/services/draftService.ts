@@ -96,6 +96,16 @@ export class DraftService {
   }
 
   /**
+   * Update just the title of a draft
+   */
+  static async updateTitle(draftId: string, newTitle: string): Promise<void> {
+    await supabase
+      .from('drafts')
+      .update({ title: newTitle, last_updated: new Date().toISOString() })
+      .eq('id', draftId);
+  }
+
+  /**
    * Retrieve snapshots for a draft
    */
   static async getSnapshots(draftId: string): Promise<DraftSnapshot[]> {

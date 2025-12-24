@@ -13,12 +13,13 @@ interface EditorPageProps {
 export default function EditorPage({ onBack }: EditorPageProps) {
   const { user } = useAuth();
   const [content, setContent] = useState('');
+  const [title, setTitle] = useState('Untitled Essay');
   const [draft, setDraft] = useState<Draft | null>(null);
   const [snapshots, setSnapshots] = useState<DraftSnapshot[]>([]); 
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [sovereigntyScore, setSovereigntyScore] = useState(100);
-  const [showHistory, setShowHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(true);
 
   // Debounce ref
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -36,6 +37,7 @@ export default function EditorPage({ onBack }: EditorPageProps) {
       const newDraft = await DraftService.createDraft(user!.id, 'Untitled Essay');
       if (newDraft) {
         setDraft(newDraft);
+        setTitle(newDraft.title);
         setLastSaved(new Date());
         
         // Load initial state if any (though new draft is empty)
@@ -142,51 +144,62 @@ export default function EditorPage({ onBack }: EditorPageProps) {
   return (
     <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#0A0A0A] text-gray-900 dark:text-gray-100 font-sans flex flex-col">
       {/* Header */}
-      <header className="h-16 border-b border-black/5 dark:border-white/5 flex items-center justify-between px-6 bg-white/50 dark:bg-black/50 backdrop-blur">
-        <div className="flex items-center gap-4">
+      <header className="h-16 border-b border-black/5 dark:border-white/5 flex items-center justify-between px-4 sm:px-6 bg-white/50 dark:bg-black/50 backdrop-blur">
+        <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
           <button 
             onClick={onBack}
-            className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors"
+            className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors flex-shrink-0"
           >
             <ArrowLeft className="w-5 h-5 opacity-70" />
           </button>
           
-          <div className="flex flex-col">
-            <h1 className="text-sm font-bold tracking-wide">Untitled Drafting Session</h1>
-            <div className="text-xs opacity-50 flex items-center gap-2">
+          <div className="flex flex-col min-w-0">
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => {
+                if (draft && title !== draft.title) {
+                  DraftService.updateTitle(draft.id, title);
+                }
+              }}
+              className="text-sm font-bold tracking-wide bg-transparent border-b border-transparent hover:border-black/20 dark:hover:border-white/20 focus:border-black/40 dark:focus:border-white/40 outline-none px-1 -mx-1 transition-colors truncate w-32 sm:w-auto"
+              placeholder="Document Title..."
+            />
+            <div className="text-xs opacity-50 flex items-center gap-2 truncate">
               {isSaving ? (
                 <span className="animate-pulse">Saving...</span>
               ) : (
-                <span>Last saved: {lastSaved?.toLocaleTimeString()}</span>
+                <span className="truncate">Last saved: {lastSaved?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               )}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2 sm:gap-6 flex-shrink-0">
           {/* Score Pill */}
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${
+          <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border ${
             sovereigntyScore > 80 
               ? 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400' 
               : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400'
           }`}>
-            <ShieldCheck className="w-4 h-4" />
-            <span className="text-xs font-bold tracking-wide">SOVEREIGNTY: {sovereigntyScore}%</span>
+            <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="text-[10px] sm:text-xs font-bold tracking-wide">{sovereigntyScore}%</span>
           </div>
 
           <button 
-            className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors relative"
+            className="p-1.5 sm:p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors relative"
             title="Version History"
             onClick={() => setShowHistory(!showHistory)}
           >
-            <Clock className="w-5 h-5 opacity-70" />
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 opacity-70" />
           </button>
           
           <button 
             onClick={handleAttest}
-            className="flex items-center gap-2 bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-lg text-xs font-bold hover:opacity-90 transition-opacity"
+            className="flex items-center gap-1 sm:gap-2 bg-black dark:bg-white text-white dark:text-black px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold hover:opacity-90 transition-opacity whitespace-nowrap"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>ATTEST</span>
           </button>
         </div>
