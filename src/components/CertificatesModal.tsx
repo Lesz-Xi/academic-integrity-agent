@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { X, Award, ShieldCheck, Calendar, Download } from 'lucide-react';
 
 interface CertificatesModalProps {
