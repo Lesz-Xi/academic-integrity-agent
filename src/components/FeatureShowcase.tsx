@@ -207,18 +207,17 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
            {/* Input Simulation */}
            <div className={`p-3 rounded-lg border border-dashed mb-2 ${theme === 'dark' ? 'border-gray-700 bg-[#222]' : 'border-gray-200 bg-gray-50'}`}>
                <div className="flex justify-between text-xs mb-1 opacity-50">
-                   <span>Detector: GPTZero</span>
+                   <span>Detector: Commercial Model A</span>
                    <span>Score: 40% (False Positive)</span>
                </div>
                <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
                    <div className="h-full w-[40%] bg-red-400"></div>
                </div>
            </div>
-
            {/* Generated Output */}
            <div className={`p-4 rounded-lg text-sm leading-relaxed shadow-sm ${theme === 'dark' ? 'bg-[#252525] text-gray-200' : 'bg-white text-gray-800'}`}>
              <p className="font-serif">
-                "I respectfully appeal this flag. My work utilizes high-perplexity academic structures which research (Lesz et al., 2023) proves triggers false positives in commercial detectors."
+                "I respectfully appeal this flag. My work utilizes high-perplexity academic structures which research (ThesisLens, 2025) proves triggers false positives in commercial detectors."
              </p>
              <div className="mt-2 flex items-center gap-2 text-[10px] text-[#CC785C] font-bold uppercase tracking-wider">
                 <ShieldAlert className="w-3 h-3" /> Citation Attached
@@ -237,9 +236,9 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
       <div className="max-w-7xl mx-auto">
         <div className="mb-16">
            <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Plan, write, and ship <br className="hidden md:block" />
+            Everything you need <br className="hidden md:block" />
             <span className={`${theme === 'dark' ? 'text-white' : 'text-[#2D2D2D]'}`}>
-               work that matters
+               to prove it's yours
             </span>
            </h2>
         </div>

@@ -37,6 +37,12 @@ export function isSearchAvailable(): boolean {
   return !!SERPER_API_KEY && SERPER_API_KEY.length > 0;
 }
 
+const BLACKLIST_DOMAINS = [
+  'edubirdie.com', 'studocu.com', 'chegg.com', 'coursehero.com', 'scribd.com', 
+  'helpguide.org', 'healthline.com', 'webmd.com', 'verywellmind.com', 
+  'psychologytoday.com', 'wikipedia.org', 'wikihow.com'
+];
+
 /**
  * Search the web using Serper.dev API
  */
@@ -49,6 +55,9 @@ export async function searchWeb(query: string, numResults: number = 10): Promise
   // Check rate limit before making API call
   checkRateLimit(serperRateLimiter, 'Serper Search API');
 
+  // Academic Query Enhancement: Force research contexts
+  const academicQuery = `${query} (research paper OR journal article OR site:.edu OR site:.gov)`;
+
   try {
     const response = await fetch(SERPER_API_URL, {
       method: 'POST',
@@ -57,8 +66,8 @@ export async function searchWeb(query: string, numResults: number = 10): Promise
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        q: query,
-        num: numResults,
+        q: academicQuery,
+        num: numResults + 5, // Fetch extras to account for filtering
       }),
     });
 
@@ -68,16 +77,22 @@ export async function searchWeb(query: string, numResults: number = 10): Promise
 
     const data = await response.json();
     
-    // Parse organic results
-    const results: SearchResult[] = (data.organic || []).map((item: any, index: number) => ({
-      title: item.title || '',
-      link: item.link || '',
-      snippet: item.snippet || '',
-      position: index + 1,
-      domain: new URL(item.link || 'https://unknown.com').hostname,
-    }));
+    // Parse organic results & FILTER BLACKLIST
+    const results: SearchResult[] = (data.organic || [])
+      .filter((item: any) => {
+        const domain = new URL(item.link || 'https://unknown.com').hostname;
+        return !BLACKLIST_DOMAINS.some(bad => domain.includes(bad));
+      })
+      .map((item: any, index: number) => ({
+        title: item.title || '',
+        link: item.link || '',
+        snippet: item.snippet || '',
+        position: index + 1,
+        domain: new URL(item.link || 'https://unknown.com').hostname,
+      }))
+      .slice(0, numResults); // Trim back to requested size
 
-    console.log(`[SearchService] Found ${results.length} results for "${query}"`);
+    console.log(`[SearchService] Found ${results.length} valid academic results for "${query}"`);
     return results;
   } catch (error) {
     console.error('[SearchService] Search failed:', error);
@@ -141,10 +156,11 @@ function evaluateSource(source: SearchResult, query: string): { informativeness:
   const authorityDomains = [
     '.edu', '.gov', '.org', 'nature.com', 'sciencedirect', 
     'ieee', 'acm.org', 'springer', 'arxiv.org', 'jstor.org', 
-    'nih.gov', 'frontiersin.org', 'scholar.google', 'elsevier'
+    'nih.gov', 'frontiersin.org', 'scholar.google', 'elsevier',
+    'cdc.gov', 'who.int', 'science.org', 'tandfonline.com'
   ];
   const hasAuthority = authorityDomains.some(d => source.domain.includes(d) || source.link.includes(d));
-  const authorityBonus = hasAuthority ? 0.3 : 0; // Increased bonus
+  const authorityBonus = hasAuthority ? 0.6 : 0; // Heavily weight academic sources
 
   return {
     informativeness: Math.min(factScore + authorityBonus + 0.3, 1),

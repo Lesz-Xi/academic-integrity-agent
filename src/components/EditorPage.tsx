@@ -142,22 +142,53 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
     isPasteRef.current = true;
   };
   
-  const handleApplySimplification = (original: string, replacement: string) => {
-      // Create a regex to replace ONLY the first occurrence or specific instance?
-      // For simplicity/robustness in V1, we'll replace global or just the text.
-      // But replacing 'use' everywhere might be bad.
-      // Better approach: Replace ALL occurrences of that specific word to be safe, 
-      // or rely on user context. For V1 panel, let's do safe global replace of that word pattern?
-      // No, that's dangerous.
-      // Let's do a smart replace: Replace the FIRST occurrence found? 
-      // Or simply: Content.replace(original, replacement) <- replaces first occurrence only.
-      // This works if the list re-renders and finds the next one.
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleHighlightSuggestion = (suggestion: SimplificationSuggestion) => {
+      if (!textareaRef.current) return;
       
-      const regex = new RegExp(`\\b${original}\\b`, 'i'); // Find first match, case insensitive
-      const newContent = content.replace(regex, replacement);
+      const { index, length } = suggestion;
+      
+      // Focus and Select the word
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(index, index + length);
+      
+      // Attempt to scroll into view (blur/focus trick often forces scroll)
+      // const fullText = textareaRef.current.value;
+      // const lines = fullText.substring(0, index).split('\n');
+      // Approximate scroll if needed, but setSelectionRange usually handles it.
+  };
+
+  const handleApplySimplification = (suggestion: SimplificationSuggestion, replacement: string) => {
+      const { index, length, original } = suggestion;
+      
+      // Simple Case Matching
+      let finalReplacement = replacement;
+      if (original[0] === original[0].toUpperCase() && original[0] !== original[0].toLowerCase()) {
+          // Check if all caps
+          if (original === original.toUpperCase() && original.length > 1) {
+              finalReplacement = replacement.toUpperCase();
+          } else {
+              // Title Case
+              finalReplacement = replacement.charAt(0).toUpperCase() + replacement.slice(1);
+          }
+      }
+
+      // Robust Replacement using exact index
+      // We verify the text hasn't shifted significantly (basic safety)
+      const targetText = content.slice(index, index + length);
+      if (targetText.toLowerCase() !== original.toLowerCase()) {
+         // Content has shifted; abort to prevent corruption
+         // The scanner will re-run shortly
+         return; 
+      }
+      
+      const newContent = content.slice(0, index) + finalReplacement + content.slice(index + length);
       
       setContent(newContent);
       saveDraft(newContent, false);
+      
+      // Restore focus to editor mostly? Or allow next click.
   };
 
   const handleAttest = async () => {
@@ -285,6 +316,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
         <div className="flex-1 relative flex justify-center overflow-y-auto">
           <div className="w-full max-w-3xl py-12 px-8">
             <textarea
+              ref={textareaRef}
               className="w-full h-full min-h-[80vh] bg-transparent resize-none outline-none text-lg leading-relaxed placeholder-gray-400/40 dark:placeholder-gray-600/40 text-gray-800 dark:text-gray-200 selection:bg-purple-100 dark:selection:bg-purple-900/30"
               placeholder="Start drafting here to prove your process..."
               value={content}
@@ -322,16 +354,23 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
                    </div>
                ) : (
                    simplifications.map((item, idx) => (
-                       <div key={idx} className="bg-white dark:bg-gray-900 border border-purple-200 dark:border-purple-800/30 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+                       <div 
+                        key={idx} 
+                        onClick={() => handleHighlightSuggestion(item)}
+                        className="bg-white dark:bg-gray-900 border border-purple-200 dark:border-purple-800/30 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+                       >
                            <div className="flex items-center justify-between mb-2">
-                               <span className="text-sm font-bold text-red-500 line-through decoration-2 decoration-red-200">{item.original}</span>
+                               <span className="text-sm font-bold text-red-500 line-through decoration-2 decoration-red-200 group-hover:opacity-80 transition-opacity">{item.original}</span>
                                <span className="text-[10px] text-gray-400 uppercase tracking-wide">Replace with</span>
                            </div>
                            <div className="flex flex-wrap gap-2">
                                {item.replacements.map(rep => (
                                    <button 
                                       key={rep}
-                                      onClick={() => handleApplySimplification(item.original, rep)}
+                                      onClick={(e) => {
+                                          e.stopPropagation(); // Prevent scroll jump when clicking replace
+                                          handleApplySimplification(item, rep);
+                                      }}
                                       className="px-2 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-xs font-medium rounded hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors"
                                    >
                                        {rep}

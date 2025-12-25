@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body, html { margin: 0; padding: 0; width: 512px; height: 512px; overflow: hidden; }
+    svg { display: block; }
+  </style>
+</head>
+<body>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Container - Full Square (No rounding) to prevent gaps in circular crops -->
+  <rect width="512" height="512" fill="#F2E8CF"/>
+  
+  <!-- Content Group - Zoomed 1.15x and centered for bold social avatar appearance -->
+  <g transform="translate(256 256) scale(1.15) translate(-256 -256)">
+    <!-- Shield Shape -->
+    <path d="M128 128H384V224C384 322.6 308.2 408.5 256 426.7C203.8 408.5 128 322.6 128 224V128Z" stroke="#1A1A1A" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- "A" Symbol -->
+    <!-- Left Leg -->
+    <path d="M192 352L256 192" stroke="#1A1A1A" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Right Leg (Gold Accent) -->
+    <path d="M256 192L320 352" stroke="#C1A87D" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Crossbar -->
+    <path d="M218 288H294" stroke="#1A1A1A" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Folded Corner Detail -->
+    <path d="M384 128L320 192V128" fill="#1A1A1A" fill-opacity="0.1"/>
+    <path d="M320 128H384V192L320 128Z" fill="#1A1A1A"/>
+  </g>
+</svg>
+</body>
+</html>

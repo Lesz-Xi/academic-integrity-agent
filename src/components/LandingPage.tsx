@@ -102,11 +102,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                     </h1>
 
                     {/* Subhead */}
-                    <p className={`text-lg lg:text-xl leading-relaxed max-w-xl mx-auto lg:mx-0 animate-fade-in-up [animation-delay:400ms] opacity-0 fill-mode-forwards ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                        Generate. Audit. Defend. The only AI writing engine backed by peer-reviewed research and due process protocols.
-                    </p>
+                    <p className="max-w-xl mx-auto text-lg sm:text-lg mb-8 text-[#C1A87D] font-medium leading-relaxed font-serif italic">
+            "Write with confidence in the age of AI detection."
+          </p>          
 
                     {/* CTA Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in-up [animation-delay:600ms] opacity-0 fill-mode-forwards">

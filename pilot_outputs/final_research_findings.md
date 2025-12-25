@@ -22,7 +22,7 @@ We conducted 6 experimental conditions to probe the decision boundary of GPTZero
 
 In Condition 6 ("The Casual Engine"), we forced the model to write poorly ("Basically...", "kind of a mess"). 
 **Result**: While the overall score was 100% AI, the heatmap showed **Green (High Human Impact)** for specific sentences:
-> *"I guess there's a lot of stuff to consider."*
+> *"I guess there's a lot of stuff to consider."*   
 > *"So it kind of defeats the whole purpose, you know?"*
 
 **This is the only successful evasion vector found in the entire study.**
