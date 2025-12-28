@@ -1,5 +1,5 @@
 import { forwardRef, useState } from 'react';
-import { Copy, CheckCircle, AlertTriangle, ClipboardCheck, Lock } from 'lucide-react';
+import { Copy, Lock, ClipboardCheck, CheckCircle, AlertTriangle } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { markdownToHtml } from '../utils/markdownRenderer';
 import { cleanLatex } from '../utils/latexCleaner';
@@ -117,7 +117,6 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
 
             <div className="w-[1px] h-5 bg-gray-200 dark:bg-white/10 mx-1" />
 
-import { ClipboardCheck } from 'lucide-react';
 // ... (imports)
 
 // ...

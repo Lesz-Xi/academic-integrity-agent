@@ -52,9 +52,8 @@ export const ANTI_THESAURUS_DATA: Record<string, string[]> = {
   "regarding": ["about"],
   "concerning": ["about"],
   "pertaining": ["about"],
-  "demonstrate": ["show", "prove"], // Merged
+
   "indicate": ["show"],
-  "illustrate": ["show"],
   "reveal": ["show"],
   "signify": ["mean"],
   "represent": ["show", "mean"],
