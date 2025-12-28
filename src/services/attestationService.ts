@@ -40,16 +40,16 @@ export class AttestationService {
     // --- HEADER ---
     doc.setTextColor(40, 40, 40);
     doc.setFont("times", "bold");
-    doc.setFontSize(32);
-    doc.text("Certificate of Sovereignty", center, y, { align: "center" });
+    doc.setFontSize(28); // Slightly smaller for clinical feel
+    doc.text("FORENSIC AUDIT RECORD", center, y, { align: "center" });
     
     y += 15;
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
+    doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
-    doc.text("This document certifies that the following work is", center, y, { align: "center" });
-    y += 6;
-    doc.text("an attested artifact of human authorship.", center, y, { align: "center" });
+    doc.text("This document contains a verified chain-of-custody log", center, y, { align: "center" });
+    y += 5;
+    doc.text("establishing human authorship via process analysis.", center, y, { align: "center" });
 
     // --- TITLE ---
     y += 25;

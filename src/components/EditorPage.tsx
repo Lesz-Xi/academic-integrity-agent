@@ -21,7 +21,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [sovereigntyScore, setSovereigntyScore] = useState(100);
-  const [showHistory, setShowHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(true); // Default: Open Timeline
   
   // Anti-Thesaurus State
   const [showAntiThesaurus, setShowAntiThesaurus] = useState(false);
@@ -51,10 +51,48 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   
   const initializeDraft = async () => {
     if (!user) return;
-    const newDraft = await DraftService.createDraft(user.id, 'Untitled Essay');
-    if (newDraft) {
-      setDraft(newDraft);
-      setTitle(newDraft.title);
+    
+    // Attempt to create on server with explicit 2s timeout
+    // Sentinel value for timeout
+    const TIMEOUT_TOKEN = Symbol('TIMEOUT');
+    
+    // Timeout Promise
+    const timeoutPromise = new Promise<typeof TIMEOUT_TOKEN>((resolve) => 
+        setTimeout(() => resolve(TIMEOUT_TOKEN), 2000)
+    );
+
+    let newDraft: Draft | null | typeof TIMEOUT_TOKEN = null;
+
+    try {
+        newDraft = await Promise.race([
+            DraftService.createDraft(user.id, 'Untitled Essay'),
+            timeoutPromise
+        ]);
+    } catch (e) {
+        console.warn('[Editor] Draft creation threw error:', e);
+        newDraft = null;
+    }
+    
+    // FALLBACK: Local Mode (Sovereign Offline)
+    // Trigger if null (failed) OR if it's the timeout token
+    if (!newDraft || newDraft === TIMEOUT_TOKEN) {
+        console.warn('[Editor] Server initialization failed or timed out. Creating local offline draft.');
+        newDraft = {
+            id: `local-${Date.now()}`, // Local ID
+            userId: user.id,
+            title: 'Untitled Essay (Offline)',
+            currentContent: '',
+            lastUpdated: new Date().toISOString(),
+            createdAt: new Date().toISOString()
+        };
+    }
+    
+    // Type guard: newDraft is now definitely Draft type because we assigned a fallback if it wasn't
+    const validDraft = newDraft as Draft;
+
+    if (validDraft) {
+      setDraft(validDraft);
+      setTitle(validDraft.title);
       setLastSaved(new Date());
       setSnapshots([]);
       setSovereigntyScore(100);
@@ -64,6 +102,31 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   };
 
   const isPasteRef = useRef(false);
+
+  /* Event Handlers Restored */
+  const handlePaste = () => {
+    isPasteRef.current = true;
+  };
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    setContent(newContent);
+
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setIsSaving(true);
+
+    // Immediate save if it was a paste
+    if (isPasteRef.current) {
+      isPasteRef.current = false;
+      saveDraft(newContent, true);
+      return;
+    }
+
+    // Debounced save for typing
+    timeoutRef.current = setTimeout(() => {
+      saveDraft(newContent, false);
+    }, 2000); // 2s debounce
+  };
 
   // Helper: Save Draft
   const saveDraft = async (currentContent: string, isPaste: boolean) => {
@@ -108,40 +171,24 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
            const [score, latestSnapshots] = await Promise.all([
             DraftService.calculateSovereigntyScore(draft.id),
             DraftService.getSnapshots(draft.id)
-          ]);
-          setSovereigntyScore(score);
-          setSnapshots(latestSnapshots);
+           ]);
+           setSovereigntyScore(score);
+           
+           // Safety Check: If server returns empty but we have local snapshots,
+           // it might be a sync failure. Keep optimistic state + server state.
+           if (latestSnapshots && latestSnapshots.length > 0) {
+              setSnapshots(latestSnapshots);
+           } else if (latestSnapshots.length === 0 && snapshots.length > 0) {
+              console.warn('[Timeline] Server returned empty snapshots. Preserving optimistic state.');
+              // Don't wipe state.
+           }
         }
       });
       
     setIsSaving(false);
   };
 
-  // 2. Auto-Save Logic
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newContent = e.target.value;
-    setContent(newContent);
-
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setIsSaving(true);
-
-    // Immediate save if it was a paste
-    if (isPasteRef.current) {
-      isPasteRef.current = false;
-      saveDraft(newContent, true);
-      return;
-    }
-
-    // Debounced save for typing
-    timeoutRef.current = setTimeout(() => {
-      saveDraft(newContent, false);
-    }, 2000); // 2s debounce
-  };
-
-  const handlePaste = () => {
-    isPasteRef.current = true;
-  };
-  
+  // Duplicates removed. The versions with logging are now at the top of the component.
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleHighlightSuggestion = (suggestion: SimplificationSuggestion) => {

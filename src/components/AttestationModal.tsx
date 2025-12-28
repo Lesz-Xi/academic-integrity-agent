@@ -82,9 +82,9 @@ Date: ${new Date().toLocaleDateString()}`;
               <FileCheck className="w-6 h-6 text-[#C1A87D]" />
             </div>
             <div>
-              <h3 className="text-xl font-bold tracking-tight">AI Attestation Statement</h3>
+              <h3 className="text-xl font-bold tracking-tight">Forensic Authorship Report</h3>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                Transparent disclosure for responsible AI use
+                Tamper-proof audit log for defense
               </p>
             </div>
           </div>
@@ -106,13 +106,13 @@ Date: ${new Date().toLocaleDateString()}`;
             <label className={`block text-sm font-medium mb-2 ${
               theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
             }`}>
-              Additional Purpose (optional)
+              Additional Context (optional)
             </label>
             <input
               type="text"
               value={customPurpose}
               onChange={(e) => setCustomPurpose(e.target.value)}
-              placeholder="e.g., grammar checking, outline generation"
+              placeholder="e.g., specific assignment requirements"
               className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#C1A87D]/50 ${
                 theme === 'dark' 
                   ? 'bg-[#2a2a2a] border-[#444] text-white placeholder-gray-500' 
@@ -133,9 +133,8 @@ Date: ${new Date().toLocaleDateString()}`;
             theme === 'dark' ? 'bg-[#C1A87D]/10 border border-[#C1A87D]/20' : 'bg-amber-50 border border-amber-100'
           }`}>
             <p className={`text-sm ${theme === 'dark' ? 'text-[#C1A87D]' : 'text-amber-700'}`}>
-              <strong>Why disclose?</strong> Transparency about AI use shifts the conversation from 
-              "did they cheat?" to "did they use AI responsibly?" This proactive approach can help 
-              defend against false accusations.
+              <strong>Defense Insurance:</strong> This forensic log establishes a verifiable chain of custody,
+              shifting the burden of proof from accusation to data.
             </p>
           </div>
         </div>

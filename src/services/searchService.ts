@@ -392,7 +392,7 @@ export function formatSourcesForDisplay(sources: ScoredSource[]): string {
 
   let output = '\n\n---\n**Sources:**\n';
   sources.forEach((source, index) => {
-    output += `[${index + 1}] "${source.title}" - ${source.domain}\n`;
+    output += `[${index + 1}] "${source.title}" - ${source.link}\n`;
   });
 
   return output;

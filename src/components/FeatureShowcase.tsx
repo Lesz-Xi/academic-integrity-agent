@@ -11,8 +11,8 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
   const features = [
     {
       id: 0,
-      title: "Sovereignty Engine",
-      description: "Write in our Drafting Canvas. We track every keystroke and generate Proof of Work certificates, proving human authorship to defeat false positive accusations.",
+      title: "Forensic Audit Log",
+      description: "Defense Insurance. We track every keystroke to generate a forensic audit log, providing indisputable proof of human authorship to defend against false accusations.",
       icon: ShieldAlert,
       color: "#10B981", // Green for verification
       metric: "Verified Human",
@@ -43,7 +43,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
 
           {/* PDF Button Simulation */}
           <div className={`p-3 rounded-lg border border-dashed flex items-center justify-between ${theme === 'dark' ? 'border-green-900 bg-green-900/20' : 'border-green-200 bg-green-50'}`}>
-            <span className="text-xs font-bold text-green-600">Generate Proof of Work PDF</span>
+            <span className="text-xs font-bold text-green-600">Generate Forensic Audit Record</span>
             <ArrowRight className="w-4 h-4 text-green-500" />
           </div>
         </div>
