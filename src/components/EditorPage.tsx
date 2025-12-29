@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon, RotateCcw, Wand2, Flame } from 'lucide-react';
 import { DraftService } from '../services/draftService';
 import { AttestationService } from '../services/attestationService';
-import { AnalysisService, SimplificationSuggestion, SentenceAnalysis, ParagraphAnalysis } from '../services/analysisService';
+import { AnalysisService, SimplificationSuggestion, ParagraphAnalysis } from '../services/analysisService';
 import { Draft, DraftSnapshot } from '../types';
 import PerplexityBackdrop from './PerplexityBackdrop';
 import { useAuth } from '../contexts/AuthContext';
