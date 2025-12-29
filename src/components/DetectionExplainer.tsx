@@ -44,16 +44,14 @@ const DetectionExplainer: React.FC<DetectionExplainerProps> = ({
             </p>
           </div>
         </div>
-        {mode === 'modal' && (
-          <button 
-            onClick={onClose}
-            className={`p-2 rounded-full transition-colors ${
-              theme === 'dark' ? 'hover:bg-[#333] text-gray-400' : 'hover:bg-gray-100 text-gray-500'
-            }`}
-          >
-            <X className="w-6 h-6" />
-          </button>
-        )}
+        <button 
+          onClick={onClose}
+          className={`p-2 rounded-full transition-colors ${
+            theme === 'dark' ? 'hover:bg-[#333] text-gray-400' : 'hover:bg-gray-100 text-gray-500'
+          }`}
+        >
+          <X className="w-6 h-6" />
+        </button>
       </div>
 
       {/* Tabs */}

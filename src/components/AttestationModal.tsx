@@ -67,12 +67,12 @@ Date: ${new Date().toLocaleDateString()}`;
       />
 
       {/* Modal */}
-      <div className={`relative w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden transform transition-all ${
+      <div className={`relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl overflow-hidden transform transition-all ${
         theme === 'dark' ? 'bg-[#1a1a1a] text-white border border-[#333]' : 'bg-white text-gray-900 border border-gray-100'
       }`}>
         
         {/* Header */}
-        <div className={`px-8 py-6 border-b flex items-center justify-between ${
+        <div className={`px-8 py-6 border-b flex-shrink-0 flex items-center justify-between ${
           theme === 'dark' ? 'border-[#333] bg-[#222]' : 'border-gray-100 bg-gray-50'
         }`}>
           <div className="flex items-center gap-4">
@@ -98,8 +98,8 @@ Date: ${new Date().toLocaleDateString()}`;
           </button>
         </div>
 
-        {/* Content */}
-        <div className={`p-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+        {/* Content - Scrollable */}
+        <div className={`p-8 overflow-y-auto ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
           
           {/* Custom Purpose Input */}
           <div className="mb-6">
@@ -140,7 +140,7 @@ Date: ${new Date().toLocaleDateString()}`;
         </div>
 
         {/* Footer */}
-        <div className={`px-8 py-5 border-t flex justify-end gap-3 ${
+        <div className={`px-8 py-5 border-t flex-shrink-0 flex justify-end gap-3 ${
           theme === 'dark' ? 'border-[#333] bg-[#222]' : 'border-gray-100 bg-gray-50'
         }`}>
           <button

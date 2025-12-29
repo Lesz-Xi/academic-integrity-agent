@@ -22,20 +22,20 @@ const PricingSection: React.FC<PricingSectionProps> = ({ theme, onSelectPlan, on
     price: number;
   } | null>(null);
 
-  // Pricing: Monthly = $12, Quarterly = $10/mo, Annual = $8/mo
+  // Pricing: Monthly = $5, Quarterly = $4/mo, Annual = $3/mo
   const getPremiumPrice = () => {
     switch (billingCycle) {
-      case 'monthly': return 9;
-      case 'quarterly': return 8;
-      case 'annual': return 7;
+      case 'monthly': return 5;
+      case 'quarterly': return 4;
+      case 'annual': return 3;
     }
   };
 
   const getSavingsText = () => {
     switch (billingCycle) {
       case 'monthly': return null;
-      case 'quarterly': return 'Save 11%';
-      case 'annual': return 'Save 22%';
+      case 'quarterly': return 'Save 20%';
+      case 'annual': return 'Save 40%';
     }
   };
 
@@ -64,7 +64,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ theme, onSelectPlan, on
         'Unlimited Generations',
         'Defense Toolkit & Appeals',
         'Attestation Audit Logs',
-        'Research Verification (Lesz et al.)',
+        'Verified Research Methodology',
         'Priority Claude Access'
       ],
       cta: 'Go Premium',
