@@ -117,10 +117,6 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
 
             <div className="w-[1px] h-5 bg-gray-200 dark:bg-white/10 mx-1" />
 
-// ... (imports)
-
-// ...
-
             {/* Audit Log Button */}
             <button
               onClick={() => {
@@ -130,7 +126,12 @@ const OutputPanel = forwardRef<HTMLDivElement, OutputPanelProps>(({ text, warnin
                     setShowAttestation(true);
                 }
               }}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-500 hover:text-[#C1A87D] dark:text-gray-400 dark:hover:text-[#F2E8CF] transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all duration-300 border
+                ${!isPremium 
+                  ? "text-gray-500 hover:text-gray-700 bg-gray-50/50 hover:bg-gray-100 border-transparent" 
+                  : "text-[#C1A87D] hover:text-[#b06348] bg-[#C1A87D]/10 hover:bg-[#C1A87D]/20 border-[#C1A87D]/20 hover:border-[#C1A87D]/40"
+                }
+              `}
               title={!isPremium ? "Premium Feature: Forensic Audit" : "Generate Audit Defense Log"}
             >
               {!isPremium ? <Lock className="w-3.5 h-3.5" /> : <ClipboardCheck className="w-4 h-4" />}
