@@ -38,7 +38,13 @@ const CertificatesModal = lazy(() => import('./components/CertificatesModal'));
 function AppContent() {
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated, signOut, loading: authLoading } = useAuth();
-  const { history, addItem, deleteHistoryGroup, loading: historyLoading } = useGenerationHistory();
+  const { 
+    history, 
+    loading: historyLoading, 
+    addItem, 
+    deleteHistoryGroup,
+    refresh: refreshHistory 
+  } = useGenerationHistory();
   
 
 
@@ -521,6 +527,7 @@ function AppContent() {
               deleteHistoryGroup(item);
             }}
             loading={historyLoading}
+            onRefresh={refreshHistory}
           />
 
           <div className={`

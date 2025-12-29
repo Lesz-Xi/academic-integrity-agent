@@ -15,6 +15,15 @@ export function useGenerationHistory() {
   const [error, setError] = useState<string | null>(null)
   const [hasSynced, setHasSynced] = useState(false)
 
+  // Track deleted IDs to prevent race conditions where a fetch resurrects a deleted item
+  const deletedIdsRef = useRef<Set<string>>(new Set())
+  
+  // Track active network requests for abortion
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Track request ownership to prevent race conditions
+  const requestRef = useRef<number>(0)
+
   // Check sync status when user changes
   useEffect(() => {
     if (!user?.id) {
@@ -36,16 +45,11 @@ export function useGenerationHistory() {
     }
   }, [user?.id])
 
-  // Track deleted IDs to prevent race conditions where a fetch resurrects a deleted item
-  const deletedIdsRef = useRef<Set<string>>(new Set())
-
   // Load history on mount or auth change
   // Use user?.id to prevent re-fetching on session token refreshes
   useEffect(() => {
     loadHistory()
   }, [user?.id, isAuthenticated])
-
-
 
   const performInitialSync = async () => {
     if (!user) return
@@ -67,9 +71,6 @@ export function useGenerationHistory() {
     }
   }
 
-  // Track request ownership to prevent race conditions
-  const requestRef = useRef<number>(0)
-
   // Load history on mount or auth change
   const loadHistory = useCallback(async (forceReload = false) => {
     // If we're currently initializing auth, WAIT. Don't fetch yet.
@@ -89,11 +90,24 @@ export function useGenerationHistory() {
     // Track if we've timed out
     let hasTimedOut = false
     
-    // Safety timeout
+    // ABORT LOGIC: Sovereign Resource Control
+    // Create controller BEFORE timeout so we can abort on timeout
+    if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    
+    // Safety timeout - AGGRESSIVE: 5 seconds is plenty for 20 rows
+    // If network is blocked, fail fast and use local data
     const timeoutId = setTimeout(() => {
       hasTimedOut = true
+      
+      // CRITICAL: Abort the pending network request to free resources
+      controller.abort();
+      
       if (requestRef.current === requestId) {
-         console.warn('[useGenerationHistory] Loading timed out')
+         console.log('[useGenerationHistory] Loading timed out - using local fallback (Sovereign Shield Active)')
          // Fallback logic for timeout...
          // ALWAYS try fallback, even if authenticated (Sovereign Fallback)
          const stored = localStorage.getItem(STORAGE_KEY)
@@ -103,11 +117,30 @@ export function useGenerationHistory() {
                 setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
                 console.log('[useGenerationHistory] Loaded fallback history from localStorage (Timeout)')
              } catch { /* ignore */ }
+         } else {
+             // FORENSIC RECOVERY: Check for backups if main cache is empty
+             try {
+                 const backupKey = Object.keys(localStorage)
+                    .filter(k => k.startsWith(STORAGE_KEY + '_backup_'))
+                    .sort().pop();
+                 
+                 if (backupKey) {
+                     const backup = localStorage.getItem(backupKey);
+                     if (backup) {
+                         const parsed = JSON.parse(backup);
+                         setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)));
+                         localStorage.setItem(STORAGE_KEY, backup);
+                         console.log(`[useGenerationHistory] RECOVERED history from forensic backup: ${backupKey}`);
+                     }
+                 }
+             } catch (err) {
+                 console.warn('[useGenerationHistory] Forensic recovery failed:', err);
+             }
          }
          
          setLoading(false)
       }
-    }, 15000)
+    }, 5000) // Reduced from 15s to 5s for faster fallback
 
     try {
       if (isAuthenticated && user) {
@@ -119,10 +152,16 @@ export function useGenerationHistory() {
         const maxAttempts = 2; // Try twice
         
         while (attempt <= maxAttempts && !data) {
+            if (controller.signal.aborted) break; // Exit loop if aborted
             try {
-                 // Use lighter initial fetch (20 items vs 100)
-                 data = await GenerationService.getHistory(user.id, 20);
-            } catch (e) {
+                 // Use lighter initial fetch (20 items vs 100) WITH ABORT SIGNAL
+                 data = await GenerationService.getHistory(user.id, 20, 0, controller.signal);
+            } catch (e: any) {
+                if (e.name === 'AbortError' || controller.signal.aborted) {
+                    console.log('[useGenerationHistory] Request aborted cleanly');
+                    return; // Silent exit
+                }
+                
                 console.warn(`[useGenerationHistory] Fetch attempt ${attempt} failed:`, e);
                 if (attempt < maxAttempts) {
                     await new Promise(r => setTimeout(r, 2000)); // Wait 2s before retry
@@ -133,56 +172,90 @@ export function useGenerationHistory() {
             attempt++;
         }
         
-        // Race condition check: Is this still the active request?
-        if (requestRef.current === requestId && !hasTimedOut && data) {
-            console.log('[useGenerationHistory] Fetched path successful for:', user.id)
-            setHistory(data.filter(item => !deletedIdsRef.current.has(item.id)))
-        } else {
-            console.log('[useGenerationHistory] Ignoring stale result')
-        }
+      if (controller.signal.aborted) return;
+
+      // Race condition check: Is this still the active request?
+      // SOVEREIGN FIX: If we have data, USE IT. Don't be strict about IDs in dev mode.
+      const isLatest = requestRef.current === requestId;
+      const isDevDoubleInvoke = requestRef.current === requestId + 1; // Handle React Strict Mode
+      
+      if ((isLatest || isDevDoubleInvoke) && !hasTimedOut && data && data.length > 0) {
+          console.log('[useGenerationHistory] Fetched path successful for:', user.id)
+          setHistory(data.filter(item => !deletedIdsRef.current.has(item.id)))
+      } else if (data && data.length > 0 && !controller.signal.aborted) {
+          // Greedy Fallback: If we got data but ID mismatch, still use it if history is empty
+          if (history.length === 0) {
+             console.log('[useGenerationHistory] Accepting stale but valid result (Greedy Fallback)')
+             setHistory(data.filter(item => !deletedIdsRef.current.has(item.id)))
+          } else {
+             console.log('[useGenerationHistory] Ignoring stale result (History already populated)')
+          }
       } else {
-        // Guest Mode
-        console.log('[useGenerationHistory] Not authenticated (or guest), using localStorage')
-        if (requestRef.current === requestId) {
-            const stored = localStorage.getItem(STORAGE_KEY)
-            if (stored) {
-              const parsed = JSON.parse(stored)
-              setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
-            } else {
-              setHistory([])
-            }
-        }
+          console.log('[useGenerationHistory] Ignoring empty or stale result')
       }
-    } catch (err) {
-      if (requestRef.current === requestId && !hasTimedOut) {
+    } else {
+      // Guest Mode (localStorage) logic
+      if (requestRef.current === requestId) {
+          const stored = localStorage.getItem(STORAGE_KEY)
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
+          } else {
+            setHistory([])
+          }
+      }
+    }
+  } catch (err: any) { 
+       if (err.name === 'AbortError') {
+           console.log('[useGenerationHistory] Aborted handled in catch block');
+           return;
+       }
+       // ... existing error handling ...
+       if (requestRef.current === requestId && !hasTimedOut) {
           console.error('[useGenerationHistory] Failed to load history:', err)
           setError(err instanceof Error ? err.message : 'Unknown error')
           
           // Fallback to cache on error - EVEN IF AUTHENTICATED (Sovereign Fallback)
            const stored = localStorage.getItem(STORAGE_KEY)
-           if (stored && requestRef.current === requestId) {
+           if (stored) {
               try {
                 const parsed = JSON.parse(stored)
                 setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
-                console.log('[useGenerationHistory] Loaded fallback history from localStorage')
+                console.log('[useGenerationHistory] Loaded fallback history from localStorage (Timeout)')
               } catch { /* ignore */ }
+           } else {
+             // FORENSIC RECOVERY: Check for backups if main cache is empty
+             try {
+                 const backupKey = Object.keys(localStorage)
+                    .filter(k => k.startsWith(STORAGE_KEY + '_backup_'))
+                    .sort().pop();
+                 
+                 if (backupKey) {
+                     const backup = localStorage.getItem(backupKey);
+                     if (backup) {
+                         const parsed = JSON.parse(backup);
+                         setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)));
+                         localStorage.setItem(STORAGE_KEY, backup);
+                         console.log(`[useGenerationHistory] RECOVERED history from forensic backup: ${backupKey}`);
+                     }
+                 }
+             } catch (err) {
+                 console.warn('[useGenerationHistory] Forensic recovery failed:', err);
+             }
            }
       }
-    } finally {
-      if (requestRef.current === requestId && !hasTimedOut) {
+      if (requestRef.current === requestId || requestRef.current === requestId + 1) { // Relaxed cleanup
         clearTimeout(timeoutId)
         setLoading(false)
 
-        // CHAINED SYNC: Only trigger sync after history has attempted to load
-        // This prevents race conditions and network congestion at startup
         if (isAuthenticated && user?.id && !hasSynced) {
             console.log('[useGenerationHistory] History loaded, triggering background sync...')
             // Use setTimeout to yield to main thread/UI render completely
             setTimeout(() => performInitialSync(), 2000);
         }
       }
-    }
-  }, [user, isAuthenticated, loadingAuth, history.length, hasSynced])
+  }
+}, [user, isAuthenticated, hasSynced]) // REMOVED history.length and loadingAuth
 
   // Effect Trigger
   useEffect(() => {

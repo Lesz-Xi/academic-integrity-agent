@@ -12,7 +12,8 @@ import {
   ChevronDown,
   FileText,
   ShieldAlert,
-  Award
+  Award,
+  RotateCcw
 } from 'lucide-react';
 import { Disclosure, Transition } from '@headlessui/react';
 import { HistoryItem, Mode } from '../types';
@@ -35,6 +36,7 @@ interface SidebarProps {
   onShowDefense: () => void;
   onShowEditor: () => void;
   loading?: boolean;
+  onRefresh?: () => Promise<void>;
 }
 
 const MODE_LABELS: Record<string, string> = {
@@ -70,6 +72,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onShowDefense,
   onShowEditor,
   loading = false,
+  onRefresh,
 }) => {
   // Group history by mode and deduplicate by input
   // Store all IDs for a given group to support batch deletion
@@ -187,7 +190,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           ) : history.length === 0 ? (
             <div className="px-4 py-8 text-center" key="no-history">
               <History className="w-8 h-8 text-gray-200 dark:text-gray-700 mx-auto mb-2" />
-              <p className="text-xs text-gray-400">No recent activity</p>
+              <p className="text-xs text-gray-400 mb-3">No recent activity</p>
+              {onRefresh && (
+                  <button 
+                    onClick={() => onRefresh()}
+                    className="flex items-center gap-2 mx-auto px-3 py-1.5 bg-gray-100 dark:bg-white/5 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    Refresh Connection
+                  </button>
+              )}
             </div>
           ) : (
             <div className="space-y-1">

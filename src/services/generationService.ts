@@ -9,18 +9,25 @@ export class GenerationService {
   static async getHistory(
     userId: string,
     limit: number = 100,
-    offset: number = 0
+    offset: number = 0,
+    abortSignal?: AbortSignal
   ): Promise<HistoryItem[]> {
     console.log('[GenerationService] getHistory called for user:', userId)
     
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('generations')
         .select('id, user_id, mode, input, output, metrics, created_at')
         .eq('user_id', userId)
         .is('deleted_at', null)  // Only show non-deleted items
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1)
+
+      if (abortSignal) {
+          query = query.abortSignal(abortSignal)
+      }
+      
+      const { data, error } = await query
 
       if (error) {
         console.error('[GenerationService] Supabase query error:', error)
