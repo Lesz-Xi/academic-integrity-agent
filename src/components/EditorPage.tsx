@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon, RotateCcw, Wand2 } from 'lucide-react';
+import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon, RotateCcw, Wand2, Flame } from 'lucide-react';
 import { DraftService } from '../services/draftService';
 import { AttestationService } from '../services/attestationService';
-import { AnalysisService, SimplificationSuggestion } from '../services/analysisService';
+import { AnalysisService, SimplificationSuggestion, SentenceAnalysis, ParagraphAnalysis } from '../services/analysisService';
 import { Draft, DraftSnapshot } from '../types';
+import PerplexityBackdrop from './PerplexityBackdrop';
 import { useAuth } from '../contexts/AuthContext';
 
 interface EditorPageProps {
@@ -27,6 +28,10 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   const [showAntiThesaurus, setShowAntiThesaurus] = useState(false);
   const [simplifications, setSimplifications] = useState<SimplificationSuggestion[]>([]);
 
+  // Perplexity Heatmap State
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [sentenceAnalysis, setSentenceAnalysis] = useState<ParagraphAnalysis[]>([]);
+
   // Debounce ref
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const previousContentRef = useRef('');
@@ -37,17 +42,24 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
     initializeDraft();
   }, [user]);
   
-  // Anti-Thesaurus Auto-Scan
+  // Anti-Thesaurus & Heatmap Auto-Scan
   useEffect(() => {
-    if (showAntiThesaurus && content) {
+    if (content) {
         // Debounce scan slightly to avoid lag on huge texts
         const timer = setTimeout(() => {
-            const suggestions = AnalysisService.scanForSimplification(content);
-            setSimplifications(suggestions);
+            if (showAntiThesaurus) {
+                const suggestions = AnalysisService.scanForSimplification(content);
+                setSimplifications(suggestions);
+            }
+            if (showHeatmap) {
+                // Phase 4: Burstiness Analysis
+                const analysis = AnalysisService.analyzeBurstiness(content);
+                setSentenceAnalysis(analysis);
+            }
         }, 500);
         return () => clearTimeout(timer);
     }
-  }, [content, showAntiThesaurus]);
+  }, [content, showAntiThesaurus, showHeatmap]);
   
   const initializeDraft = async () => {
     if (!user) return;
@@ -103,7 +115,19 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
 
   const isPasteRef = useRef(false);
 
-  /* Event Handlers Restored */
+  // Auto-resize logic
+  const adjustTextareaHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.max(textareaRef.current.scrollHeight, window.innerHeight * 0.8)}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [content]);
+
+  // Event Handlers Restored
   const handlePaste = () => {
     isPasteRef.current = true;
   };
@@ -111,10 +135,11 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
+    adjustTextareaHeight();
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setIsSaving(true);
-
+    
     // Immediate save if it was a paste
     if (isPasteRef.current) {
       isPasteRef.current = false;
@@ -296,10 +321,28 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
             <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5 opacity-70 hover:opacity-100 transition-opacity" />
           </button>
           
+          {/* Heatmap Toggle */}
+          <button 
+             onClick={() => {
+                 setShowHeatmap(!showHeatmap);
+                 setShowAntiThesaurus(false);
+                 setShowHistory(false);
+             }}
+             className={`p-1.5 sm:p-2 rounded-full transition-all flex-shrink-0 ${
+                 showHeatmap 
+                   ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' 
+                   : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100'
+             }`}
+             title="Perplexity Heatmap (Visualize Human vs AI)"
+           >
+             <Flame className="w-4 h-4 sm:w-5 sm:h-5" />
+           </button>
+
           {/* Anti-Thesaurus Toggle */}
           <button 
              onClick={() => {
                  setShowAntiThesaurus(!showAntiThesaurus);
+                 setShowHeatmap(false);
                  setShowHistory(false);
              }}
              className={`p-1.5 sm:p-2 rounded-full transition-all flex-shrink-0 ${
@@ -361,10 +404,21 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
       {/* Main Canvas */}
       <main className="flex-1 flex overflow-hidden">
         <div className="flex-1 relative flex justify-center overflow-y-auto">
-          <div className="w-full max-w-3xl py-12 px-8">
+          <div className="w-full max-w-3xl py-12 px-8 relative"> {/* Added relative for backdrop positioning */}
+            
+            {/* Perplexity Heatmap Backdrop */}
+            {showHeatmap && (
+                <PerplexityBackdrop 
+                  content={content}
+                  analysis={sentenceAnalysis}
+                  theme={theme}
+                  className="py-12 px-8 font-sans text-lg leading-relaxed dark:text-gray-200"
+                />
+            )}
+
             <textarea
               ref={textareaRef}
-              className="w-full h-full min-h-[80vh] bg-transparent resize-none outline-none text-lg leading-relaxed placeholder-gray-400/40 dark:placeholder-gray-600/40 text-gray-800 dark:text-gray-200 selection:bg-purple-100 dark:selection:bg-purple-900/30"
+              className="w-full h-full min-h-[80vh] bg-transparent resize-none outline-none text-lg leading-relaxed placeholder-gray-400/40 dark:placeholder-gray-600/40 text-gray-800 dark:text-gray-200 selection:bg-purple-100 dark:selection:bg-purple-900/30 relative z-10 overflow-hidden"
               placeholder="Start drafting here to prove your process..."
               value={content}
               onChange={handleContentChange}

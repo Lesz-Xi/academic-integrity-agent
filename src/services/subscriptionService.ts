@@ -58,7 +58,7 @@ export class SubscriptionService {
           .single();
 
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Database query timed out')), 8000); // Increased to 8s
+          setTimeout(() => reject(new Error('Database query timed out')), 15000); // Increased to 15s for slow networks
         });
 
         const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
@@ -102,7 +102,7 @@ export class SubscriptionService {
             }
         }
         
-        if (attempt < 3) {
+        if (attempt < 1) { // Reduced to 1 retry
           console.log('[SubscriptionService] Retrying in 1s...');
           await new Promise(r => setTimeout(r, 1000));
           return fetchWithTimeout(attempt + 1);

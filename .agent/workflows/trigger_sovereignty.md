@@ -20,10 +20,15 @@ This workflow shifts the operating mode from "Standard Dev" to **"Sovereign Arch
     - [ ] **Question:** "Does this feature help the user *prove* authorship?"
     - [ ] **Reject:** Any logic that relies solely on "Trust" without "Verify".
 
-4. **Execution Mode**
+4. **Reasoning Allocation (The Hassabis Layer)**
+    - [ ] **Set Budget:** Define the "Thinking Budget" (depth/steps) required for this task.
+    - [ ] **Decompose:** Split into Sub-problems (Model > Structure > Constraints).
+    - [ ] **Verify:** Allocate specific steps for "Tool-Checking" vs "Hypothesizing" (Simulations).
+
+5. **Execution Mode**
     - [ ] Switch communication style: Clinical, Precise, Authoritative.
     - [ ] Focus on **Type Safety** and **Immutable Logs**.
 
 // turbo
-5. **Report Status**
+6. **Report Status**
     - [ ] Summarize current "Sovereignty Score" of the codebase (e.g., "Architecture is 94% aligned with Audit Defense").

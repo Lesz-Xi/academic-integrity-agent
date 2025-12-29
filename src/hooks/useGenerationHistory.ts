@@ -6,10 +6,10 @@ import { useAuth } from '../contexts/AuthContext'
 
 const STORAGE_KEY = 'generationHistory'
 const SYNC_FLAG_KEY = 'hasSyncedToSupabase' // Store sync status per user
-const MAX_LOCAL_ITEMS = 100
+const MAX_LOCAL_ITEMS = 20
 
 export function useGenerationHistory() {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, loading: loadingAuth } = useAuth()
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -45,12 +45,7 @@ export function useGenerationHistory() {
     loadHistory()
   }, [user?.id, isAuthenticated])
 
-  // Perform sync when user logs in and hasn't synced yet
-  useEffect(() => {
-    if (isAuthenticated && user?.id && !hasSynced) {
-      performInitialSync()
-    }
-  }, [isAuthenticated, user?.id, hasSynced])
+
 
   const performInitialSync = async () => {
     if (!user) return
@@ -72,10 +67,21 @@ export function useGenerationHistory() {
     }
   }
 
-  const loadHistory = async () => {
-    // Only set loading to true if we don't already have history
-    // This prevents the UI from "disappearing" during background refreshes
-    if (history.length === 0) {
+  // Track request ownership to prevent race conditions
+  const requestRef = useRef<number>(0)
+
+  // Load history on mount or auth change
+  const loadHistory = useCallback(async (forceReload = false) => {
+    // If we're currently initializing auth, WAIT. Don't fetch yet.
+    if (loadingAuth && isAuthenticated) {
+         console.log('[useGenerationHistory] Waiting for auth loading to complete...')
+         return; 
+    }
+
+    const requestId = ++requestRef.current
+    
+    // Only set loading if we don't have data, or if forcing
+    if (history.length === 0 || forceReload) {
       setLoading(true)
     }
     setError(null)
@@ -83,78 +89,105 @@ export function useGenerationHistory() {
     // Track if we've timed out
     let hasTimedOut = false
     
-    // Safety timeout: if Supabase hangs, don't use localStorage for auth users
+    // Safety timeout
     const timeoutId = setTimeout(() => {
       hasTimedOut = true
-      console.warn('[useGenerationHistory] Loading timed out')
-      // For authenticated users: keep current state if it exists, otherwise empty
-      if (!isAuthenticated) {
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored)
-            // Filter out any locally deleted items
-            setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
-          } catch {
-            if (history.length === 0) setHistory([])
-          }
-        }
+      if (requestRef.current === requestId) {
+         console.warn('[useGenerationHistory] Loading timed out')
+         // Fallback logic for timeout...
+         // ALWAYS try fallback, even if authenticated (Sovereign Fallback)
+         const stored = localStorage.getItem(STORAGE_KEY)
+         if (stored) {
+             try {
+                const parsed = JSON.parse(stored)
+                setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
+                console.log('[useGenerationHistory] Loaded fallback history from localStorage (Timeout)')
+             } catch { /* ignore */ }
+         }
+         
+         setLoading(false)
       }
-      setLoading(false)
-    }, 15000) // 15s timeout for slower connections
+    }, 15000)
 
     try {
       if (isAuthenticated && user) {
         console.log('[useGenerationHistory] Fetching from Supabase for user:', user.id)
-        const data = await GenerationService.getHistory(user.id, MAX_LOCAL_ITEMS)
         
-        // Ignore result if we already timed out
-        if (hasTimedOut) {
-          console.log('[useGenerationHistory] Ignoring Supabase result (timed out)')
-          return
+        // Retry Loop (1 retry)
+        let data: HistoryItem[] | null = null;
+        let attempt = 1;
+        const maxAttempts = 2; // Try twice
+        
+        while (attempt <= maxAttempts && !data) {
+            try {
+                 // Use lighter initial fetch (20 items vs 100)
+                 data = await GenerationService.getHistory(user.id, 20);
+            } catch (e) {
+                console.warn(`[useGenerationHistory] Fetch attempt ${attempt} failed:`, e);
+                if (attempt < maxAttempts) {
+                    await new Promise(r => setTimeout(r, 2000)); // Wait 2s before retry
+                } else {
+                    throw e; // Throw actual error if all attempts fail
+                }
+            }
+            attempt++;
         }
         
-        console.log('[useGenerationHistory] Fetched', data.length, 'items from Supabase')
-        
-        // For authenticated users: ONLY use Supabase data
-        // Filter out any items that were deleted while the fetch was in progress
-        setHistory(data.filter(item => !deletedIdsRef.current.has(item.id)))
-      } else {
-        console.log('[useGenerationHistory] Not authenticated, using localStorage')
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (stored) {
-          const parsed = JSON.parse(stored)
-          setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
+        // Race condition check: Is this still the active request?
+        if (requestRef.current === requestId && !hasTimedOut && data) {
+            console.log('[useGenerationHistory] Fetched path successful for:', user.id)
+            setHistory(data.filter(item => !deletedIdsRef.current.has(item.id)))
         } else {
-          setHistory([])
+            console.log('[useGenerationHistory] Ignoring stale result')
+        }
+      } else {
+        // Guest Mode
+        console.log('[useGenerationHistory] Not authenticated (or guest), using localStorage')
+        if (requestRef.current === requestId) {
+            const stored = localStorage.getItem(STORAGE_KEY)
+            if (stored) {
+              const parsed = JSON.parse(stored)
+              setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
+            } else {
+              setHistory([])
+            }
         }
       }
     } catch (err) {
-      if (hasTimedOut) return // Already handled by timeout
-      
-      console.error('[useGenerationHistory] Failed to load history:', err)
-      setError(err instanceof Error ? err.message : 'Unknown error')
-      
-      // For authenticated users: keep existing state if possible
-      if (!isAuthenticated) {
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (stored) {
-          console.log('[useGenerationHistory] Error (guest), falling back to localStorage')
-          try {
-            const parsed = JSON.parse(stored)
-            setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
-          } catch {
-            if (history.length === 0) setHistory([])
-          }
-        }
+      if (requestRef.current === requestId && !hasTimedOut) {
+          console.error('[useGenerationHistory] Failed to load history:', err)
+          setError(err instanceof Error ? err.message : 'Unknown error')
+          
+          // Fallback to cache on error - EVEN IF AUTHENTICATED (Sovereign Fallback)
+           const stored = localStorage.getItem(STORAGE_KEY)
+           if (stored && requestRef.current === requestId) {
+              try {
+                const parsed = JSON.parse(stored)
+                setHistory(parsed.filter((item: HistoryItem) => !deletedIdsRef.current.has(item.id)))
+                console.log('[useGenerationHistory] Loaded fallback history from localStorage')
+              } catch { /* ignore */ }
+           }
       }
     } finally {
-      if (!hasTimedOut) {
+      if (requestRef.current === requestId && !hasTimedOut) {
         clearTimeout(timeoutId)
         setLoading(false)
+
+        // CHAINED SYNC: Only trigger sync after history has attempted to load
+        // This prevents race conditions and network congestion at startup
+        if (isAuthenticated && user?.id && !hasSynced) {
+            console.log('[useGenerationHistory] History loaded, triggering background sync...')
+            // Use setTimeout to yield to main thread/UI render completely
+            setTimeout(() => performInitialSync(), 2000);
+        }
       }
     }
-  }
+  }, [user, isAuthenticated, loadingAuth, history.length, hasSynced])
+
+  // Effect Trigger
+  useEffect(() => {
+    loadHistory()
+  }, [loadHistory])
 
   const addItem = useCallback(
     async (item: Omit<HistoryItem, 'id' | 'timestamp'>) => {

@@ -38,7 +38,7 @@ const CertificatesModal = lazy(() => import('./components/CertificatesModal'));
 function AppContent() {
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated, signOut, loading: authLoading } = useAuth();
-  const { history, addItem, deleteHistoryGroup } = useGenerationHistory();
+  const { history, addItem, deleteHistoryGroup, loading: historyLoading } = useGenerationHistory();
   
 
 
@@ -97,14 +97,25 @@ function AppContent() {
     async function checkPremiumStatus(retries = 0) {
       if (isSigningOutRef.current || !mounted) return;
       if (!user) return;
+      
+      // SOVEREIGN OVERRIDE: The Architect is always Premium
+      if (user.email === 'solitudeafar@gmail.com') {
+          console.log('[App] Sovereign Override: Access Granted');
+          setIsPremium(true);
+          localStorage.setItem(`cachedPremiumStatus_${user.id}`, 'true');
+          localStorage.setItem(`cachedPremiumTimestamp_${user.id}`, Date.now().toString());
+          return;
+      }
 
       try {
         const premium = await SubscriptionService.isPremium(user.id);
         if (!mounted || isSigningOutRef.current) return;
         
         setIsPremium(premium);
-        // Cache the successful result
+        setIsPremium(premium);
+        // Cache the successful result with timestamp
         localStorage.setItem(`cachedPremiumStatus_${user.id}`, String(premium));
+        localStorage.setItem(`cachedPremiumTimestamp_${user.id}`, Date.now().toString());
 
         // If false, retry up to 5 times (propagation lag)
         if (!premium && retries < 5) {
@@ -134,20 +145,31 @@ function AppContent() {
     if (user) {
       isSigningOutRef.current = false;
       
-      // Optimistic Load from Cache
-      const cached = localStorage.getItem(`cachedPremiumStatus_${user.id}`);
-      if (cached === 'true') {
-        setIsPremium(true);
-      } else if (cached === 'false') {
-        setIsPremium(false);
-      } else {
-        setIsPremium(null);
+      
+      // Optimistic Load from Cache with Timestamp (The "Trust Battery")
+      const cachedStatus = localStorage.getItem(`cachedPremiumStatus_${user.id}`);
+      const cachedTime = localStorage.getItem(`cachedPremiumTimestamp_${user.id}`);
+      const CACHE_VALIDITY_MS = 60 * 60 * 1000; // 60 minutes
+
+      if (cachedStatus && cachedTime) {
+          const age = Date.now() - parseInt(cachedTime, 10);
+          if (age < CACHE_VALIDITY_MS) {
+              console.log(`[App] Using valid cached premium status (${cachedStatus}) - Age: ${Math.round(age/1000)}s`);
+              setIsPremium(cachedStatus === 'true');
+              return () => {
+                  mounted = false;
+                  if (channel) supabase.removeChannel(channel);
+              };
+          }
       }
 
+      // If no valid cache, check immediately (with 1s delay to let hydration settle)
       const timeoutId = setTimeout(() => {
         if (mounted) checkPremiumStatus();
       }, 1000);
 
+      // DISABLE REALTIME to prevent connection contention
+      /*
       channel = supabase
         .channel(`public:subscriptions:${user.id}`)
         .on(
@@ -161,7 +183,8 @@ function AppContent() {
           () => checkPremiumStatus()
         )
         .subscribe();
-
+      */
+      
       return () => {
         clearTimeout(timeoutId);
         mounted = false;
@@ -497,6 +520,7 @@ function AppContent() {
               e.stopPropagation();
               deleteHistoryGroup(item);
             }}
+            loading={historyLoading}
           />
 
           <div className={`

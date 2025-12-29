@@ -34,6 +34,7 @@ interface SidebarProps {
   onShowCertificates: () => void;
   onShowDefense: () => void;
   onShowEditor: () => void;
+  loading?: boolean;
 }
 
 const MODE_LABELS: Record<string, string> = {
@@ -67,7 +68,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onDeleteHistoryItem,
   onShowCertificates,
   onShowDefense,
-  onShowEditor
+  onShowEditor,
+  loading = false,
 }) => {
   // Group history by mode and deduplicate by input
   // Store all IDs for a given group to support batch deletion
@@ -108,6 +110,14 @@ const Sidebar: React.FC<SidebarProps> = ({
     // Delete by content group (onion peeling fix)
     onDeleteHistoryItem(representative, e);
   }; 
+
+  const renderSkeleton = () => (
+    <div className="px-4 space-y-3 animate-pulse opacity-60">
+        {[1, 2, 3].map(i => (
+            <div key={i} className="h-10 bg-gray-200 dark:bg-white/10 rounded-xl" />
+        ))}
+    </div>
+  );
 
   return (
     <>
@@ -172,7 +182,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             {totalVisibleItems > 0 && <span>{totalVisibleItems}</span>}
           </div>
           
-          {history.length === 0 ? (
+          {loading && history.length === 0 ? (
+             renderSkeleton()
+          ) : history.length === 0 ? (
             <div className="px-4 py-8 text-center" key="no-history">
               <History className="w-8 h-8 text-gray-200 dark:text-gray-700 mx-auto mb-2" />
               <p className="text-xs text-gray-400">No recent activity</p>

@@ -66,9 +66,12 @@ export class SyncService {
 
       console.log(`✅ Successfully migrated ${data.length} items to Supabase`)
       
-      // Clear localStorage after successful migration to prevent re-migration
-      localStorage.removeItem(STORAGE_KEY)
-      console.log('[SyncService] Cleared localStorage after migration')
+      
+      // Rename localStorage key to backup instead of deleting (Data Sovereignty)
+      const backupKey = `${STORAGE_KEY}_backup_${Date.now()}`;
+      localStorage.setItem(backupKey, localHistoryJson);
+      localStorage.removeItem(STORAGE_KEY);
+      console.log(`[SyncService] Archived localStorage to ${backupKey}`)
       
       return data.length
     } catch (error) {
