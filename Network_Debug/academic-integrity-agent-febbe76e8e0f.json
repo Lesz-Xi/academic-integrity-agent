@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "academic-integrity-agent",
+  "private_key_id": "febbe76e8e0f0be6da343925c8cc83c76321ba86",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCidLIa0KJaESFy\nQbugeU0tcC/RKplW4985/PrMb1dvWjHAHaMn9u8p4zFvaDoPIL3VLPX+fwEiTger\nbp46oyQsW240pt8t+523uB/fEpZhm7Wa0u9zgpKXbF/vomh+S9CzDz/nOxheJDSn\nQJRJKCUqFRwNtWdEscKyLsXlwqgIRShh0aRwoqvNRcN8kseeQjZgjlEHMe9oMj57\nVSw+TLAMaJFZ+yr6XqKNPZjynJuwDrl85aPrhKzJ/LDZcpv/t/A040T0384Yl85e\nMylbYjV9ND0y0IwZLiYs399TGNI3DtEqB1I580SO/UTTxzshURY/9s6jMvGiDzKZ\nIUiBXRy5AgMBAAECggEATUEcT2cmxZj+5ERBEvuMSY7flmLhH7Jmfb+BjsVl+XSV\nUwxlAcTKkAtT/2w7q+UAkUb7xmYkJmmf+RS2FyFsutFR86TlXgsZQfxD38OJkupG\nrtUffLk7t9mYN69ubJzmJriaRX5TRLWH+n9Z5P47yirWt+grrz2vXiejAXOTj7Z9\neFTABDh7+XwTvUs6o2fuweY3ySsuJ1ojgPbbDLbN2qwt17glYDJgRa4qzqvs5Afq\nPpRVISpjwQUS1IlYTFNYmTEf4zMv0WSZPxeuCDEo3aVeKGXi9pWIAOShaXE/GLtz\nAnZPUDA6ObOkXzbkBtZeqBqyzgyDUPe5w30AKht0xwKBgQDTvr3cols7wybuW3u5\nrujLETLfvh+wBK2xfcWqsB+KAPE6hFymuzuYypoCBz2VXh14hcmUgevRzmXP1+gA\nh0kOrfV6kO7HdqllAsRfDb3ZC4buKRW/nFAwT4FiJq5TtM287Hhwm9bKfO4HwEuU\niIUmyGSAlJonKq72yiAdfT2ZuwKBgQDEaMVffEwPhuPIaBCxbfRQLxZ+uY2INRvz\nwOZXrcLeVK/3xKLsOCPxI0NmtidMiRgd9u2iyJ5yIhpl3JzuMs7sEdd3ws+ZGGr5\njU1Gdk8cBHmwKi33nu5xBm5Lca5X3ox4oZR4BRSEmgwAZyvdOT3We9gV24KSkqer\ntHdk1+BSGwKBgFHYhKLnzsQG5uFzUxuu1CTJ/RQm9TCgXlMg/mq/sTEytAueZgG8\nlYi1p1npWpCF1HZloEla/sAWO5xfJDowELkv3JcHtoQ7BbcZnrXvJdbjccBU+Scb\nUJOb57L8qJ2KYYwJC3Tbh+a063zrg0tiibU3+EELL5q8EO0rq8Y6RrlJAoGBAIfB\nKvsOvLvWrkZst20L5NwvT8sTkaHdo45dfFiJ/7EQs/f7b+j5/M3FY+bwbEVYVNUR\nQbtME0gsDjbtv4Jcl+1Pf7CFdFwLJpWKdykGyTNCXKHI5bDLp19z5HQ9BRYy+sC+\nXhJ+4Gmu2DDHHuhvkjBXtUmWSa/psf7aY9PN6nyVAoGASPW6ZBQiA2zR7sYkQdKo\nqp9WpJHRqZ5Nd4ax5xWqDf5Alh6o2qtgMSRKHpqSBr/JGllgA7LjzlLEd2evYux2\nt2Cs8MhzeuZ6h6KPRxTv89HhEXo/00SJhOFHUo5kA+IVv3uwLyR1HIy7VBizeSq7\nozjoMvJ/6fdsPeVGxQ3r13U=\n-----END PRIVATE KEY-----\n",
+  "client_email": "supabase-connection@academic-integrity-agent.iam.gserviceaccount.com",
+  "client_id": "117676258114990778367",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/supabase-connection%40academic-integrity-agent.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

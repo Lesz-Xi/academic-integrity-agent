@@ -1,0 +1,118 @@
+[
+  {
+    "name": "unindexed_foreign_keys",
+    "title": "Unindexed foreign keys",
+    "level": "INFO",
+    "facing": "EXTERNAL",
+    "categories": [
+      "PERFORMANCE"
+    ],
+    "description": "Identifies foreign key constraints without a covering index, which can impact database performance.",
+    "detail": "Table \\`public.draft_snapshots\\` has a foreign key \\`draft_snapshots_draft_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+    "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys",
+    "metadata": {
+      "name": "draft_snapshots",
+      "type": "table",
+      "schema": "public",
+      "fkey_name": "draft_snapshots_draft_id_fkey",
+      "fkey_columns": [
+        2
+      ]
+    },
+    "cache_key": "unindexed_foreign_keys_public_draft_snapshots_draft_snapshots_draft_id_fkey"
+  },
+  {
+    "name": "unindexed_foreign_keys",
+    "title": "Unindexed foreign keys",
+    "level": "INFO",
+    "facing": "EXTERNAL",
+    "categories": [
+      "PERFORMANCE"
+    ],
+    "description": "Identifies foreign key constraints without a covering index, which can impact database performance.",
+    "detail": "Table \\`public.drafts\\` has a foreign key \\`drafts_user_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+    "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys",
+    "metadata": {
+      "name": "drafts",
+      "type": "table",
+      "schema": "public",
+      "fkey_name": "drafts_user_id_fkey",
+      "fkey_columns": [
+        2
+      ]
+    },
+    "cache_key": "unindexed_foreign_keys_public_drafts_drafts_user_id_fkey"
+  },
+  {
+    "name": "no_primary_key",
+    "title": "No Primary Key",
+    "level": "INFO",
+    "facing": "EXTERNAL",
+    "categories": [
+      "PERFORMANCE"
+    ],
+    "description": "Detects if a table does not have a primary key. Tables without a primary key can be inefficient to interact with at scale.",
+    "detail": "Table \\`public.generations\\` does not have a primary key",
+    "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0004_no_primary_key",
+    "metadata": {
+      "name": "generations",
+      "type": "table",
+      "schema": "public"
+    },
+    "cache_key": "no_primary_key_public_generations"
+  },
+  {
+    "name": "unused_index",
+    "title": "Unused Index",
+    "level": "INFO",
+    "facing": "EXTERNAL",
+    "categories": [
+      "PERFORMANCE"
+    ],
+    "description": "Detects if an index has never been used and may be a candidate for removal.",
+    "detail": "Index \\`idx_saved_files_user_id\\` on table \\`public.saved_files\\` has not been used",
+    "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+    "metadata": {
+      "name": "saved_files",
+      "type": "table",
+      "schema": "public"
+    },
+    "cache_key": "unused_index_public_saved_files_idx_saved_files_user_id"
+  },
+  {
+    "name": "unused_index",
+    "title": "Unused Index",
+    "level": "INFO",
+    "facing": "EXTERNAL",
+    "categories": [
+      "PERFORMANCE"
+    ],
+    "description": "Detects if an index has never been used and may be a candidate for removal.",
+    "detail": "Index \\`idx_subscriptions_user_id\\` on table \\`public.subscriptions\\` has not been used",
+    "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+    "metadata": {
+      "name": "subscriptions",
+      "type": "table",
+      "schema": "public"
+    },
+    "cache_key": "unused_index_public_subscriptions_idx_subscriptions_user_id"
+  },
+  {
+    "name": "unused_index",
+    "title": "Unused Index",
+    "level": "INFO",
+    "facing": "EXTERNAL",
+    "categories": [
+      "PERFORMANCE"
+    ],
+    "description": "Detects if an index has never been used and may be a candidate for removal.",
+    "detail": "Index \\`idx_subscriptions_stripe_customer\\` on table \\`public.subscriptions\\` has not been used",
+    "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+    "metadata": {
+      "name": "subscriptions",
+      "type": "table",
+      "schema": "public"
+    },
+    "cache_key": "unused_index_public_subscriptions_idx_subscriptions_stripe_customer"
+  }
+]
