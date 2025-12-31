@@ -1,3 +1,4 @@
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { Draft, DraftSnapshot } from '../types';
 import type { Database } from '../types/database.types';
@@ -9,9 +10,64 @@ export class DraftService {
   /**
    * Initialize a new drafting session
    */
-  static async createDraft(userId: string, title: string = 'Untitled Draft'): Promise<Draft | null> {
+  static async getEmergencyClient(): Promise<SupabaseClient<Database> | null> {
+      try {
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+          
+          if (!supabaseUrl || !supabaseAnonKey) {
+             console.warn('[DraftService] Missing Env Vars for Emergency Client');
+             return null;
+          }
+
+          // Extract project ref
+          const projectRef = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
+          if (!projectRef) {
+             console.warn('[DraftService] Could not parse Project Ref from URL');
+             return null;
+          }
+
+          const tokenKey = `sb-${projectRef}-auth-token`;
+          const sessionStr = localStorage.getItem(tokenKey);
+          if (!sessionStr) {
+             console.warn('[DraftService] No session found in localStorage');
+             return null;
+          }
+
+          const session = JSON.parse(sessionStr);
+          const accessToken = session.access_token;
+          if (!accessToken) {
+             console.warn('[DraftService] No access token in session');
+             return null;
+          }
+          
+          console.log('[DraftService] Initializing Emergency Client (Bypassing Global Auth Lock)...');
+          // Create client that trusts the token blindly (Nuclear Option)
+          const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+              auth: {
+                  persistSession: false,
+                  autoRefreshToken: false,
+                  detectSessionInUrl: false
+              },
+              global: {
+                  headers: {
+                      Authorization: `Bearer ${accessToken}`
+                  }
+              }
+          });
+          return client;
+      } catch (e) {
+          console.warn('[DraftService] Failed to create emergency client:', e);
+          return null;
+      }
+  }
+
+  /**
+   * Initialize a new drafting session
+   */
+  static async createDraft(userId: string, title: string = 'Untitled Draft', client: SupabaseClient<Database> = supabase): Promise<Draft | null> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('drafts')
         .insert({
           user_id: userId,
@@ -42,7 +98,8 @@ export class DraftService {
     content: string, 
     previousContent: string,
     isPaste: boolean = false,
-    userId?: string // SOVEREIGN BYPASS: Pass ID directly to avoid Auth Client deadlocks
+    userId?: string, // SOVEREIGN BYPASS: Pass ID directly to avoid Auth Client deadlocks
+    client: SupabaseClient<Database> = supabase
   ): Promise<Draft | null> {
     
     // SOVEREIGNTY SYNC: Handle promotion of local drafts to server
@@ -90,8 +147,12 @@ export class DraftService {
             console.log('[DraftService] User ID resolved:', resolvedUserId);
 
             // 2. Create real draft
-            console.log('[DraftService] Creating new server draft...');
-            const newDraft = await DraftService.createDraft(resolvedUserId, 'Recovered Draft');
+            console.log('[DraftService] Creating new server draft (Emergency Protocol)...');
+            
+            // Try to get emergency client to break deadlock
+            const emergencyClient = await DraftService.getEmergencyClient() || supabase;
+            
+            const newDraft = await DraftService.createDraft(resolvedUserId, 'Recovered Draft', emergencyClient);
             
             if (!newDraft) {
                 console.warn('[DraftService] Promotion failed: createDraft returned null. Check RLS or Database Connection.');
@@ -102,8 +163,8 @@ export class DraftService {
             
             // 3. Update content (Snapshot)
             console.log('[DraftService] Syncing content to new draft...');
-            // Pass the resolvedUserId to recursive call just in case (though not needed for non-local)
-            return DraftService.updateDraft(newDraft.id, content, '', false, resolvedUserId);
+            // Pass the resolvedUserId AND emergencyClient to recursive call
+            return DraftService.updateDraft(newDraft.id, content, '', false, resolvedUserId, emergencyClient);
 
         } catch (err) {
             console.warn('[DraftService] Promotion Exception:', err);
@@ -127,7 +188,7 @@ export class DraftService {
     if (isSignificant) {
       try {
         // A. Get previous snapshot hash (Chain of Custody)
-        const { data: prevSnap } = await supabase
+        const { data: prevSnap } = await client
           .from('draft_snapshots')
           .select('integrity_hash')
           .eq('draft_id', draftId)
@@ -147,7 +208,7 @@ export class DraftService {
         const telemetry = telemetryService.getSessionMetrics();
 
         // D. Insert Snapshot
-        await supabase.from('draft_snapshots').insert({
+        await client.from('draft_snapshots').insert({
           draft_id: draftId,
           timestamp,
           content_diff: content, // Storing full content for now to enable hash verification
@@ -164,7 +225,7 @@ export class DraftService {
 
     // 2. Update Current Draft State
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('drafts')
         .update({
           current_content: content,
