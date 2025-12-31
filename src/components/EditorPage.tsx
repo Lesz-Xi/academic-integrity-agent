@@ -72,7 +72,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
     
     // Timeout Promise
     const timeoutPromise = new Promise<typeof TIMEOUT_TOKEN>((resolve) => 
-        setTimeout(() => resolve(TIMEOUT_TOKEN), 5000)
+        setTimeout(() => resolve(TIMEOUT_TOKEN), 8000)
     );
 
     let newDraft: Draft | null | typeof TIMEOUT_TOKEN = null;

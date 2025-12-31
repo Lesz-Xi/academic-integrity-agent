@@ -29,7 +29,7 @@ export class DraftService {
       
       return DraftService.mapDraft(data);
     } catch (error) {
-      console.error('[DraftService] Create error:', error);
+      console.warn('[DraftService] Create error:', error);
       return null;
     }
   }
@@ -50,18 +50,18 @@ export class DraftService {
         // alert('Admin Debug: Promoting Local Draft...'); // Uncomment if console is hidden
 
         try {
-            // 1. Get User ID (With Timeout & Fallback)
+            // 1. Get User ID (With Extended Timeout)
             const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Auth Timeout')), 5000)
+                setTimeout(() => reject(new Error('Auth Timeout (10s)')), 10000)
             );
-            // Prevent unhandled rejection if the race wins before timeout
+            // Prevent unhandled rejection
             timeoutPromise.catch(() => {});
             
             // Try sync check first
             let userId = (await supabase.auth.getUser()).data.user?.id;
             
             if (!userId) {
-                console.log('[DraftService] No user in getUser(), trying getSession with timeout...');
+                console.warn('[DraftService] No user in getUser(), trying getSession with timeout...');
                 const { data } = await Promise.race([
                     supabase.auth.getSession(),
                     timeoutPromise
@@ -70,8 +70,8 @@ export class DraftService {
             }
 
             if (!userId) {
-                console.error('[DraftService] Promotion failed: No authenticated user found.');
-                // alert('Error: You must be logged in to attest.');
+                console.warn('[DraftService] Promotion failed: No authenticated user found.');
+                alert('Error: You must be logged in to attest. Please cache-refresh or log in again.');
                 return null;
             }
             console.log('[DraftService] User ID resolved:', userId);
@@ -81,8 +81,8 @@ export class DraftService {
             const newDraft = await DraftService.createDraft(userId, 'Recovered Draft');
             
             if (!newDraft) {
-                console.error('[DraftService] Promotion failed: createDraft returned null (Check RLS/Network).');
-                // alert('Error: Failed to create server draft. Check connection.');
+                console.warn('[DraftService] Promotion failed: createDraft returned null. Check RLS or Database Connection.');
+                alert('Connection Error: Unable to create server draft. Please check your internet.');
                 return null;
             }
             console.log('[DraftService] Server draft created:', newDraft.id);
@@ -92,8 +92,8 @@ export class DraftService {
             return DraftService.updateDraft(newDraft.id, content, '', false);
 
         } catch (err) {
-            console.error('[DraftService] Promotion Exception:', err);
-            // alert('Critical Error during promotion: ' + err);
+            console.warn('[DraftService] Promotion Exception:', err);
+            alert('Critical Error during promotion: ' + (err instanceof Error ? err.message : String(err)));
             return null;
         }
     }
