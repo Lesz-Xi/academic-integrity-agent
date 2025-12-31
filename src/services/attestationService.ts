@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { Draft, DraftSnapshot } from '../types';
+import { Draft } from '../types';
 
 export class AttestationService {
   

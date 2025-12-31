@@ -127,7 +127,6 @@ export async function generateContent(
     const citationAnalysis = analyzeCitations(input);
     const citationCount = citationAnalysis.citations.length;
     const riskLevel = citationAnalysis.overallRisk;
-    const factAnchors = citationAnalysis.factAnchors;
     
     console.log(`[AcademicIntegrityService] Citation Analysis: ${citationCount} citations, Risk: ${riskLevel}`);
     
