@@ -41,10 +41,45 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   // Promotion Lock: Prevents concurrent draft promotions race condition
   const promotionInProgressRef = useRef<Promise<Draft | null> | null>(null);
 
-  // 1. Initialize Draft on Mount
+  // Database warm-up function to prevent cold start
+  const warmUpDatabase = async (): Promise<boolean> => {
+    console.log('[Editor] Warming up database...');
+    console.time('[Editor] Database warm-up');
+    
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ping`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          }
+        }
+      );
+      
+      const data = await response.json();
+      console.timeEnd('[Editor] Database warm-up');
+      console.log('[Editor] Warm-up result:', data);
+      return data.status === 'warm';
+    } catch (error) {
+      console.warn('[Editor] Warm-up failed:', error);
+      console.timeEnd('[Editor] Database warm-up');
+      return false;
+    }
+  };
+
+  // 1. Initialize Draft on Mount (with warm-up)
   useEffect(() => {
     if (!user) return;
-    initializeDraft();
+    
+    // Warm up database first, then initialize draft
+    const init = async () => {
+      await warmUpDatabase();
+      await initializeDraft();
+    };
+    
+    init();
   }, [user]);
   
   // Anti-Thesaurus & Heatmap Auto-Scan
