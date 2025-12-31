@@ -41,7 +41,8 @@ export class DraftService {
     draftId: string, 
     content: string, 
     previousContent: string,
-    isPaste: boolean = false
+    isPaste: boolean = false,
+    userId?: string // SOVEREIGN BYPASS: Pass ID directly to avoid Auth Client deadlocks
   ): Promise<Draft | null> {
     
     // SOVEREIGNTY SYNC: Handle promotion of local drafts to server
@@ -50,41 +51,47 @@ export class DraftService {
         // alert('Admin Debug: Promoting Local Draft...'); // Uncomment if console is hidden
 
         try {
-            // 1. Get User ID (With Soft Timeout Fallback)
-            // SOFT TIMEOUT: If getUser (network) hangs, resolve null to trigger fallback
-            const softTimeoutPromise = new Promise<{ data: { user: { id: string } | null } | null }>((resolve) => 
-                setTimeout(() => {
-                    console.warn('[DraftService] getUser network check timed out (3s). Triggering fallback...');
-                    resolve({ data: { user: null } }); 
-                }, 3000)
-            );
-            
-            // Try sync check first (Raced against soft timeout)
-            console.log('[DraftService] Resolving user identity...');
-            
-            const { data: authData } = await Promise.race([
-                supabase.auth.getUser(),
-                softTimeoutPromise
-            ]) as { data: { user: { id: string } | null } | null };
+            let resolvedUserId = userId;
 
-            let userId = authData?.user?.id;
-            
-            if (!userId) {
-                console.warn('[DraftService] No user in getUser(), using getSession (Local Fallback)...');
-                const { data } = await supabase.auth.getSession();
-                userId = data?.session?.user?.id;
+            // 1. Resolve User ID (If not provided)
+            if (!resolvedUserId) {
+                // SOFT TIMEOUT: If getUser (network) hangs, resolve null to trigger fallback
+                const softTimeoutPromise = new Promise<{ data: { user: { id: string } | null } | null }>((resolve) => 
+                    setTimeout(() => {
+                        console.warn('[DraftService] getUser network check timed out (3s). Triggering fallback...');
+                        resolve({ data: { user: null } }); 
+                    }, 3000)
+                );
+                
+                // Try sync check first (Raced against soft timeout)
+                console.log('[DraftService] Resolving user identity...');
+                
+                const { data: authData } = await Promise.race([
+                    supabase.auth.getUser(),
+                    softTimeoutPromise
+                ]) as { data: { user: { id: string } | null } | null };
+
+                resolvedUserId = authData?.user?.id;
+                
+                if (!resolvedUserId) {
+                    console.warn('[DraftService] No user in getUser(), using getSession (Local Fallback)...');
+                    const { data } = await supabase.auth.getSession();
+                    resolvedUserId = data?.session?.user?.id;
+                }
+            } else {
+                 console.log('[DraftService] Using provided userId (Bypassing Auth Client Check)');
             }
 
-            if (!userId) {
+            if (!resolvedUserId) {
                 console.warn('[DraftService] Promotion failed: No authenticated user found.');
                 alert('Error: You must be logged in to attest. Please cache-refresh or log in again.');
                 return null;
             }
-            console.log('[DraftService] User ID resolved:', userId);
+            console.log('[DraftService] User ID resolved:', resolvedUserId);
 
             // 2. Create real draft
             console.log('[DraftService] Creating new server draft...');
-            const newDraft = await DraftService.createDraft(userId, 'Recovered Draft');
+            const newDraft = await DraftService.createDraft(resolvedUserId, 'Recovered Draft');
             
             if (!newDraft) {
                 console.warn('[DraftService] Promotion failed: createDraft returned null. Check RLS or Database Connection.');
@@ -95,11 +102,13 @@ export class DraftService {
             
             // 3. Update content (Snapshot)
             console.log('[DraftService] Syncing content to new draft...');
-            return DraftService.updateDraft(newDraft.id, content, '', false);
+            // Pass the resolvedUserId to recursive call just in case (though not needed for non-local)
+            return DraftService.updateDraft(newDraft.id, content, '', false, resolvedUserId);
 
         } catch (err) {
             console.warn('[DraftService] Promotion Exception:', err);
-            alert('Critical Error during promotion: ' + (err instanceof Error ? err.message : String(err)));
+            // Alert removed to prevent scaring user if it's handled by EditorPage, 
+            // but kept helpful message if needed. EditorPage catch block handles the main alert.
             return null;
         }
     }

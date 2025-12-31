@@ -189,7 +189,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
     previousContentRef.current = currentContent; // Update local ref immediately
     
     // Fire and forget (or rather, fire and reconcile)
-    DraftService.updateDraft(draft.id, currentContent, oldContent, isPaste)
+    DraftService.updateDraft(draft.id, currentContent, oldContent, isPaste, draft.userId)
       .then(async (updated) => {
         if (updated) {
            setDraft(updated);
@@ -279,7 +279,8 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
                 targetDraft.id, 
                 content, 
                 previousContentRef.current, 
-                false
+                false,
+                targetDraft.userId // Pass user ID explicitly
             );
             
             if (promoted && !promoted.id.startsWith('local-')) {
