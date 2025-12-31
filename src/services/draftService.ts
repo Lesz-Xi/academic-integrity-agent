@@ -50,31 +50,28 @@ export class DraftService {
         // alert('Admin Debug: Promoting Local Draft...'); // Uncomment if console is hidden
 
         try {
-            // 1. Get User ID (With Extended Timeout)
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Auth Timeout (10s)')), 10000)
+            // 1. Get User ID (With Soft Timeout Fallback)
+            // SOFT TIMEOUT: If getUser (network) hangs, resolve null to trigger fallback
+            const softTimeoutPromise = new Promise<{ data: { user: { id: string } | null } | null }>((resolve) => 
+                setTimeout(() => {
+                    console.warn('[DraftService] getUser network check timed out (3s). Triggering fallback...');
+                    resolve({ data: { user: null } }); 
+                }, 3000)
             );
-            // Prevent unhandled rejection
-            timeoutPromise.catch(() => {});
             
-            // Try sync check first (Raced against timeout)
+            // Try sync check first (Raced against soft timeout)
             console.log('[DraftService] Resolving user identity...');
             
-            // Explicitly define the race to ensure type safety isn't the issue, though 'as any' handles the mix
-            // We use 'as any' because timeoutPromise rejects, so the successful resolution type is what matters
             const { data: authData } = await Promise.race([
                 supabase.auth.getUser(),
-                timeoutPromise
+                softTimeoutPromise
             ]) as { data: { user: { id: string } | null } | null };
 
             let userId = authData?.user?.id;
             
             if (!userId) {
-                console.warn('[DraftService] No user in getUser(), trying getSession with timeout...');
-                const { data } = await Promise.race([
-                    supabase.auth.getSession(),
-                    timeoutPromise
-                ]) as any;
+                console.warn('[DraftService] No user in getUser(), using getSession (Local Fallback)...');
+                const { data } = await supabase.auth.getSession();
                 userId = data?.session?.user?.id;
             }
 
