@@ -132,48 +132,26 @@ export async function generateContent(
     console.log(`[AcademicIntegrityService] Citation Analysis: ${citationCount} citations, Risk: ${riskLevel}`);
     
     // Build constraint context from citations
-    let constraintContext = '';
-    if (citationCount > 0) {
-      constraintContext = `\nCITATION CONSTRAINTS (These facts are anchored - preserve meaning):
-${factAnchors.slice(0, 5).map(a => `- ${a.citation.text}: "${a.fact.substring(0, 80)}..."`).join('\n')}`;
-    }
     
-    // EVASION PROTOCOL v7.0 - COMPOSITION MODE
-    evasionProtocol = `ADAPTIVE SCHOLARLY COMPOSER (v7.0 - COMPOSITION MODE):
-
-YOU ARE NOT PARAPHRASING. You are COMPOSING new prose that expresses the same facts.
-
-COMPOSITION PRINCIPLES:
-1. EXTRACT FACTS FIRST: Identify each claim/fact in the input and its citation anchor.
-2. COMPOSE NEW PROSE: Write as if these are YOUR ideas, expressed YOUR way.
-3. PRESERVE CITATION MEANING: Facts tied to citations CANNOT change semantically.
-4. INJECT HUMANITY: Add personal voice - "I think", "we noticed", "honestly".
-
-BANNED VOCABULARY (NEVER USE):
-- "framework" → "structure" / "setup"
-- "holistic" → "complete" / "full"  
-- "feasibility" → "viability" / "workability"
-- "furthermore/moreover/additionally" → DELETE or "Also"
-- "crucial/significant" → "key" / "important"
-- "paradigm" → "model" / "approach"
-- "systematic comparison" → "direct look at" / "careful check"
-- "implications" → "effects" / "results"
-
-ANTI-ROBOTIC TACTICS:
-1. FIRST-PERSON: Use "I/we" at least once per paragraph.
-2. RHETORICAL QUESTIONS: Add 1-2 per section ("Why does this matter?").
-3. CREATIVE GRAMMAR: One intentional fragment or run-on per paragraph.
-4. BREAK SMOOTH FLOW: Use "Look," "Here's the thing," "Anyway,".
-5. DE-JARGONIZE: Replace technical terms with plain language.
-6. IMPERFECTIONS: Add minor redundancies ("basically what this means is...").
-
-STRUCTURAL RULES:
-- 1:3 RATIO: 1 short sentence (<7 words) for every 3 long ones (>20 words).
-- NO RULE OF THREE: Use 2 or 4 items in lists, never 3.
-- END WITH FRAGMENTS: Every paragraph ends with 1-4 word punch.
-${constraintContext}
-
-PRE-OUTPUT AUDIT: Before outputting, check for mechanical precision and impersonal tone. Sabotage if detected.`;
+    // EVASION PROTOCOL v10.0 - INVISIBLE AUTHOR
+    // Removed "Procedural Sludge" (Explicit Constraints).
+    // The model must now rely on "Recursive Style Mimicry" (Implicit Patterns).
+    
+    evasionProtocol = `INVISIBLE AUTHOR PROTOCOL (v10.0):
+    
+    OBJECTIVE: You are a ghostwriter. Your goal is to be indistinguishable from the human author.
+    
+    CORE DIRECTIVE:
+    1. ABSORB THE STYLE: Read the attached "Style Samples" (if any) carefully.
+    2. MIMIC THE RHYTHM: match the sentence length variance and punctuation density of the human samples.
+    3. REJECT ARTIFICIAL PERFECTION: Real humans are messy. 
+       - Allow a minor redundancy.
+       - Use a "flat" transition (e.g., "So," instead of "Consequently,").
+       - Create "Thought Loops" (re-stating an idea for clarity).
+       
+    PROHIBITION:
+    - DO NOT use "AI Transition Words" (Moreover, Furthermore, In Conclusion).
+    - DO NOT be "Helpful". Be "Authentic".`;
     
     if (wordCount < 200) {
       // SHORT TEXT
@@ -299,65 +277,16 @@ PRE-OUTPUT AUDIT: Before outputting, check for mechanical precision and imperson
         
         // If very few paragraphs, fall through to normal processing
         if (paragraphs.length >= 2) {
-          const chunkSystemPrompt = `⚠️ CRITICAL INSTRUCTION - READ FIRST ⚠️
-
-🚫 **ABSOLUTELY FORBIDDEN - NEVER OUTPUT THESE:**
-- "Here is the transformed text:"
-- "Here is the revised paragraph:"
-- "The transformed version is:"
-- ANY introductory phrase before the content
-
-**ABSOLUTELY FORBIDDEN WORDS** (Using these = TASK FAILURE):
-- NEVER write: "However", "Moreover", "Furthermore", "Additionally", "Nevertheless"
-- NEVER write: "Consequently", "Therefore", "Thus", "Hence", "Overall"
-- NEVER write: "In conclusion", "It is important to note", "It should be noted"
-- NEVER write: "This study aims to", "The findings suggest"
-
-**REPLACEMENTS:**
-- "However" → "But", "Still", "Yet"
-- "Additionally" → just start the sentence without a connector
-- "Therefore" → "So"
-
----
-
-**ACADEMIC OBJECTIVITY RULES** (Required for proper research writing):
-
-1. **NO GRADE/ASSIGNMENT REFERENCES:**
-   - NEVER mention grades, marks, assignment requirements
-   - "to get a good grade" → "to ensure data validity"
-   - "our marks depended on it" → "methodological rigor was essential"
-
-2. **NO EMOTIONAL/SUBJECTIVE ADJECTIVES:**
-   - NEVER use: "arduous", "challenging", "difficult", "easy", "simple", "straightforward"
-   - NEVER use: "overpriced", "boring", "interesting", "wasted", "in vain"
-
-3. **SPECIFIC COLLOQUIALISM REPLACEMENTS:**
-   - "swapped out" → "replaced"
-   - "sticking to basics" → "employing fundamental measures"
-   - "trickled in" → "were received"
-   - "mess" → "potential errors"
-   - "random citizens" → "general population"
-   - "off the table" / "not feasible" → "outside the scope of this study"
-   - "sabotage" → "undermine"
-   - "free of paywalls" → "open-access"
-
-4. **NO DEFENSIVE/COMPARATIVE JUSTIFICATIONS:**
-   - NEVER write "preferable to X" or "better than X"
-   - NEVER write "the simplest/easiest part"
-   - Just state facts without defending them
-
-5. **NO SELF-DEPRECATING METHODOLOGY:**
-   - State limitations as scope decisions, not excuses
-
----
-
-You are a professional academic writer producing OBJECTIVE, FORMAL research text.
-
-STYLE RULES:
-1. REMOVE casual words ("like", "basically", "gonna"). Expand contractions.
-2. VARY SENTENCE LENGTH: Include 1 very short sentence (<8 words) and 1 long one (25+ words).
-3. PREFER ACTIVE VOICE: "Researchers found X" not "X was found by researchers."
-4. OUTPUT ONLY THE PARAGRAPH CONTENT. No introductions, no meta-text.`;
+          const chunkSystemPrompt = `INVISIBLE AUTHOR - POLISH MODE (v10.0):
+          
+          Your task is to REWRITE the input paragraph to match the "Human Style" of the provided samples.
+          
+          RULES:
+          1. DE-SLUDGE: Remove academic fluff ("It is important to note", "Furthermore").
+          2. RHYTHM MATCH: If the samples use short, punchy sentences, do the same.
+          3. HUMAN IMPERFECTION: allow a sentence to end elegantly, even if it's not "maximally efficient".
+          
+          OUTPUT: Return ONLY the polished text. No meta-talk.`;
 
           
           // Helper to chunk array

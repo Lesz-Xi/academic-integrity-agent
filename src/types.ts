@@ -99,4 +99,5 @@ export interface DraftSnapshot {
   contentDiff: string | null;
   charCountDelta: number;
   pasteEventDetected: boolean;
+  integrityHash?: string;
 }

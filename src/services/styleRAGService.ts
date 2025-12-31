@@ -84,13 +84,19 @@ export class StyleRAGService {
   static formatPrototypesForPrompt(prototypes: StylePrototype[]): string {
     if (prototypes.length === 0) return '';
 
-    let prompt = "\n### USER'S STYLISTIC DNA (AUTHORIAL FINGERPRINT)\n";
-    prompt += "Instructions: You are an Identity Clone. Mimic the statistical fingerprint below.\n\n";
+    let prompt = "\n### INVISIBLE AUTHOR - STYLE SAMPLES\n";
+    prompt += "Directives: These are samples of the user's natural voice.\n";
+    prompt += "1. IGNORE grammar rules if the samples ignore them.\n";
+    
+    // Calculate global habits to give a high-level summary
+    const avgBurst = prototypes.reduce((sum, p) => sum + p.dna.burstiness, 0) / prototypes.length;
+    const highPunctuation = prototypes.some(p => p.dna.punctuationDensity > 0.05);
+    
+    if (avgBurst > 0.6) prompt += "2. GLOBAL TRAIT: High Burstiness (mix of very short/long sentences).\n";
+    if (highPunctuation) prompt += "3. GLOBAL TRAIT: Dense Punctuation (complex clauses).\n\n";
 
     prototypes.forEach((p, i) => {
-      prompt += `[Exemplar ${i + 1}]:
-DNA: Burstiness=${p.dna.burstiness.toFixed(2)} | LexicalDiversity=${p.dna.lexicalDiversity.toFixed(2)} | PunctuationEntropy=${p.dna.punctuationDensity.toFixed(3)}
-TEXT: "${p.text.substring(0, 400)}..."\n\n`;
+      prompt += `[Sample ${i + 1} - Length: ${p.length} chars]:\n"${p.text.substring(0, 600)}..."\n\n`;
     });
 
     return prompt;

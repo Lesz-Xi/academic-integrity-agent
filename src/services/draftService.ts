@@ -1,13 +1,13 @@
-
 import { supabase } from '../lib/supabase';
 import type { Draft, DraftSnapshot } from '../types';
 import type { Database } from '../types/database.types';
+import { telemetryService } from './telemetryService';
 
 type DbDraft = Database['public']['Tables']['drafts']['Row'];
 
 export class DraftService {
   /**
-   * Initialize a new draft
+   * Initialize a new drafting session
    */
   static async createDraft(userId: string, title: string = 'Untitled Draft'): Promise<Draft | null> {
     try {
@@ -24,6 +24,9 @@ export class DraftService {
       if (error) throw error;
       if (!data) return null;
 
+      // Start telemetry session
+      telemetryService.startSession();
+      
       return DraftService.mapDraft(data);
     } catch (error) {
       console.error('[DraftService] Create error:', error);
@@ -32,7 +35,7 @@ export class DraftService {
   }
 
   /**
-   * Update draft content and create snapshot if significant change detected
+   * Update draft content and create snapshot with forensic data
    */
   static async updateDraft(
     draftId: string, 
@@ -40,28 +43,111 @@ export class DraftService {
     previousContent: string,
     isPaste: boolean = false
   ): Promise<Draft | null> {
+    
+    // SOVEREIGNTY SYNC: Handle promotion of local drafts to server
+    if (draftId.startsWith('local-')) {
+        console.log('[DraftService] Promoting local draft to server...');
+        // alert('Admin Debug: Promoting Local Draft...'); // Uncomment if console is hidden
+
+        try {
+            // 1. Get User ID (With Timeout & Fallback)
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Auth Timeout')), 5000)
+            );
+            // Prevent unhandled rejection if the race wins before timeout
+            timeoutPromise.catch(() => {});
+            
+            // Try sync check first
+            let userId = (await supabase.auth.getUser()).data.user?.id;
+            
+            if (!userId) {
+                console.log('[DraftService] No user in getUser(), trying getSession with timeout...');
+                const { data } = await Promise.race([
+                    supabase.auth.getSession(),
+                    timeoutPromise
+                ]) as any;
+                userId = data?.session?.user?.id;
+            }
+
+            if (!userId) {
+                console.error('[DraftService] Promotion failed: No authenticated user found.');
+                // alert('Error: You must be logged in to attest.');
+                return null;
+            }
+            console.log('[DraftService] User ID resolved:', userId);
+
+            // 2. Create real draft
+            console.log('[DraftService] Creating new server draft...');
+            const newDraft = await DraftService.createDraft(userId, 'Recovered Draft');
+            
+            if (!newDraft) {
+                console.error('[DraftService] Promotion failed: createDraft returned null (Check RLS/Network).');
+                // alert('Error: Failed to create server draft. Check connection.');
+                return null;
+            }
+            console.log('[DraftService] Server draft created:', newDraft.id);
+            
+            // 3. Update content (Snapshot)
+            console.log('[DraftService] Syncing content to new draft...');
+            return DraftService.updateDraft(newDraft.id, content, '', false);
+
+        } catch (err) {
+            console.error('[DraftService] Promotion Exception:', err);
+            // alert('Critical Error during promotion: ' + err);
+            return null;
+        }
+    }
+
     const timestamp = new Date().toISOString();
     
     // 1. Calculate Diff Metrics
     const charDelta = content.length - previousContent.length;
-    const diffThreshold = 0; // Capture all debounced edits for accurate score
     
-    // 2. Save Snapshot if threshold met OR explicit paste event
-    if (Math.abs(charDelta) > diffThreshold || isPaste) {
+    // Threshold config: Snapshot on significant events
+    // - Paste detected
+    // - > 50 chars typed (batching) or < -10 chars deleted
+    // - Every 60 seconds (handled by caller logic typically, but here we just check content delta)
+    const isSignificant = Math.abs(charDelta) > 10 || isPaste;
+    
+    if (isSignificant) {
       try {
+        // A. Get previous snapshot hash (Chain of Custody)
+        const { data: prevSnap } = await supabase
+          .from('draft_snapshots')
+          .select('integrity_hash')
+          .eq('draft_id', draftId)
+          .order('timestamp', { ascending: false })
+          .limit(1)
+          .single();
+
+        const prevHash = prevSnap?.integrity_hash || 'GENESIS';
+
+        // B. Calculate new integrity hash
+        // Hash(Content + PrevHash + Timestamp)
+        const hashInput = `${content}${prevHash}${timestamp}`;
+        const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(hashInput));
+        const integrityHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+        // C. Get Telemetry Block
+        const telemetry = telemetryService.getSessionMetrics();
+
+        // D. Insert Snapshot
         await supabase.from('draft_snapshots').insert({
           draft_id: draftId,
           timestamp,
-          content_diff: null, // Optimization: Don't store full text/diff every time yet, just metadata
+          content_diff: content, // Storing full content for now to enable hash verification
           char_count_delta: charDelta,
-          paste_event_detected: isPaste
+          paste_event_detected: isPaste,
+          telemetry_data: telemetry ? (telemetry as unknown as Database['public']['Tables']['draft_snapshots']['Insert']['telemetry_data']) : null,
+          integrity_hash: integrityHash
         });
+
       } catch (e) {
         console.warn('[DraftService] Snapshot save failed:', e);
       }
     }
 
-    // 3. Update Current Draft State
+    // 2. Update Current Draft State
     try {
       const { data, error } = await supabase
         .from('drafts')
@@ -122,8 +208,8 @@ export class DraftService {
       draftId: row.draft_id,
       timestamp: row.timestamp,
       contentDiff: row.content_diff,
-      charCountDelta: row.char_count_delta,
-      pasteEventDetected: row.paste_event_detected
+      charCountDelta: row.char_count_delta ?? 0,
+      pasteEventDetected: row.paste_event_detected ?? false
     }));
   }
 
@@ -137,10 +223,6 @@ export class DraftService {
     let runningLength = 0;
 
     // Process chronologically (Oldest -> Newest)
-    // We assume input snapshots might be Newest->Oldest if coming from getSnapshots(), so we reverse if needed.
-    // Actually getSnapshots returns Newest First. computeScore expects Chronological to track runningLength.
-    // So we will copy and reverse.
-    
     const chronological = [...snapshots].reverse();
 
     chronological.forEach(s => {
@@ -155,7 +237,6 @@ export class DraftService {
       }
 
       // RESET LOGIC: If document is effectively cleared, reset stats
-      // This allows a user to "undo" a paste by deleting it and starting fresh.
       if (runningLength < 10) { 
         totalCharsAdded = 0;
         pasteChars = 0;
@@ -169,32 +250,33 @@ export class DraftService {
   }
 
   /**
-   * Compute "Sovereignty Score" (0-100)
+   * Compute "Sovereignty Score" based on telemetry and history
    */
   static async calculateSovereigntyScore(draftId: string): Promise<number> {
     const { data: snapshots } = await supabase
       .from('draft_snapshots')
       .select('*')
       .eq('draft_id', draftId)
-      .order('timestamp', { ascending: false }); // Newest first
+      .order('timestamp', { ascending: false }); 
 
     if (!snapshots || snapshots.length === 0) return 100;
 
     // Map to simple structure for computeScore
     const mappedSnaps = snapshots.map(s => ({
-      charCountDelta: s.char_count_delta,
-      pasteEventDetected: s.paste_event_detected
+      charCountDelta: s.char_count_delta ?? 0,
+      pasteEventDetected: s.paste_event_detected ?? false
     }));
 
     return DraftService.computeScore(mappedSnaps);
   }
 
+  // Helper: map DB row to frontend type
   private static mapDraft(row: DbDraft): Draft {
     return {
       id: row.id,
       userId: row.user_id,
-      title: row.title,
-      currentContent: row.current_content,
+      title: row.title ?? 'Untitled Draft',
+      currentContent: row.current_content ?? '',
       lastUpdated: row.last_updated,
       createdAt: row.created_at
     };

@@ -5,6 +5,7 @@ import { AttestationService } from '../services/attestationService';
 import { AnalysisService, SimplificationSuggestion, ParagraphAnalysis } from '../services/analysisService';
 import { Draft, DraftSnapshot } from '../types';
 import PerplexityBackdrop from './PerplexityBackdrop';
+import AuditModal from './AuditModal';
 import { useAuth } from '../contexts/AuthContext';
 
 interface EditorPageProps {
@@ -23,6 +24,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [sovereigntyScore, setSovereigntyScore] = useState(100);
   const [showHistory, setShowHistory] = useState(true); // Default: Open Timeline
+  const [showAuditModal, setShowAuditModal] = useState(false);
   
   // Anti-Thesaurus State
   const [showAntiThesaurus, setShowAntiThesaurus] = useState(false);
@@ -70,7 +72,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
     
     // Timeout Promise
     const timeoutPromise = new Promise<typeof TIMEOUT_TOKEN>((resolve) => 
-        setTimeout(() => resolve(TIMEOUT_TOKEN), 2000)
+        setTimeout(() => resolve(TIMEOUT_TOKEN), 5000)
     );
 
     let newDraft: Draft | null | typeof TIMEOUT_TOKEN = null;
@@ -265,7 +267,38 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
 
   const handleAttest = async () => {
     if (!draft) return;
-    await AttestationService.generateCertificate(draft, snapshots, sovereigntyScore);
+    
+    let targetDraft = draft;
+
+    // Safety: If draft is still local (offline/race condition), force sync to server first
+    if (targetDraft.id.startsWith('local-')) {
+        setIsSaving(true);
+        try {
+            console.log('[Editor] Force-promoting local draft before attestation...');
+            const promoted = await DraftService.updateDraft(
+                targetDraft.id, 
+                content, 
+                previousContentRef.current, 
+                false
+            );
+            
+            if (promoted && !promoted.id.startsWith('local-')) {
+                console.log('[Editor] Promotion success. New ID:', promoted.id);
+                targetDraft = promoted;
+                setDraft(promoted);
+            } else {
+                throw new Error('Promotion returned null or local ID');
+            }
+        } catch (e) {
+            console.error('[Editor] Failed to sync local draft:', e);
+            alert('Unable to sync draft to server. Please check your connection and try again.');
+            setIsSaving(false);
+            return;
+        }
+        setIsSaving(false);
+    }
+
+    await AttestationService.generateCertificate(targetDraft, snapshots, sovereigntyScore);
   };
   
   const handleReset = async () => {
@@ -367,14 +400,16 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
              )}
            </button>
 
-           <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border ${
-            sovereigntyScore > 80 
-              ? 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400' 
-              : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400'
-          }`}>
-            <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="text-[10px] sm:text-xs font-bold tracking-wide">{sovereigntyScore}%</span>
-          </div>
+           <button 
+             onClick={() => setShowAuditModal(true)}
+             className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border transition-transform active:scale-95 ${
+             sovereigntyScore > 80 
+               ? 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-500/20 cursor-pointer' 
+               : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20 cursor-pointer'
+           }`}>
+             <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4" />
+             <span className="text-[10px] sm:text-xs font-bold tracking-wide">{sovereigntyScore}%</span>
+           </button>
 
           <button 
             className={`p-1.5 sm:p-2 rounded-full transition-colors relative ${
@@ -557,6 +592,15 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
           </aside>
         )}
       </main>
+
+      <AuditModal 
+        isOpen={showAuditModal}
+        onClose={() => setShowAuditModal(false)}
+        theme={theme}
+        snapshots={snapshots}
+        sovereigntyScore={sovereigntyScore}
+        draftId={draft?.id || 'offline-draft'}
+      />
     </div>
   );
 }

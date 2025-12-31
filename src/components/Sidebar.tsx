@@ -339,8 +339,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                className="flex items-center justify-center gap-2 p-2.5 rounded-xl text-xs font-medium text-gray-500 hover:text-[#85683F] hover:bg-[#F2E8CF]/10 transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              <span>Log out</span>
+              <span>Log Out</span>
             </button>
+
+
+
           </div>
         </div>
       </aside>
