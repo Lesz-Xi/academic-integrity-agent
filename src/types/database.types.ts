@@ -231,16 +231,22 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          theme: string | null
+          disclaimer_accepted: boolean | null
         }
         Insert: {
           created_at?: string
           email: string
           id: string
+          theme?: string | null
+          disclaimer_accepted?: boolean | null
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
+          theme?: string | null
+          disclaimer_accepted?: boolean | null
         }
         Relationships: []
       }

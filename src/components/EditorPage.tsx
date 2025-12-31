@@ -298,7 +298,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
         setIsSaving(false);
     }
 
-    await AttestationService.generateCertificate(targetDraft, snapshots, sovereigntyScore);
+    await AttestationService.generateCertificate(targetDraft, sovereigntyScore);
   };
   
   const handleReset = async () => {

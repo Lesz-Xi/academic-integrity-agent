@@ -35,8 +35,8 @@ function toSubscription(row: SubscriptionRow): Subscription {
     paypalSubscriptionId: row.paypal_subscription_id,
     currentPeriodStart: row.current_period_start ? new Date(row.current_period_start) : null,
     currentPeriodEnd: row.current_period_end ? new Date(row.current_period_end) : null,
-    createdAt: new Date(row.created_at),
-    updatedAt: new Date(row.updated_at),
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   }
 }
 

@@ -3,7 +3,7 @@ import { Draft, DraftSnapshot } from '../types';
 
 export class AttestationService {
   
-  static async generateCertificate(draft: Draft, snapshots: DraftSnapshot[], score: number) {
+  static async generateCertificate(draft: Draft, score: number) {
     try {
         console.log('[Attestation] Requesting forensic certificate for draft:', draft.id);
 
