@@ -37,6 +37,9 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   // Debounce ref
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const previousContentRef = useRef('');
+  
+  // Promotion Lock: Prevents concurrent draft promotions race condition
+  const promotionInProgressRef = useRef<Promise<Draft | null> | null>(null);
 
   // 1. Initialize Draft on Mount
   useEffect(() => {
@@ -189,15 +192,35 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
     previousContentRef.current = currentContent; // Update local ref immediately
     
     // Fire and forget (or rather, fire and reconcile)
-    DraftService.updateDraft(draft.id, currentContent, oldContent, isPaste, draft.userId)
-      .then(async (updated) => {
+    // Store the promise so handleAttest can await it if needed
+    const updatePromise = DraftService.updateDraft(
+      draft.id, 
+      currentContent, 
+      oldContent, 
+      isPaste, 
+      draft.userId,
+      // Callback: Immediately update state when promotion creates a server draft
+      (promotedDraft) => {
+        console.log('[Editor] Draft promoted, updating state immediately:', promotedDraft.id);
+        setDraft(promotedDraft);
+      }
+    );
+    
+    // Track in ref so handleAttest can wait for it
+    promotionInProgressRef.current = updatePromise;
+    
+    updatePromise.then(async (updated) => {
+        // Clear the ref when done
+        promotionInProgressRef.current = null;
+        
         if (updated) {
            setDraft(updated);
            setLastSaved(new Date());
            // Re-fetch authoritative state to replace optimistic one
+           // Use the updated draft ID in case it was promoted
            const [score, latestSnapshots] = await Promise.all([
-            DraftService.calculateSovereigntyScore(draft.id),
-            DraftService.getSnapshots(draft.id)
+            DraftService.calculateSovereigntyScore(updated.id),
+            DraftService.getSnapshots(updated.id)
            ]);
            setSovereigntyScore(score);
            
@@ -269,6 +292,31 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
     if (!draft) return;
     
     let targetDraft = draft;
+    
+    // FIX: Wait for any pending save/promotion operation to complete first
+    // This prevents the race condition where both saveDraft and handleAttest
+    // run concurrent promotions because they both see the stale local- ID
+    if (promotionInProgressRef.current) {
+        console.log('[Editor] Waiting for pending save operation to complete...');
+        setIsSaving(true);
+        try {
+            const pendingResult = await promotionInProgressRef.current;
+            if (pendingResult && !pendingResult.id.startsWith('local-')) {
+                console.log('[Editor] Pending save resolved with server draft:', pendingResult.id);
+                targetDraft = pendingResult;
+                setDraft(pendingResult);
+                // Draft is now promoted, proceed directly to attestation
+                setIsSaving(false);
+                await AttestationService.generateCertificate(targetDraft, sovereigntyScore);
+                return;
+            }
+        } catch (e) {
+            console.warn('[Editor] Pending save failed, will attempt fresh promotion:', e);
+        }
+        setIsSaving(false);
+        // Re-read draft state in case callback updated it
+        targetDraft = draft;
+    }
 
     // Safety: If draft is still local (offline/race condition), force sync to server first
     if (targetDraft.id.startsWith('local-')) {
@@ -280,7 +328,11 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
                 content, 
                 previousContentRef.current, 
                 false,
-                targetDraft.userId // Pass user ID explicitly
+                targetDraft.userId, // Pass user ID explicitly
+                (newDraft) => {
+                    console.log('[Editor] Attestation promotion callback fired:', newDraft.id);
+                    setDraft(newDraft);
+                }
             );
             
             if (promoted && !promoted.id.startsWith('local-')) {

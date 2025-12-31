@@ -99,6 +99,7 @@ export class DraftService {
     previousContent: string,
     isPaste: boolean = false,
     userId?: string, // SOVEREIGN BYPASS: Pass ID directly to avoid Auth Client deadlocks
+    onDraftPromoted?: (newDraft: Draft) => void, // Callback when local draft is promoted to server
     client: SupabaseClient<Database> = supabase
   ): Promise<Draft | null> {
     
@@ -161,10 +162,17 @@ export class DraftService {
             }
             console.log('[DraftService] Server draft created:', newDraft.id);
             
+            // Immediately notify caller so they can update React state
+            // This prevents race conditions where handleAttest sees stale local- ID
+            if (onDraftPromoted) {
+                console.log('[DraftService] Notifying caller of promotion...');
+                onDraftPromoted(newDraft);
+            }
+            
             // 3. Update content (Snapshot)
             console.log('[DraftService] Syncing content to new draft...');
-            // Pass the resolvedUserId AND emergencyClient to recursive call
-            return DraftService.updateDraft(newDraft.id, content, '', false, resolvedUserId, emergencyClient);
+            // Pass the resolvedUserId AND emergencyClient to recursive call (no callback for recursive call)
+            return DraftService.updateDraft(newDraft.id, content, '', false, resolvedUserId, undefined, emergencyClient);
 
         } catch (err) {
             console.warn('[DraftService] Promotion Exception:', err);
