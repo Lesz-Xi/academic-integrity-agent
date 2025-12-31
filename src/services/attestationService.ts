@@ -3,19 +3,22 @@ import { Draft } from '../types';
 
 export class AttestationService {
   
-  static async generateCertificate(draft: Draft, score: number) {
+  static async generateCertificate(draft: Draft, score: number, retryCount: number = 0): Promise<void> {
     try {
         console.log('[Attestation] Requesting forensic certificate for draft:', draft.id);
         console.log('[Attestation] Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+        console.log('[Attestation] Attempt:', retryCount + 1);
 
-        // Add timeout to prevent hanging indefinitely
+        // Extended timeout for Supabase cold start (90 seconds)
+        const TIMEOUT_MS = 90000;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
-            console.error('[Attestation] Request timed out after 30s');
+            console.error(`[Attestation] Request timed out after ${TIMEOUT_MS / 1000}s`);
             controller.abort();
-        }, 30000);
+        }, TIMEOUT_MS);
 
-        console.log('[Attestation] Invoking Edge Function...');
+        console.log('[Attestation] Invoking Edge Function (timeout: 90s)...');
+        console.time('[Attestation] Edge Function call');
         
         const { data, error } = await supabase.functions.invoke('attest-session', {
             body: { 
@@ -26,13 +29,22 @@ export class AttestationService {
         });
         
         clearTimeout(timeoutId);
+        console.timeEnd('[Attestation] Edge Function call');
         console.log('[Attestation] Edge Function response received');
         console.log('[Attestation] Data:', data);
         console.log('[Attestation] Error:', error);
 
         if (error) {
             console.error('[Attestation] Edge Function Error:', error);
-            alert(`Failed to generate certificate: ${error.message || 'Unknown error'}`);
+            
+            // Retry once if this is the first attempt
+            if (retryCount === 0) {
+                console.log('[Attestation] Retrying after 2 seconds...');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                return this.generateCertificate(draft, score, retryCount + 1);
+            }
+            
+            alert(`Failed to generate certificate: ${error.message || 'Unknown error'}. Please try again.`);
             return;
         }
 
@@ -63,7 +75,15 @@ export class AttestationService {
 
     } catch (err) {
         console.error('[Attestation] Service Error:', err);
-        alert('An unexpected error occurred during attestation.');
+        
+        // Retry once on any error
+        if (retryCount === 0) {
+            console.log('[Attestation] Retrying after 2 seconds...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return this.generateCertificate(draft, score, retryCount + 1);
+        }
+        
+        alert('An unexpected error occurred during attestation. Please try again.');
     }
   }
 }
