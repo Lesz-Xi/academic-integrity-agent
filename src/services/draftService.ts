@@ -67,6 +67,9 @@ export class DraftService {
    */
   static async createDraft(userId: string, title: string = 'Untitled Draft', client: SupabaseClient<Database> = supabase): Promise<Draft | null> {
     try {
+      console.log('[DraftService] createDraft starting for user:', userId);
+      console.time('[DraftService] INSERT drafts');
+      
       const { data, error } = await client
         .from('drafts')
         .insert({
@@ -77,9 +80,19 @@ export class DraftService {
         .select()
         .single();
 
-      if (error) throw error;
-      if (!data) return null;
+      console.timeEnd('[DraftService] INSERT drafts');
+      
+      if (error) {
+        console.error('[DraftService] INSERT error:', error);
+        throw error;
+      }
+      if (!data) {
+        console.warn('[DraftService] INSERT returned no data');
+        return null;
+      }
 
+      console.log('[DraftService] Draft created successfully:', data.id);
+      
       // Start telemetry session
       telemetryService.startSession();
       

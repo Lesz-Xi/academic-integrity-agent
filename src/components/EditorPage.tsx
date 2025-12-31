@@ -69,26 +69,34 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   const initializeDraft = async () => {
     if (!user) return;
     
-    // Attempt to create on server with explicit 2s timeout
-    // Sentinel value for timeout
+    console.log('[Editor] Initializing draft for user:', user.id);
+    console.time('[Editor] Draft initialization');
+    
+    // Attempt to create on server with 15s timeout (allows for Supabase cold start)
     const TIMEOUT_TOKEN = Symbol('TIMEOUT');
     
-    // Timeout Promise
     const timeoutPromise = new Promise<typeof TIMEOUT_TOKEN>((resolve) => 
-        setTimeout(() => resolve(TIMEOUT_TOKEN), 8000)
+        setTimeout(() => {
+            console.warn('[Editor] createDraft timeout after 15s');
+            resolve(TIMEOUT_TOKEN);
+        }, 15000) // Increased from 8s to 15s for cold start tolerance
     );
 
     let newDraft: Draft | null | typeof TIMEOUT_TOKEN = null;
 
     try {
+        console.log('[Editor] Calling DraftService.createDraft...');
         newDraft = await Promise.race([
             DraftService.createDraft(user.id, 'Untitled Essay'),
             timeoutPromise
         ]);
+        console.log('[Editor] createDraft returned:', newDraft ? (typeof newDraft === 'symbol' ? 'TIMEOUT' : newDraft.id) : 'null');
     } catch (e) {
         console.warn('[Editor] Draft creation threw error:', e);
         newDraft = null;
     }
+    
+    console.timeEnd('[Editor] Draft initialization');
     
     // FALLBACK: Local Mode (Sovereign Offline)
     // Trigger if null (failed) OR if it's the timeout token
