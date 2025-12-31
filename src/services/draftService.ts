@@ -57,8 +57,17 @@ export class DraftService {
             // Prevent unhandled rejection
             timeoutPromise.catch(() => {});
             
-            // Try sync check first
-            let userId = (await supabase.auth.getUser()).data.user?.id;
+            // Try sync check first (Raced against timeout)
+            console.log('[DraftService] Resolving user identity...');
+            
+            // Explicitly define the race to ensure type safety isn't the issue, though 'as any' handles the mix
+            // We use 'as any' because timeoutPromise rejects, so the successful resolution type is what matters
+            const { data: authData } = await Promise.race([
+                supabase.auth.getUser(),
+                timeoutPromise
+            ]) as { data: { user: { id: string } | null } | null };
+
+            let userId = authData?.user?.id;
             
             if (!userId) {
                 console.warn('[DraftService] No user in getUser(), trying getSession with timeout...');
