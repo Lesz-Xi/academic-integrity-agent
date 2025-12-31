@@ -1,164 +1,213 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+// attest-session/index.ts
+import { createClient } from "npm:@supabase/supabase-js@2.39.0";
+import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 
+// Module-scoped Supabase client so it can be reused between invocations.
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+}
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+// CORS
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Content-Type": "application/json",
 };
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+// Helper: promise timeout
+function withTimeout<T>(ms: number, promise: Promise<T>, errorMessage = "Operation timed out"): Promise<T> {
+  const timeout = new Promise<never>((_, rej) => {
+    const id = setTimeout(() => {
+      clearTimeout(id);
+      rej(new Error(errorMessage));
+    }, ms);
+  });
+  return Promise.race([promise, timeout]);
+}
+
+// Helper: safe base64 encode for Uint8Array (chunked)
+function base64FromBytes(bytes: Uint8Array): string {
+  const chunkSize = 0x8000; // 32KB
+  let result = "";
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    result += String.fromCharCode.apply(null, Array.from(chunk) as any);
+  }
+  return globalThis.btoa(result);
+}
+
+// Main handler
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    // Limit overall handler runtime (e.g., 20s)
+    return await withTimeout(20000, (async () => {
+      if (req.method !== "POST") {
+        return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: corsHeaders });
+      }
 
-    const { draftId } = await req.json();
+      let payload: any;
+      try {
+        payload = await req.json();
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: corsHeaders });
+      }
 
-    if (!draftId) throw new Error('Missing draftId');
+      const draftId = payload?.draftId;
+      if (!draftId) {
+        return new Response(JSON.stringify({ error: "Missing draftId" }), { status: 400, headers: corsHeaders });
+      }
 
-    // 1. Fetch Data
-    const { data: draft, error: draftError } = await supabase
-      .from('drafts')
-      .select('*')
-      .eq('id', draftId)
-      .single();
+      // 1) Fetch draft
+      const { data: draft, error: draftError } = await withTimeout(
+        8000,
+        supabase.from("drafts").select("*").eq("id", draftId).single(),
+        "Draft fetch timed out"
+      );
+      if (draftError || !draft) {
+        console.error("Draft fetch error:", draftError);
+        return new Response(JSON.stringify({ error: "Draft not found" }), { status: 404, headers: corsHeaders });
+      }
 
-    if (draftError || !draft) throw new Error('Draft not found');
+      // 1b) Author email (resilient)
+      let authorEmail = "Anonymous";
+      if (draft.user_id) {
+        try {
+          const res = await withTimeout(5000, supabase.auth.admin.getUserById(draft.user_id), "getUserById timed out");
+          if (res?.data?.user?.email) authorEmail = res.data.user.email;
+        } catch (e) {
+          console.warn("Failed to fetch user email, continuing as Anonymous", e);
+        }
+      }
 
-    // Fetch email manually since FK doesn't exist for join
-    let authorEmail = 'Anonymous';
-    if (draft.user_id) {
-       const { data: userData } = await supabase.auth.admin.getUserById(draft.user_id);
-       authorEmail = userData.user?.email || 'Anonymous';
-    }
+      // 1c) Fetch snapshots
+      const { data: snapshots = [], error: snapError } = await withTimeout(
+        8000,
+        supabase.from("draft_snapshots").select("*").eq("draft_id", draftId).order("timestamp", { ascending: true }),
+        "Snapshots fetch timed out"
+      );
+      if (snapError) {
+        console.error("Snapshots fetch error:", snapError);
+        return new Response(JSON.stringify({ error: "Snapshots fetch failed" }), { status: 500, headers: corsHeaders });
+      }
 
-    const { data: snapshots, error: snapError } = await supabase
-      .from('draft_snapshots')
-      .select('*')
-      .eq('draft_id', draftId)
-      .order('timestamp', { ascending: true }); // Chronological
+      const totalEdits = Array.isArray(snapshots) ? snapshots.length : 0;
+      const startTime = totalEdits > 0 ? snapshots[0]?.timestamp : null;
+      const endTime = totalEdits > 0 ? snapshots[totalEdits - 1]?.timestamp : null;
+      const finalHash = totalEdits > 0 ? snapshots[totalEdits - 1]?.integrity_hash ?? "N/A" : "N/A";
+      const integrityScore = 100;
 
-    if (snapError) throw new Error('Snapshots fetch failed');
+      // 2) Generate PDF (bounded work)
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([612, 792]); // standard letter
+      const { width, height } = page.getSize();
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const titleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    // 2. Forensics Analysis (Simplified)
-    const startTime = snapshots[0]?.timestamp;
-    const endTime = snapshots[snapshots.length - 1]?.timestamp;
-    const totalEdits = snapshots.length;
-    const finalHash = snapshots[snapshots.length - 1]?.integrity_hash || 'N/A';
-    
-    // Calculate Integrity Score (Mock logic matching frontend)
-    // In real app, re-verify standard deviation of flight times here.
-    const integrityScore = 100; 
+      const margin = 50;
+      let yPos = height - margin;
 
-    // 3. Generate PDF
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage();
-    const { width, height } = page.getSize();
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const titleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      page.drawText("Certificate of Authorship", { x: margin, y: yPos, size: 20, font: titleFont, color: rgb(0, 0, 0) });
+      yPos -= 28;
+      page.drawText("Sovereignty Engine v1.0", { x: margin, y: yPos, size: 10, font, color: rgb(0.5, 0.5, 0.5) });
+      yPos -= 20;
 
-    // Header
-    page.drawText('Certificate of Authorship', {
-      x: 50,
-      y: height - 50,
-      size: 24,
-      font: titleFont,
-      color: rgb(0, 0, 0),
-    });
+      const drawMeta = (label: string, value: string) => {
+        page.drawText(label, { x: margin, y: yPos, size: 11, font: titleFont });
+        page.drawText(value, { x: margin + 120, y: yPos, size: 11, font });
+        yPos -= 18;
+      };
 
-    page.drawText(`Sovereignty Engine v1.0`, {
-      x: 50,
-      y: height - 80,
-      size: 12,
-      font,
-      color: rgb(0.5, 0.5, 0.5),
-    });
+      drawMeta("Author:", authorEmail);
+      drawMeta("Draft ID:", String(draft.id));
+      drawMeta("Title:", String(draft.title ?? "Untitled"));
+      drawMeta("Date:", new Date().toISOString().split("T")[0]);
+      drawMeta("Integrity Score:", `${integrityScore}%`);
+      drawMeta("Final Hash:", finalHash?.substring(0, 32) + "...");
 
-    // Metadata
-    const drawMeta = (label: string, value: string, y: number) => {
-       page.drawText(label, { x: 50, y, size: 12, font: titleFont });
-       page.drawText(value, { x: 200, y, size: 12, font });
-    };
+      yPos -= 10;
+      page.drawText("Chain of Custody Log:", { x: margin, y: yPos, size: 13, font: titleFont });
+      yPos -= 18;
 
-    let yPos = height - 120;
-    drawMeta('Author:', authorEmail, yPos); yPos -= 25;
-    drawMeta('Draft ID:', draft.id, yPos); yPos -= 25;
-    drawMeta('Title:', draft.title || 'Untitled', yPos); yPos -= 25;
-    drawMeta('Date:', new Date().toISOString().split('T')[0], yPos); yPos -= 25;
-    drawMeta('Integrity Score:', `${integrityScore}%`, yPos); yPos -= 25;
-    drawMeta('Final Hash:', finalHash.substring(0, 32) + '...', yPos); yPos -= 40;
+      const lastSnapshots = (snapshots || []).slice(-10);
+      for (const s of lastSnapshots) {
+        const ts = s?.timestamp ? new Date(s.timestamp).toLocaleTimeString() : "N/A";
+        const delta = s?.char_count_delta ?? s?.charCountDelta ?? "N/A";
+        const hash = s?.integrity_hash ? String(s.integrity_hash).substring(0, 8) : "N/A";
+        const line = `[${ts}] Delta: ${delta} chars | Hash: ${hash}`;
+        // Avoid writing outside page
+        if (yPos < margin) break;
+        page.drawText(line, { x: margin, y: yPos, size: 10, font });
+        yPos -= 14;
+      }
+      if ((snapshots?.length ?? 0) > 10 && yPos >= margin) {
+        page.drawText(`... and ${snapshots.length - 10} more events.`, { x: margin, y: yPos, size: 10, font: titleFont });
+      }
 
-    // Chain of Custody
-    page.drawText('Chain of Custody Log:', { x: 50, y: yPos, size: 14, font: titleFont });
-    yPos -= 25;
+      const pdfBytes = await pdfDoc.save();
+      const fileName = `certificates/${draftId}_${Date.now()}.pdf`;
 
-    snapshots.slice(-10).forEach((s: any) => { // Last 10 events
-      const line = `[${new Date(s.timestamp).toLocaleTimeString()}] Delta: ${s.char_count_delta ?? s.charCountDelta} chars | Hash: ${s.integrity_hash?.substring(0, 8) ?? 'N/A'}`;
-      page.drawText(line, { x: 50, y: yPos, size: 10, font });
-      yPos -= 15;
-    });
-    
-    if (snapshots.length > 10) {
-       page.drawText(`... and ${snapshots.length - 10} more events.`, { x: 50, y: yPos, size: 10, font: titleFont });
-    }
+      // 3) Upload PDF to storage
+      let publicUrl = "";
+      try {
+        const { data: uploadData, error: uploadError } = await withTimeout(
+          10000,
+          supabase.storage.from("certificates").upload(fileName, pdfBytes, {
+            contentType: "application/pdf",
+            upsert: true,
+          }),
+          "Storage upload timed out"
+        );
+        if (uploadError) {
+          console.error("Storage upload error:", uploadError);
+        } else {
+          const { data: publicURLData } = supabase.storage.from("certificates").getPublicUrl(fileName);
+          publicUrl = publicURLData?.publicUrl ?? "";
+        }
+      } catch (e) {
+        console.error("Storage operation failed:", e);
+      }
 
-    // 4. Save PDF
-    const pdfBytes = await pdfDoc.save();
-    const fileName = `certificates/${draftId}_${Date.now()}.pdf`;
-    
-    // We assume 'certificates' bucket exists (user must create strictly or we catch error)
-    // For now, simpler to just return base64 for download if bucket fails, but let's try upload.
-    const { data: uploadData, error: uploadError } = await supabase
-      .storage
-      .from('certificates')
-      .upload(fileName, pdfBytes, {
-        contentType: 'application/pdf',
-        upsert: true
-      });
+      // 4) Record certificate in DB (best-effort)
+      try {
+        if (publicUrl) {
+          await withTimeout(
+            5000,
+            supabase.from("attestation_certificates").insert({
+              user_id: draft.user_id ?? null,
+              draft_id: draftId,
+              pdf_path: fileName,
+              verification_url: publicUrl,
+              integrity_score: integrityScore,
+              metadata: { total_edits: totalEdits, start_time: startTime, end_time: endTime },
+            }),
+            "Insert certificate timed out"
+          );
+        }
+      } catch (e) {
+        console.warn("Failed to record certificate in DB:", e);
+      }
 
-    let publicUrl = '';
-    if (!uploadError) {
-      const { data: publicURLData } = supabase.storage.from('certificates').getPublicUrl(fileName);
-      publicUrl = publicURLData.publicUrl;
-    } else {
-       console.error('Storage Upload Failed', uploadError);
-       // Fallback: Return raw bytes or error?
-       // For this MVP, let's return the bytes so frontend can download directly if storage fails
-       // Or just throw.
-    }
+      // 5) Response
+      const body: any = { success: true, url: publicUrl ?? null };
+      if (!publicUrl) {
+        // return base64 (safe) if upload failed
+        body.pdfBase64 = base64FromBytes(new Uint8Array(pdfBytes));
+      }
 
-    // 5. Record Certificate in DB
-    if (publicUrl) {
-        await supabase.from('attestation_certificates').insert({
-            user_id: draft.user_id,
-            draft_id: draftId,
-            pdf_path: fileName,
-            verification_url: publicUrl,
-            integrity_score: integrityScore,
-            metadata: { total_edits: totalEdits }
-        });
-    }
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        url: publicUrl,
-        // If storage failed, return base64?
-        pdfBase64: !publicUrl ? btoa(String.fromCharCode(...pdfBytes)) : undefined 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
+      return new Response(JSON.stringify(body), { headers: corsHeaders });
+    })(), "Handler timed out");
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    console.error("Unhandled error:", error);
+    return new Response(JSON.stringify({ error: (error as Error).message ?? "Internal error" }), {
+      status: 500,
+      headers: corsHeaders,
+    });
   }
 });
