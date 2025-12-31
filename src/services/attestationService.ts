@@ -6,7 +6,17 @@ export class AttestationService {
   static async generateCertificate(draft: Draft, score: number) {
     try {
         console.log('[Attestation] Requesting forensic certificate for draft:', draft.id);
+        console.log('[Attestation] Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
 
+        // Add timeout to prevent hanging indefinitely
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            console.error('[Attestation] Request timed out after 30s');
+            controller.abort();
+        }, 30000);
+
+        console.log('[Attestation] Invoking Edge Function...');
+        
         const { data, error } = await supabase.functions.invoke('attest-session', {
             body: { 
                 draftId: draft.id,
@@ -14,10 +24,15 @@ export class AttestationService {
                 clientScore: score 
             }
         });
+        
+        clearTimeout(timeoutId);
+        console.log('[Attestation] Edge Function response received');
+        console.log('[Attestation] Data:', data);
+        console.log('[Attestation] Error:', error);
 
         if (error) {
             console.error('[Attestation] Edge Function Error:', error);
-            alert('Failed to generate certificate. Please try again.');
+            alert(`Failed to generate certificate: ${error.message || 'Unknown error'}`);
             return;
         }
 
