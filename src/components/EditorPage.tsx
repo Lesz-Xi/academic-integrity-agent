@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon, RotateCcw, Wand2, Flame } from 'lucide-react';
+import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon, RotateCcw, Wand2, Flame, Loader2 } from 'lucide-react';
 import { DraftService } from '../services/draftService';
 import { AttestationService } from '../services/attestationService';
 import { AnalysisService, SimplificationSuggestion, ParagraphAnalysis } from '../services/analysisService';
 import { Draft, DraftSnapshot } from '../types';
 import PerplexityBackdrop from './PerplexityBackdrop';
+import { StatusIndicator, SecurityStatus } from './StatusIndicator';
 import AuditModal from './AuditModal';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 interface EditorPageProps {
   onBack: () => void;
@@ -16,14 +18,20 @@ interface EditorPageProps {
 
 export default function EditorPage({ onBack, theme, toggleTheme }: EditorPageProps) {
   const { user } = useAuth();
+  // State
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('Untitled Essay');
   const [draft, setDraft] = useState<Draft | null>(null);
-  const [snapshots, setSnapshots] = useState<DraftSnapshot[]>([]); 
+  const [snapshots, setSnapshots] = useState<DraftSnapshot[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true); // New explicit loading state
+  const [initError, setInitError] = useState<string | null>(null);
+  // [SOVEREIGNTY] Persist the client used for initialization (Standard or Emergency)
+  // This ensures subsequent saves/attestations use the SAME transport that succeeded.
+  const [sovereignClient, setSovereignClient] = useState<SupabaseClient<Database> | null>(null); // New error state
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [sovereigntyScore, setSovereigntyScore] = useState(100);
-  const [showHistory, setShowHistory] = useState(true); // Default: Open Timeline
+  const [showHistory, setShowHistory] = useState(true);
   const [showAuditModal, setShowAuditModal] = useState(false);
   
   // Anti-Thesaurus State
@@ -34,148 +42,109 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [sentenceAnalysis, setSentenceAnalysis] = useState<ParagraphAnalysis[]>([]);
 
-  // Debounce ref
+  // Refs
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const previousContentRef = useRef('');
-  
-  // Promotion Lock: Prevents concurrent draft promotions race condition
-  const promotionInProgressRef = useRef<Promise<Draft | null> | null>(null);
-
-  // Database warm-up function to prevent cold start
-  const warmUpDatabase = async (): Promise<boolean> => {
-    console.log('[Editor] Warming up database...');
-    console.time('[Editor] Database warm-up');
-    
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ping`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-          }
-        }
-      );
-      
-      const data = await response.json();
-      console.timeEnd('[Editor] Database warm-up');
-      console.log('[Editor] Warm-up result:', data);
-      return data.status === 'warm';
-    } catch (error) {
-      console.warn('[Editor] Warm-up failed:', error);
-      console.timeEnd('[Editor] Database warm-up');
-      return false;
-    }
-  };
-
-  // 1. Initialize Draft on Mount (with warm-up)
-  useEffect(() => {
-    if (!user) return;
-    
-    // Warm up database first, then initialize draft
-    const init = async () => {
-      await warmUpDatabase();
-      await initializeDraft();
-    };
-    
-    init();
-  }, [user]);
-  
-  // Anti-Thesaurus & Heatmap Auto-Scan
-  useEffect(() => {
-    if (content) {
-        // Debounce scan slightly to avoid lag on huge texts
-        const timer = setTimeout(() => {
-            if (showAntiThesaurus) {
-                const suggestions = AnalysisService.scanForSimplification(content);
-                setSimplifications(suggestions);
-            }
-            if (showHeatmap) {
-                // Phase 4: Burstiness Analysis
-                const analysis = AnalysisService.analyzeBurstiness(content);
-                setSentenceAnalysis(analysis);
-            }
-        }, 500);
-        return () => clearTimeout(timer);
-    }
-  }, [content, showAntiThesaurus, showHeatmap]);
-  
-  const initializeDraft = async () => {
-    if (!user) return;
-    
-    console.log('[Editor] Initializing draft for user:', user.id);
-    console.time('[Editor] Draft initialization');
-    
-    // Attempt to create on server with 15s timeout (allows for Supabase cold start)
-    const TIMEOUT_TOKEN = Symbol('TIMEOUT');
-    
-    const timeoutPromise = new Promise<typeof TIMEOUT_TOKEN>((resolve) => 
-        setTimeout(() => {
-            console.warn('[Editor] createDraft timeout after 15s');
-            resolve(TIMEOUT_TOKEN);
-        }, 15000) // Increased from 8s to 15s for cold start tolerance
-    );
-
-    let newDraft: Draft | null | typeof TIMEOUT_TOKEN = null;
-
-    try {
-        console.log('[Editor] Calling DraftService.createDraft...');
-        newDraft = await Promise.race([
-            DraftService.createDraft(user.id, 'Untitled Essay'),
-            timeoutPromise
-        ]);
-        console.log('[Editor] createDraft returned:', newDraft ? (typeof newDraft === 'symbol' ? 'TIMEOUT' : newDraft.id) : 'null');
-    } catch (e) {
-        console.warn('[Editor] Draft creation threw error:', e);
-        newDraft = null;
-    }
-    
-    console.timeEnd('[Editor] Draft initialization');
-    
-    // FALLBACK: Local Mode (Sovereign Offline)
-    // Trigger if null (failed) OR if it's the timeout token
-    if (!newDraft || newDraft === TIMEOUT_TOKEN) {
-        console.warn('[Editor] Server initialization failed or timed out. Creating local offline draft.');
-        newDraft = {
-            id: `local-${Date.now()}`, // Local ID
-            userId: user.id,
-            title: 'Untitled Essay (Offline)',
-            currentContent: '',
-            lastUpdated: new Date().toISOString(),
-            createdAt: new Date().toISOString()
-        };
-    }
-    
-    // Type guard: newDraft is now definitely Draft type because we assigned a fallback if it wasn't
-    const validDraft = newDraft as Draft;
-
-    if (validDraft) {
-      setDraft(validDraft);
-      setTitle(validDraft.title);
-      setLastSaved(new Date());
-      setSnapshots([]);
-      setSovereigntyScore(100);
-      setContent('');
-      previousContentRef.current = '';
-    }
-  };
-
   const isPasteRef = useRef(false);
+  const promotionInProgressRef = useRef<Promise<Draft | null> | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // Removed initializationInProgressRef - using state + effect cleanup instead
 
-  // Auto-resize logic
-  const adjustTextareaHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.max(textareaRef.current.scrollHeight, window.innerHeight * 0.8)}px`;
-    }
+  // Computed Security Status
+  const getSecurityStatus = (): SecurityStatus => {
+      // If initializing, consider it standard or pending?
+      if (isInitializing) return 'pending';
+      if (draft?.id.startsWith('local-')) return 'offline';
+      if (isSaving) return 'pending';
+      const latestSnap = snapshots[0];
+      if (!latestSnap) return 'secured'; // Genesis state
+      // If we have a snapshot but no hash, and we are not saving, it's a gap.
+      if (!latestSnap.integrityHash) return 'gap-detected';
+      return 'secured';
   };
+
+  // Initialization & Effects
+  useEffect(() => {
+    initializeDraft();
+    
+    // Cleanup function not needed for the async calls themselves, 
+    // but we might want to cancel pending requests if Supabase supports it (AbortController).
+    // For now, state checks like 'mounted' inside initializeDraft are enough.
+    return () => {
+        // cleanup if needed
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     adjustTextareaHeight();
   }, [content]);
 
-  // Event Handlers Restored
+  // Logic
+  const initializeDraft = async (force: boolean = false) => {
+    if (!user) return;
+    
+    // If not forcing (e.g. initial load), and we already have a draft for this user, skip.
+    if (!force && draft && draft.userId === user.id) {
+        setIsInitializing(false);
+        return;
+    }
+
+    setIsInitializing(true);
+    setInitError(null);
+
+    try {
+        console.log('[Editor] Initializing draft session...');
+        
+        // [SOVEREIGNTY HARDENING] 
+        // Use Emergency Client to bypass potential global auth deadlocks/race conditions.
+        // This ensures the INSERT operation has a dedicated, authenticated client instance.
+        const emergencyClient = await DraftService.getEmergencyClient();
+        const clientToUse = emergencyClient || supabase; // Fallback to global default if null
+        
+        // Persist this client for the session lifecycle
+        setSovereignClient(clientToUse);
+        
+        if (emergencyClient) {
+             console.log('[Editor] 🛡️ Using Emergency Client for Draft Creation');
+        }
+
+        // Pass user.id and client to createDraft.
+        const draftPromise = DraftService.createDraft(user.id, 'Untitled Draft', clientToUse);
+        const timeoutPromise = new Promise<null>((_, reject) => 
+            setTimeout(() => reject(new Error('Initialization timed out')), 45000)
+        );
+
+        const newDraft = await Promise.race([draftPromise, timeoutPromise]);
+        
+        if (newDraft) {
+            console.log('[Editor] Draft session established:', newDraft.id);
+            setDraft(newDraft);
+            setTitle(newDraft.title);
+            setContent(newDraft.content);
+            setSnapshots([]);
+            previousContentRef.current = newDraft.content;
+            setLastSaved(new Date());
+        } else {
+            // If explicit null returned (e.g. error caught in service), throw
+            throw new Error('Failed to create draft session (Service returned null)');
+        }
+    } catch (e: any) {
+        console.error('[Editor] Initialization failed:', e);
+        setInitError(e.message || 'Unable to establish secure draft session.');
+    } finally {
+        setIsInitializing(false);
+    }
+  };
+  
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  };
+
+  // Event Handlers
   const handlePaste = () => {
     isPasteRef.current = true;
   };
@@ -186,7 +155,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
     adjustTextareaHeight();
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setIsSaving(true);
+    // Note: isSaving is now set INSIDE saveDraft to avoid state leak if draft is null
     
     // Immediate save if it was a paste
     if (isPasteRef.current) {
@@ -203,86 +172,86 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
 
   // Helper: Save Draft
   const saveDraft = async (currentContent: string, isPaste: boolean) => {
-    if (!draft) return;
+    if (!draft) {
+      console.warn('[Editor] saveDraft called but draft is null, skipping.');
+      return;
+    }
+    
+    // Set isSaving HERE (after guard) so the finally block will always reset it
+    setIsSaving(true);
     
     // 1. Calculate Delta & Optimistic Snapshot
-    const charDelta = currentContent.length - previousContentRef.current.length;
-    // Lower threshold to capture all typing bursts
+    const prevLen = previousContentRef.current?.length || 0;
+    const charDelta = currentContent.length - prevLen;
     const diffThreshold = 0; 
     
-    // Create snapshot for any change (debounced)
     if (Math.abs(charDelta) > diffThreshold || isPaste) {
        const optimisticSnapshot: DraftSnapshot = {
-         id: `temp-${Date.now()}`, // Temporary ID
+         id: `temp-${Date.now()}`,
          draftId: draft.id,
          timestamp: new Date().toISOString(),
          contentDiff: null,
          charCountDelta: charDelta,
-         pasteEventDetected: isPaste
+         pasteEventDetected: isPaste,
+         integrityHash: undefined // Explicitly undefined until server confirms
        };
        
-       // Optimistic Update: Add to timeline immediately
        setSnapshots(prev => [optimisticSnapshot, ...prev]);
-       
-       // Optimistic Score Update
        const allSnaps = [optimisticSnapshot, ...snapshots];
        const newScore = DraftService.computeScore(allSnaps);
        setSovereigntyScore(newScore);
     }
 
     // 2. Perform Server Update (Background)
-    const oldContent = previousContentRef.current; // Capture for server call
-    previousContentRef.current = currentContent; // Update local ref immediately
-    
-    // Fire and forget (or rather, fire and reconcile)
-    // Store the promise so handleAttest can await it if needed
+    const oldContent = previousContentRef.current || '';
+    previousContentRef.current = currentContent;
+
     const updatePromise = DraftService.updateDraft(
       draft.id, 
       currentContent, 
       oldContent, 
       isPaste, 
       draft.userId,
-      // Callback: Immediately update state when promotion creates a server draft
       (promotedDraft) => {
         console.log('[Editor] Draft promoted, updating state immediately:', promotedDraft.id);
         setDraft(promotedDraft);
-      }
+      },
+      sovereignClient || undefined // <--- Pass the Sovereign Client!
     );
     
-    // Track in ref so handleAttest can wait for it
     promotionInProgressRef.current = updatePromise;
     
     updatePromise.then(async (updated) => {
-        // Clear the ref when done
         promotionInProgressRef.current = null;
         
         if (updated) {
            setDraft(updated);
            setLastSaved(new Date());
-           // Re-fetch authoritative state to replace optimistic one
-           // Use the updated draft ID in case it was promoted
+           // [SOVEREIGNTY FIX] Use sovereignClient to avoid global client deadlock
+           const clientToUse = sovereignClient || supabase;
            const [score, latestSnapshots] = await Promise.all([
-            DraftService.calculateSovereigntyScore(updated.id),
-            DraftService.getSnapshots(updated.id)
+            DraftService.calculateSovereigntyScore(updated.id, clientToUse),
+            DraftService.getSnapshots(updated.id, clientToUse)
            ]);
            setSovereigntyScore(score);
            
-           // Safety Check: If server returns empty but we have local snapshots,
-           // it might be a sync failure. Keep optimistic state + server state.
            if (latestSnapshots && latestSnapshots.length > 0) {
               setSnapshots(latestSnapshots);
-           } else if (latestSnapshots.length === 0 && snapshots.length > 0) {
-              console.warn('[Timeline] Server returned empty snapshots. Preserving optimistic state.');
-              // Don't wipe state.
            }
         }
+      })
+      .catch((err) => {
+          console.error('[Editor] Auto-save failed:', err);
+          // Keep optimistic snapshot but maybe flag error?
+          // The StatusIndicator will show 'gap-detected' because isSaving becomes false 
+          // and optimistic snapshot has no hash. Correct behavior.
+      })
+      .finally(() => {
+          setIsSaving(false);
       });
-      
-    setIsSaving(false);
   };
 
-  // Duplicates removed. The versions with logging are now at the top of the component.
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
 
   const handleHighlightSuggestion = (suggestion: SimplificationSuggestion) => {
       if (!textareaRef.current) return;
@@ -336,65 +305,68 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
     
     let targetDraft = draft;
     
-    // FIX: Wait for any pending save/promotion operation to complete first
-    // This prevents the race condition where both saveDraft and handleAttest
-    // run concurrent promotions because they both see the stale local- ID
-    if (promotionInProgressRef.current) {
-        console.log('[Editor] Waiting for pending save operation to complete...');
-        setIsSaving(true);
-        try {
-            const pendingResult = await promotionInProgressRef.current;
-            if (pendingResult && !pendingResult.id.startsWith('local-')) {
-                console.log('[Editor] Pending save resolved with server draft:', pendingResult.id);
-                targetDraft = pendingResult;
-                setDraft(pendingResult);
-                // Draft is now promoted, proceed directly to attestation
-                setIsSaving(false);
-                await AttestationService.generateCertificate(targetDraft, sovereigntyScore);
-                return;
-            }
-        } catch (e) {
-            console.warn('[Editor] Pending save failed, will attempt fresh promotion:', e);
-        }
-        setIsSaving(false);
-        // Re-read draft state in case callback updated it
-        targetDraft = draft;
-    }
+    // [SOVEREIGNTY PATTERN] Wrap ALL async operations in try/finally
+    // to guarantee isSaving state is always reset, even on error.
+    // This is the "Black Box" reliability standard.
+    
+    try {
+      setIsSaving(true);
+      
+      // FIX: Wait for any pending save/promotion operation to complete first
+      if (promotionInProgressRef.current) {
+          console.log('[Editor] Waiting for pending save operation to complete...');
+          try {
+              const pendingResult = await promotionInProgressRef.current;
+              if (pendingResult && !pendingResult.id.startsWith('local-')) {
+                  console.log('[Editor] Pending save resolved with server draft:', pendingResult.id);
+                  targetDraft = pendingResult;
+                  setDraft(pendingResult);
+                  // Draft is now promoted, proceed directly to attestation
+                  await AttestationService.generateCertificate(targetDraft, sovereigntyScore, 0, sovereignClient || undefined);
+                  return;
+              }
+          } catch (e) {
+              console.warn('[Editor] Pending save failed, will attempt fresh promotion:', e);
+          }
+          // Re-read draft state in case callback updated it
+          targetDraft = draft;
+      }
 
-    // Safety: If draft is still local (offline/race condition), force sync to server first
-    if (targetDraft.id.startsWith('local-')) {
-        setIsSaving(true);
-        try {
-            console.log('[Editor] Force-promoting local draft before attestation...');
-            const promoted = await DraftService.updateDraft(
-                targetDraft.id, 
-                content, 
-                previousContentRef.current, 
-                false,
-                targetDraft.userId, // Pass user ID explicitly
-                (newDraft) => {
-                    console.log('[Editor] Attestation promotion callback fired:', newDraft.id);
-                    setDraft(newDraft);
-                }
-            );
-            
-            if (promoted && !promoted.id.startsWith('local-')) {
-                console.log('[Editor] Promotion success. New ID:', promoted.id);
-                targetDraft = promoted;
-                setDraft(promoted);
-            } else {
-                throw new Error('Promotion returned null or local ID');
-            }
-        } catch (e) {
-            console.error('[Editor] Failed to sync local draft:', e);
-            alert('Unable to sync draft to server. Please check your connection and try again.');
-            setIsSaving(false);
-            return;
-        }
-        setIsSaving(false);
-    }
+      // Safety: If draft is still local (offline/race condition), force sync to server first
+      if (targetDraft.id.startsWith('local-')) {
+          console.log('[Editor] Force-promoting local draft before attestation...');
+          const promoted = await DraftService.updateDraft(
+              targetDraft.id, 
+              content, 
+              previousContentRef.current, 
+              false,
+              targetDraft.userId,
+              (newDraft) => {
+                  console.log('[Editor] Attestation promotion callback fired:', newDraft.id);
+                  setDraft(newDraft);
+              },
+              sovereignClient || undefined
+          );
+          
+          if (promoted && !promoted.id.startsWith('local-')) {
+              console.log('[Editor] Promotion success. New ID:', promoted.id);
+              targetDraft = promoted;
+              setDraft(promoted);
+          } else {
+              throw new Error('Promotion returned null or local ID');
+          }
+      }
 
-    await AttestationService.generateCertificate(targetDraft, sovereigntyScore);
+      // Final attestation call - now wrapped in the outer try/finally
+      await AttestationService.generateCertificate(targetDraft, sovereigntyScore, 0, sovereignClient || undefined);
+      
+    } catch (error: any) {
+      console.error('[Editor] Attestation failed:', error);
+      alert(`Attestation failed: ${error?.message || 'Unknown error'}. Please try again.`);
+    } finally {
+      // [SOVEREIGNTY GUARANTEE] Always reset isSaving, no matter what
+      setIsSaving(false);
+    }
   };
   
   const handleReset = async () => {
@@ -403,7 +375,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
         return;
       }
     }
-    await initializeDraft();
+    await initializeDraft(true);
   };
 
   return (
@@ -431,12 +403,12 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
               className="text-sm font-bold tracking-wide bg-transparent border-b border-transparent hover:border-black/20 dark:hover:border-white/20 focus:border-black/40 dark:focus:border-white/40 outline-none px-1 -mx-1 transition-colors truncate w-32 sm:w-auto"
               placeholder="Document Title..."
             />
-            <div className="text-xs opacity-50 flex items-center gap-2 truncate">
-              {isSaving ? (
-                <span className="animate-pulse">Saving...</span>
-              ) : (
-                <span className="truncate">Last saved: {lastSaved?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-              )}
+            <div className="flex items-center pl-1">
+              <StatusIndicator 
+                status={getSecurityStatus()} 
+                theme={theme}
+                className="scale-90 origin-left border-transparent bg-transparent pl-0"
+              />
             </div>
           </div>
         </div>
@@ -523,12 +495,25 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
           </button>
           
           <button 
-            onClick={handleAttest}
-            className="flex items-center gap-1 sm:gap-2 bg-black dark:bg-white text-white dark:text-black px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold hover:opacity-90 transition-opacity whitespace-nowrap"
-          >
-            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span>ATTEST</span>
-          </button>
+              onClick={handleAttest}
+              disabled={isSaving || isInitializing || !draft}
+              className={`
+                flex items-center gap-2 px-4 py-2 bg-white text-black font-bold uppercase tracking-wider text-xs rounded hover:bg-gray-200 transition-colors
+                ${(isSaving || isInitializing || !draft) ? 'opacity-50 cursor-not-allowed' : ''}
+              `}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-3 h-3" />
+                  <span>Attest</span>
+                </>
+              )}
+            </button>
         </div>
       </header>
 
@@ -537,8 +522,37 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
         <div className="flex-1 relative flex justify-center overflow-y-auto">
           <div className="w-full max-w-3xl py-12 px-8 relative"> {/* Added relative for backdrop positioning */}
             
+            {/* Loading / Error Overlay */}
+            {(isInitializing || initError) && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#FDFBF7]/90 dark:bg-[#0A0A0A]/90 backdrop-blur-sm transition-all duration-300">
+                    {initError ? (
+                        <div className="text-center p-6 max-w-sm sm:max-w-md bg-white dark:bg-black/40 border border-red-200 dark:border-red-900/50 rounded-2xl shadow-xl">
+                            <div className="bg-red-50 dark:bg-red-900/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <AlertTriangle className="w-8 h-8 text-red-500" />
+                            </div>
+                            <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2">Protocol Error</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed px-4">{initError}</p>
+                            <button 
+                                onClick={() => initializeDraft(true)}
+                                className="w-full px-4 py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold tracking-wide hover:opacity-90 transition-all active:scale-95 shadow-lg"
+                            >
+                                RETRY CONNECTION
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500">
+                             <div className="relative">
+                                <div className="w-12 h-12 border-4 border-black/10 dark:border-white/10 rounded-full"></div>
+                                <div className="absolute inset-0 w-12 h-12 border-4 border-black dark:border-white rounded-full border-t-transparent animate-spin"></div>
+                             </div>
+                            <span className="text-xs font-bold tracking-[0.2em] uppercase opacity-70 animate-pulse">Establishing Secure Link...</span>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Perplexity Heatmap Backdrop */}
-            {showHeatmap && (
+            {showHeatmap && !isInitializing && (
                 <PerplexityBackdrop 
                   content={content}
                   analysis={sentenceAnalysis}

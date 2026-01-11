@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase';
 import type { Draft, DraftSnapshot } from '../types';
 import type { Database } from '../types/database.types';
 import { telemetryService } from './telemetryService';
+import { calculateSnapshotHash } from '../utils/crypto';
+
 
 type DbDraft = Database['public']['Tables']['drafts']['Row'];
 
@@ -68,8 +70,9 @@ export class DraftService {
   static async createDraft(userId: string, title: string = 'Untitled Draft', client: SupabaseClient<Database> = supabase): Promise<Draft | null> {
     try {
       console.log('[DraftService] createDraft starting for user:', userId);
-      console.time('[DraftService] INSERT drafts');
+      console.log('[DraftService] createDraft starting for user:', userId);
       
+      console.log('[DraftService] Sending INSERT request to Supabase...');
       const { data, error } = await client
         .from('drafts')
         .insert({
@@ -79,8 +82,7 @@ export class DraftService {
         })
         .select()
         .single();
-
-      console.timeEnd('[DraftService] INSERT drafts');
+      console.log('[DraftService] Supabase INSERT response received (Data: ' + (!!data) + ', Error: ' + (error?.message || 'none') + ')');
       
       if (error) {
         console.error('[DraftService] INSERT error:', error);
@@ -209,35 +211,48 @@ export class DraftService {
     if (isSignificant) {
       try {
         // A. Get previous snapshot hash (Chain of Custody)
-        const { data: prevSnap } = await client
+        // NOTE: Use .maybeSingle() instead of .single() to handle new drafts with no snapshots
+        // .single() throws PGRST116 (406) when 0 rows are returned
+        const { data: prevSnap, error: prevSnapError } = await client
           .from('draft_snapshots')
           .select('integrity_hash')
           .eq('draft_id', draftId)
           .order('timestamp', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
+        
+        if (prevSnapError) {
+          console.warn('[DraftService] Failed to fetch previous snapshot:', prevSnapError);
+        }
 
         const prevHash = prevSnap?.integrity_hash || 'GENESIS';
 
-        // B. Calculate new integrity hash
-        // Hash(Content + PrevHash + Timestamp)
-        const hashInput = `${content}${prevHash}${timestamp}`;
-        const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(hashInput));
-        const integrityHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-
-        // C. Get Telemetry Block
+        // C. Get Telemetry Block - RED TAPE ENFORCEMENT
         const telemetry = telemetryService.getSessionMetrics();
+        
+        let shouldSnapshot = true;
 
-        // D. Insert Snapshot
-        await client.from('draft_snapshots').insert({
-          draft_id: draftId,
-          timestamp,
-          content_diff: content, // Storing full content for now to enable hash verification
-          char_count_delta: charDelta,
-          paste_event_detected: isPaste,
-          telemetry_data: telemetry ? (telemetry as unknown as Database['public']['Tables']['draft_snapshots']['Insert']['telemetry_data']) : null,
-          integrity_hash: integrityHash
-        });
+        // Constraint A: No Telemetry = No Snapshot (Forensic Gap)
+        if (!telemetry || (telemetry.keyCount === 0 && !isPaste && Math.abs(charDelta) > 0)) {
+            console.warn('[DraftService] Red-Tape Protocol: Skipping Snapshot. No telemetry data for active change.');
+            shouldSnapshot = false;
+        }
+
+        if (shouldSnapshot) {
+            // B. Calculate new integrity hash
+            const integrityHash = await calculateSnapshotHash(content, timestamp, prevHash, telemetry);
+
+            // D. Insert Snapshot
+            await client.from('draft_snapshots').insert({
+              draft_id: draftId,
+              timestamp,
+              content_diff: content, 
+              char_count_delta: charDelta,
+              paste_event_detected: isPaste,
+              telemetry_data: telemetry ? (telemetry as unknown as Database['public']['Tables']['draft_snapshots']['Insert']['telemetry_data']) : null,
+              integrity_hash: integrityHash
+            });
+        }
 
       } catch (e) {
         console.warn('[DraftService] Snapshot save failed:', e);
@@ -291,8 +306,8 @@ export class DraftService {
   /**
    * Retrieve snapshots for a draft
    */
-  static async getSnapshots(draftId: string): Promise<DraftSnapshot[]> {
-    const { data, error } = await supabase
+  static async getSnapshots(draftId: string, client: SupabaseClient<Database> = supabase): Promise<DraftSnapshot[]> {
+    const { data, error } = await client
       .from('draft_snapshots')
       .select('*')
       .eq('draft_id', draftId)
@@ -349,8 +364,8 @@ export class DraftService {
   /**
    * Compute "Sovereignty Score" based on telemetry and history
    */
-  static async calculateSovereigntyScore(draftId: string): Promise<number> {
-    const { data: snapshots } = await supabase
+  static async calculateSovereigntyScore(draftId: string, client: SupabaseClient<Database> = supabase): Promise<number> {
+    const { data: snapshots } = await client
       .from('draft_snapshots')
       .select('*')
       .eq('draft_id', draftId)
