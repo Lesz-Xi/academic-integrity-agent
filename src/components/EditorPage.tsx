@@ -9,6 +9,8 @@ import { StatusIndicator, SecurityStatus } from './StatusIndicator';
 import AuditModal from './AuditModal';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../types/database.types';
 
 interface EditorPageProps {
   onBack: () => void;
