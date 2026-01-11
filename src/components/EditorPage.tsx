@@ -358,7 +358,13 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
       }
 
       // Final attestation call - now wrapped in the outer try/finally
-      await AttestationService.generateCertificate(targetDraft, sovereigntyScore, sovereignClient || undefined);
+      // [SOVEREIGNTY FIX] Fetch strict, up-to-the-millisecond forensic score from DB
+      // This bypasses any React state lag (e.g. if user pasted and immediately clicked Attest)
+      const clientToUse = sovereignClient || supabase;
+      const liveForensicScore = await DraftService.calculateSovereigntyScore(targetDraft.id, clientToUse);
+      console.log(`[Editor] Authorized Attestation. UI Score: ${sovereigntyScore}%, Forensic Score: ${liveForensicScore}%`);
+      
+      await AttestationService.generateCertificate(targetDraft, liveForensicScore, clientToUse);
       
     } catch (error: any) {
       console.error('[Editor] Attestation failed:', error);
