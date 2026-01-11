@@ -55,11 +55,26 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   // Computed Security Status
   const getSecurityStatus = (): SecurityStatus => {
     const latestSnap = snapshots[0];
-    if (isInitializing) return 'monitored';
-    if (isSaving) return 'monitored';
-    if (!latestSnap) return 'sovereign'; // Genesis state
     
+    // 1. Initial Loading or Saving -> Monitored (Blue/Yellow)
+    if (isInitializing || isSaving) return 'monitored';
+    
+    // 2. Genesis State (No snapshots yet) -> Sovereign (Green)
+    if (!latestSnap) return 'sovereign'; 
+    
+    // 3. [SOVEREIGNTY SAFETY] If the forensic score drops below 80, override everything.
+    // This catches "authorized" saves that were actually massive pastes.
+    if (sovereigntyScore < 80) return 'compromised';
+
+    // 4. Optimistic Snapshots (Client-side only, pending server hash) -> Monitored
+    // These are created instantly on type; we shouldn't flagging them as compromised just because the server hasn't replied yet.
+    if (latestSnap.id.startsWith('temp-')) return 'monitored';
+    
+    // 5. Missing Hash on a REAL (server-confirmed) snapshot -> Compromised (Red)
+    // This implies the database record exists but has no hash (tampering) or the chain is broken.
     if (!latestSnap.integrityHash) return 'compromised';
+
+    // 6. Default -> Sovereign
     return 'sovereign';
   };
 
