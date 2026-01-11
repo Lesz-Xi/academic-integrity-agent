@@ -321,7 +321,8 @@ export class DraftService {
       timestamp: row.timestamp,
       contentDiff: row.content_diff,
       charCountDelta: row.char_count_delta ?? 0,
-      pasteEventDetected: row.paste_event_detected ?? false
+      pasteEventDetected: row.paste_event_detected ?? false,
+      integrityHash: row.integrity_hash || undefined
     }));
   }
 
@@ -329,37 +330,70 @@ export class DraftService {
    * Refined Score Calculation w/ "Forgiving Reset"
    * If draft is cleared (length -> 0), history resets.
    */
+  /**
+   * Refined Score Calculation w/ "Forensic Netting"
+   * Uses LIFO (Last-In-First-Out) logic to account for Undos/Deletions.
+   * A deletion is assumed to remove the most recently added characters.
+   */
   static computeScore(snapshots: { charCountDelta: number, pasteEventDetected: boolean }[]): number {
-    let totalCharsAdded = 0;
-    let pasteChars = 0;
-    let runningLength = 0;
+    // 1. Convert to Chronological Stream
+    const stream = [...snapshots].reverse();
 
-    // Process chronologically (Oldest -> Newest)
-    const chronological = [...snapshots].reverse();
+    // 2. Track "Living Chunks" of text
+    // Each chunk represents a block of text currently in the document
+    interface TextChunk {
+      size: number;
+      isSuspicious: boolean; // Paste or High Velocity
+    }
+    
+    const stack: TextChunk[] = [];
 
-    chronological.forEach(s => {
-      runningLength += s.charCountDelta;
-      if (runningLength < 0) runningLength = 0; // Safety floor
-
-      if (s.charCountDelta > 0) {
-        totalCharsAdded += s.charCountDelta;
-        if (s.pasteEventDetected || s.charCountDelta > 500) {
-          pasteChars += s.charCountDelta;
+    for (const event of stream) {
+        const delta = event.charCountDelta;
+        
+        if (delta > 0) {
+            // ADDITION: Push a new chunk
+            // Check heuristic: Paste Flag OR High Velocity (>500 chars)
+            const isSuspicious = event.pasteEventDetected || delta > 500;
+            stack.push({ size: delta, isSuspicious });
+        } else if (delta < 0) {
+            // DELETION: Consume from the top of the stack (Most Recent)
+            let charsToDelete = Math.abs(delta);
+            
+            while (charsToDelete > 0 && stack.length > 0) {
+                const topChunk = stack[stack.length - 1]; // Peek
+                
+                if (topChunk.size <= charsToDelete) {
+                    // Fully consume this chunk
+                    charsToDelete -= topChunk.size;
+                    stack.pop();
+                } else {
+                    // Partially consume this chunk
+                    topChunk.size -= charsToDelete;
+                    charsToDelete = 0;
+                }
+            }
         }
-      }
+    }
 
-      // RESET LOGIC: If document is effectively cleared, reset stats
-      if (runningLength < 10) { 
-        totalCharsAdded = 0;
-        pasteChars = 0;
-      }
-    });
+    // 3. Tally the Survivors
+    let totalChars = 0;
+    let suspiciousChars = 0;
 
-    if (totalCharsAdded === 0) return 100;
+    for (const chunk of stack) {
+        totalChars += chunk.size;
+        if (chunk.isSuspicious) {
+            suspiciousChars += chunk.size;
+        }
+    }
 
-    const organicRatio = (totalCharsAdded - pasteChars) / totalCharsAdded;
+    // 4. Compute Final Score
+    if (totalChars === 0) return 100; // Empty document = Innocent
+
+    const organicRatio = (totalChars - suspiciousChars) / totalChars;
     return Math.round(organicRatio * 100);
   }
+
 
   /**
    * Compute "Sovereignty Score" based on telemetry and history

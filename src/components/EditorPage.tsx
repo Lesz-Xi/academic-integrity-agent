@@ -3,6 +3,7 @@ import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon, R
 import { DraftService } from '../services/draftService';
 import { AttestationService } from '../services/attestationService';
 import { SimplificationSuggestion, ParagraphAnalysis } from '../services/analysisService';
+import { telemetryService } from '../services/telemetryService';
 import { Draft, DraftSnapshot } from '../types';
 import PerplexityBackdrop from './PerplexityBackdrop';
 import { StatusIndicator, SecurityStatus } from './StatusIndicator';
@@ -81,12 +82,10 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   // Initialization & Effects
   useEffect(() => {
     initializeDraft();
+    telemetryService.startSession(); // [SOVEREIGNTY] Start forensic recording
     
-    // Cleanup function not needed for the async calls themselves, 
-    // but we might want to cancel pending requests if Supabase supports it (AbortController).
-    // For now, state checks like 'mounted' inside initializeDraft are enough.
     return () => {
-        // cleanup if needed
+        telemetryService.clearSession();
     };
   }, [user?.id]);
 
@@ -160,7 +159,17 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   };
 
   // Event Handlers
-  const handlePaste = () => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // Record raw native event for flight-time analysis
+      telemetryService.recordKey(e.nativeEvent);
+  };
+
+  const handleFocus = () => telemetryService.recordFocus('focus');
+  const handleBlur = () => telemetryService.recordFocus('blur');
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const pasteContent = e.clipboardData.getData('text');
+    telemetryService.recordPaste(pasteContent);
     isPasteRef.current = true;
   };
 
@@ -250,9 +259,12 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
            ]);
            setSovereigntyScore(score);
            
-           if (latestSnapshots && latestSnapshots.length > 0) {
-              setSnapshots(latestSnapshots);
-           }
+            setSovereigntyScore(score);
+            
+            // [SOVEREIGNTY FIX] Always update snapshots to authoritative DB state.
+            // If DB returns empty (e.g. no new snapshot created), this correctly
+            // clears the "optimistic" temp- snapshot, resolving the "Monitored" state.
+            setSnapshots(latestSnapshots || []);
         }
       })
       .catch((err) => {
@@ -588,6 +600,10 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
               placeholder="Start drafting here to prove your process..."
               value={content}
               onChange={handleContentChange}
+              onKeyDown={handleKeyDown}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              // onPaste is handled by handlePaste function which is already wired, but we need to ensure it's passed if not already
               onPaste={handlePaste}
               autoFocus
               spellCheck={false}

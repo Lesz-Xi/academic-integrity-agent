@@ -40,4 +40,24 @@ describe('DraftService.computeScore Forensic Analysis', () => {
         const score = DraftService.computeScore(snapshots);
         expect(score).toBe(100);
     });
+
+    it('Undo Logic: Immediate deletion of paste should restore integrity?', () => {
+        // 1. Organic Base
+        const organicChars = Array(10).fill(1).map(() => ({ charCountDelta: 50, pasteEventDetected: false }));
+        
+        // 2. Large Paste (Accidental)
+        const accidentalPaste = { charCountDelta: 5000, pasteEventDetected: true };
+        
+        // 3. Undo (Large Deletion) - Represented as negative delta
+        const undoAction = { charCountDelta: -5000, pasteEventDetected: false };
+        
+        // Input is expected to be Newest First (DESC timestamp)
+        // So Undo (latest) -> Paste (recent) -> Organic (oldest)
+        const snapshots = [undoAction, accidentalPaste, ...organicChars.reverse()];
+        
+        const score = DraftService.computeScore(snapshots);
+        
+        console.log(`Undo Logic Score: ${score}%`);
+        expect(score).toBeGreaterThan(90); // Should be recovered
+    });
 });
