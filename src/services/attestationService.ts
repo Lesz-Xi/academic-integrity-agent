@@ -1,3 +1,5 @@
+import { SupabaseClient } from '@supabase/supabase-js';
+import { Database } from '../types/database.types';
 import { supabase } from '../lib/supabase';
 import { Draft } from '../types';
 
@@ -42,7 +44,7 @@ export class AttestationService {
             if (retryCount === 0) {
                 console.log('[Attestation] Retrying after 2 seconds...');
                 await new Promise(resolve => setTimeout(resolve, 2000));
-                return this.generateCertificate(draft, score, retryCount + 1);
+                return this.generateCertificate(draft, score, client, retryCount + 1);
             }
             
             alert(`Failed to generate certificate: ${error.message || 'Unknown error'}. Please try again.`);
@@ -81,7 +83,7 @@ export class AttestationService {
         if (retryCount === 0) {
             console.log('[Attestation] Retrying after 2 seconds...');
             await new Promise(resolve => setTimeout(resolve, 2000));
-            return this.generateCertificate(draft, score, retryCount + 1);
+            return this.generateCertificate(draft, score, client, retryCount + 1);
         }
         
         alert('An unexpected error occurred during attestation. Please try again.');

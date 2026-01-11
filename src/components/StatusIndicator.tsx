@@ -1,6 +1,5 @@
 import React from 'react';
-import { ShieldCheck, ShieldAlert } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { ShieldCheck, ShieldAlert, Loader2, Link as LinkIcon } from 'lucide-react';
 
 export type SecurityStatus = 'sovereign' | 'monitored' | 'compromised' | 'offline';
 
@@ -8,45 +7,59 @@ interface StatusIndicatorProps {
   status: SecurityStatus;
   isPremium: boolean;
   className?: string;
+  onClick?: () => void;
 }
 
 export const StatusIndicator: React.FC<StatusIndicatorProps> = ({ 
   status, 
   isPremium, 
-  className = '' 
+  className = '',
+  onClick
 }) => {
   
   const getConfig = () => {
     switch (status) {
-      case 'sovereign': // Changed from 'secured'
+      case 'sovereign':
         return {
           icon: ShieldCheck,
-          text: 'Secured',
-          subtext: 'Chain Intact',
-          colors: 'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20'
+          text: 'Sovereign',
+          color: 'text-amber-500',
+          bg: 'bg-amber-500/10',
+          border: 'border-amber-500/20'
         };
-      case 'gap-detected':
-        return {
-          icon: ShieldAlert,
-          text: 'Gap Detected',
-          subtext: 'Chain Broken',
-          colors: 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/20'
-        };
-      case 'pending':
+      case 'monitored':
         return {
           icon: Loader2,
-          text: 'Hashing',
-          subtext: 'Verifying...',
-          colors: 'bg-gray-500/10 border-gray-500/20 text-gray-600 dark:text-gray-400',
+          text: 'Monitored',
+          color: 'text-blue-500',
+          bg: 'bg-blue-500/10',
+          border: 'border-blue-500/20',
           animate: true
         };
-      case 'offline':
-      default:
+      case 'compromised':
         return {
-          icon: LinkIcon, // Using Link icon to represent local/disconnected state
+          icon: ShieldAlert,
+          text: 'Compromised',
+          color: 'text-red-500',
+          bg: 'bg-red-500/10',
+          border: 'border-red-500/20'
+        };
+      case 'offline':
+        return {
+          icon: LinkIcon,
           text: 'Offline',
-          subtext: 'Local Only',
-          colors: 'bg-gray-500/5 border-gray-500/10 text-gray-500 dark:text-gray-500'
+          color: 'text-gray-400',
+          bg: 'bg-gray-500/5',
+          border: 'border-gray-500/10'
+        };
+       default:
+        // Fallback or legacy mapping
+        return {
+           icon: ShieldCheck,
+           text: 'Sovereign',
+           color: 'text-amber-500',
+           bg: 'bg-amber-500/10',
+           border: 'border-amber-500/20'
         };
     }
   };
@@ -55,16 +68,17 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   const Icon = config.icon;
 
   return (
-    <button 
+    <div 
       onClick={onClick}
-      className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all active:scale-95 ${config.colors} ${className}`}
-      title={config.subtext}
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-sm transition-all duration-300 ${config.bg} ${config.border} ${className} ${onClick ? 'cursor-pointer hover:bg-opacity-80' : ''}`}
     >
-      <Icon className={`w-3.5 h-3.5 ${config.animate ? 'animate-spin' : ''}`} />
-      <div className="flex flex-col items-start leading-none">
-        <span className="text-[10px] font-bold uppercase tracking-wider">{config.text}</span>
-        {/* Optional subtext on hover or large screens? Keeping minimal for now as per design */}
-      </div>
-    </button>
+      <Icon className={`w-3.5 h-3.5 ${config.color} ${config.animate ? 'animate-spin' : ''}`} />
+      <span className={`text-xs font-bold uppercase tracking-wider ${config.color}`}>
+        {config.text}
+      </span>
+      {isPremium && (
+        <span className="ml-1 w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
+      )}
+    </div>
   );
 };

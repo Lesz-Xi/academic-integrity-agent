@@ -1,0 +1,132 @@
+{
+  "fonts": {
+    "heading": {
+      "family": "'Playfair Display', Georgia, Cambria, 'Times New Roman', serif",
+      "googleFont": "Playfair+Display:wght@400;500;600;700",
+      "weight": {
+        "normal": "400",
+        "medium": "500",
+        "semibold": "600",
+        "bold": "700"
+      }
+    },
+    "body": {
+      "family": "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      "googleFont": "Inter:wght@300;400;500;600;700",
+      "weight": {
+        "light": "300",
+        "normal": "400",
+        "medium": "500",
+        "semibold": "600",
+        "bold": "700"
+      }
+    },
+    "mono": {
+      "family": "'JetBrains Mono', 'SF Mono', 'Monaco', 'Fira Code', monospace",
+      "googleFont": "JetBrains+Mono:wght@400;500;600",
+      "weight": {
+        "normal": "400",
+        "medium": "500",
+        "semibold": "600"
+      }
+    }
+  },
+  "sizes": {
+    "xs": {
+      "size": "0.75rem",
+      "lineHeight": "1rem"
+    },
+    "sm": {
+      "size": "0.875rem",
+      "lineHeight": "1.25rem"
+    },
+    "base": {
+      "size": "1rem",
+      "lineHeight": "1.5rem"
+    },
+    "lg": {
+      "size": "1.125rem",
+      "lineHeight": "1.75rem"
+    },
+    "xl": {
+      "size": "1.25rem",
+      "lineHeight": "1.75rem"
+    },
+    "2xl": {
+      "size": "1.5rem",
+      "lineHeight": "2rem"
+    },
+    "3xl": {
+      "size": "1.875rem",
+      "lineHeight": "2.25rem"
+    },
+    "4xl": {
+      "size": "2.25rem",
+      "lineHeight": "2.5rem"
+    },
+    "5xl": {
+      "size": "3rem",
+      "lineHeight": "1.1"
+    }
+  },
+  "tracking": {
+    "tighter": "-0.05em",
+    "tight": "-0.025em",
+    "normal": "0",
+    "wide": "0.025em",
+    "wider": "0.05em",
+    "widest": "0.1em",
+    "ultra": "0.2em"
+  },
+  "usage": {
+    "h1": {
+      "font": "heading",
+      "size": "5xl",
+      "weight": "bold",
+      "tracking": "tight"
+    },
+    "h2": {
+      "font": "heading",
+      "size": "3xl",
+      "weight": "bold",
+      "tracking": "normal"
+    },
+    "h3": {
+      "font": "body",
+      "size": "xl",
+      "weight": "semibold"
+    },
+    "body": {
+      "font": "body",
+      "size": "base",
+      "weight": "normal"
+    },
+    "bodySmall": {
+      "font": "body",
+      "size": "sm",
+      "weight": "normal"
+    },
+    "caption": {
+      "font": "body",
+      "size": "xs",
+      "weight": "medium"
+    },
+    "label": {
+      "font": "body",
+      "size": "xs",
+      "weight": "bold",
+      "tracking": "widest",
+      "transform": "uppercase"
+    },
+    "button": {
+      "font": "body",
+      "size": "sm",
+      "weight": "medium"
+    },
+    "navItem": {
+      "font": "body",
+      "size": "sm",
+      "weight": "medium"
+    }
+  }
+}

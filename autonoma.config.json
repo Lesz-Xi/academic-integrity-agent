@@ -1,0 +1,12 @@
+{
+  "baseUrl": "http://localhost:5173",
+  "auth": {
+    "loginUrl": "/login",
+    "usernameId": "email",
+    "passwordId": "password"
+  },
+  "selectors": {
+    "editor": ".ProseMirror",
+    "saveStatus": "#sovereignty-status"
+  }
+}

@@ -1,7 +1,7 @@
-```javascript
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon, RotateCcw, Wand2, Flame, Loader2 } from 'lucide-react';
 import { DraftService } from '../services/draftService';
+import { AttestationService } from '../services/attestationService';
 import { SimplificationSuggestion, ParagraphAnalysis } from '../services/analysisService';
 import { Draft, DraftSnapshot } from '../types';
 import PerplexityBackdrop from './PerplexityBackdrop';
@@ -31,6 +31,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   // [SOVEREIGNTY] Persist the client used for initialization (Standard or Emergency)
   // This ensures subsequent saves/attestations use the SAME transport that succeeded.
   const [sovereignClient, setSovereignClient] = useState<SupabaseClient<Database> | null>(null); // New error state
+  const [_lastSaved, setLastSaved] = useState<Date | null>(null);
   const [sovereigntyScore, setSovereigntyScore] = useState(100);
   const [showHistory, setShowHistory] = useState(true);
   const [showAuditModal, setShowAuditModal] = useState(false);
@@ -53,15 +54,13 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
 
   // Computed Security Status
   const getSecurityStatus = (): SecurityStatus => {
-      // If initializing, consider it standard or pending?
-      if (isInitializing) return 'pending';
-      if (draft?.id.startsWith('local-')) return 'offline';
-      if (isSaving) return 'pending';
-      const latestSnap = snapshots[0];
-      if (!latestSnap) return 'secured'; // Genesis state
-      // If we have a snapshot but no hash, and we are not saving, it's a gap.
-      if (!latestSnap.integrityHash) return 'gap-detected';
-      return 'secured';
+    const latestSnap = snapshots[0];
+    if (isInitializing) return 'monitored';
+    if (isSaving) return 'monitored';
+    if (!latestSnap) return 'sovereign'; // Genesis state
+    
+    if (!latestSnap.integrityHash) return 'compromised';
+    return 'sovereign';
   };
 
   // Initialization & Effects
@@ -359,7 +358,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
       }
 
       // Final attestation call - now wrapped in the outer try/finally
-      await AttestationService.generateCertificate(targetDraft, sovereigntyScore, 0, sovereignClient || undefined);
+      await AttestationService.generateCertificate(targetDraft, sovereigntyScore, sovereignClient || undefined);
       
     } catch (error: any) {
       console.error('[Editor] Attestation failed:', error);
@@ -406,8 +405,8 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
             />
             <div className="flex items-center pl-1">
               <StatusIndicator 
-                status={getSecurityStatus()} 
-                theme={theme}
+                status={getSecurityStatus()}
+                isPremium={true} // Hardcoded for simplified check, or verify logic
                 className="scale-90 origin-left border-transparent bg-transparent pl-0"
               />
             </div>
