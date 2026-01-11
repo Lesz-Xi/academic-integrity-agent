@@ -122,9 +122,9 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
             console.log('[Editor] Draft session established:', newDraft.id);
             setDraft(newDraft);
             setTitle(newDraft.title);
-            setContent(newDraft.content);
+            setContent(newDraft.currentContent);
             setSnapshots([]);
-            previousContentRef.current = newDraft.content;
+            previousContentRef.current = newDraft.currentContent;
             setLastSaved(new Date());
         } else {
             // If explicit null returned (e.g. error caught in service), throw
