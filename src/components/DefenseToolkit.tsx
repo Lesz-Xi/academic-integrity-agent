@@ -71,7 +71,7 @@ Sincerely,
                 <ShieldAlert className="w-5 h-5" />
               </div>
               <div>
-                <h3 className={`font-bold ${textColor}`}>Defense Toolkit</h3>
+                <h3 className={`font-serif font-bold ${textColor}`}>Defense Toolkit</h3>
                 <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Generate a scientifically-backed appeal</p>
               </div>
             </div>

@@ -48,7 +48,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({ theme }) => {
       theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-[#F9F9F9]'
     }`}>
       <div className="max-w-3xl mx-auto">
-        <h2 className={`text-3xl md:text-4xl font-bold text-center mb-12 tracking-tight ${
+        <h2 className={`text-3xl md:text-4xl font-serif font-bold text-center mb-12 tracking-tight ${
           theme === 'dark' ? 'text-white' : 'text-[#2D2D2D]'
         }`}>
           Common Queries

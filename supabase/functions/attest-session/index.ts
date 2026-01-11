@@ -136,11 +136,29 @@ Deno.serve(async (req: Request) => {
       yPos -= 18;
 
       const lastSnapshots = (snapshots || []).slice(-10);
+      
+      // 2a. Content Verification (Add snippet or content hash)
+      yPos -= 10;
+      page.drawText("Content Verification:", { x: margin, y: yPos, size: 12, font: titleFont });
+      yPos -= 16;
+      const contentSnippet = draft.current_content ? draft.current_content.substring(0, 100).replace(/\n/g, ' ') + (draft.current_content.length > 100 ? "..." : "") : "[No Content]";
+      page.drawText(`Latest Snapshot Hash: ${finalHash}`, { x: margin, y: yPos, size: 10, font });
+      yPos -= 14;
+      page.drawText(`Content Snippet: "${contentSnippet}"`, { x: margin, y: yPos, size: 10, font, color: rgb(0.3, 0.3, 0.3) });
+      yPos -= 25;
+
+      page.drawText("Chain of Custody Log (Last 10 Events):", { x: margin, y: yPos, size: 13, font: titleFont });
+      yPos -= 18;
+
       for (const s of lastSnapshots) {
         const ts = s?.timestamp ? new Date(s.timestamp).toLocaleTimeString() : "N/A";
-        const delta = s?.char_count_delta ?? s?.charCountDelta ?? "N/A";
-        const hash = s?.integrity_hash ? String(s.integrity_hash).substring(0, 8) : "N/A";
-        const line = `[${ts}] Delta: ${delta} chars | Hash: ${hash}`;
+        // Handle both camelCase and snake_case just in case
+        const delta = s?.char_count_delta ?? s?.charCountDelta ?? "0";
+        const hash = s?.integrity_hash ? String(s.integrity_hash).substring(0, 8) : "MISSING";
+        const isPaste = s?.paste_event_detected ? "[PASTE] " : "";
+        
+        const line = `[${ts}] ${isPaste}Delta: ${delta} chars | Hash: ${hash}`;
+        
         // Avoid writing outside page
         if (yPos < margin) break;
         page.drawText(line, { x: margin, y: yPos, size: 10, font });

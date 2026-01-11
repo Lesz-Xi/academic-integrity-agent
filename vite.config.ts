@@ -22,6 +22,7 @@ export default defineConfig(({ mode }) => {
         org: "lesz-4711",
         project: "lesz-academic-agent",
         authToken: env.BASE_SENTRY_AUTH_TOKEN,
+        telemetry: false,
       }),
     ],
     build: {

@@ -44,20 +44,12 @@ export async function verifyIntegrityChain(snapshots: any[]): Promise<boolean> {
   const sorted = [...snapshots].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
   for (let i = 0; i < sorted.length; i++) {
-    const current = sorted[i];
-    const prev = i === 0 ? null : sorted[i - 1];
-    const prevHash = prev ? prev.integrity_hash : "genesis"; // Assuming "genesis" for the first one, or handle based on logic
+    // const current = sorted[i];
+    // const prev = i === 0 ? null : sorted[i - 1];
+    // const prevHash = prev ? prev.integrity_hash : "genesis"; 
     
-    // If the first one has a specific "genesis" marker logic, handle it locally. 
-    // For now, simpler verification: just check if we can reproduce the current hash.
-    
-    // Note: To truly verify, we need the exact inputs used at creation time.
-    // If telemetry data is inconsistent (e.g. key order), verification might fail.
-    // Ideally, we store the canonical string payload or rely on robust JSON stringification.
-    
-    // For this implementation, we focus on the forward generation logic mainly.
-    // Full client-side verification of old chains might be tricky without exact payload reconstruction.
-    // This function is a placeholder for the "Sovereignty Score" logic.
+    // Placeholder logic
+    // ...
   }
 
   return true;

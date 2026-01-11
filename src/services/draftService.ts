@@ -240,7 +240,7 @@ export class DraftService {
 
         if (shouldSnapshot) {
             // B. Calculate new integrity hash
-            const integrityHash = await calculateSnapshotHash(content, timestamp, prevHash, telemetry);
+            const integrityHash = await calculateSnapshotHash(content, timestamp, prevHash, telemetry || undefined);
 
             // D. Insert Snapshot
             await client.from('draft_snapshots').insert({

@@ -127,7 +127,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ theme, onSelectPlan, on
           
           {/* Header */}
           <div className="text-center mb-16 space-y-4">
-            <h2 className={`text-4xl md:text-5xl font-bold tracking-tight ${
+            <h2 className={`text-4xl md:text-5xl font-serif font-bold tracking-tight ${
               theme === 'dark' ? 'text-white' : 'text-[#2D2D2D]'
             }`}>
               Pricing Plans

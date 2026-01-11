@@ -235,7 +235,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
       
       <div className="max-w-7xl mx-auto">
         <div className="mb-16">
-           <h2 className="text-3xl md:text-5xl font-bold mb-6">
+           <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">
             Everything you need <br className="hidden md:block" />
             <span className={`${theme === 'dark' ? 'text-white' : 'text-[#2D2D2D]'}`}>
                to prove it's yours
@@ -281,7 +281,7 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                       })}
                    </div>
                    <div>
-                      <h3 className="font-bold text-lg">{features[activeTab].title}</h3>
+                      <h3 className="font-serif font-bold text-lg">{features[activeTab].title}</h3>
                       <div className="flex items-center gap-2 text-xs opacity-60">
                          <CheckCircle className="w-3 h-3" />
                          <span>{features[activeTab].metric}</span>
@@ -314,12 +314,12 @@ const FeatureShowcase: React.FC<FeatureShowcaseProps> = ({ theme }) => {
                         : 'py-4 opacity-40 hover:opacity-70'
                   }`}
                 >
-                  <h3 className={`text-xl font-bold mb-2 flex items-center gap-3 transition-colors duration-200 ${
+                  <h3 className={`text-xl font-serif font-bold mb-2 flex items-center gap-3 transition-colors duration-200 ${
                      activeTab === index 
                         ? (theme === 'dark' ? 'text-white' : 'text-[#2D2D2D]') 
                         : (theme === 'dark' ? 'text-gray-400' : 'text-gray-500')
                   }`}>
-                    {activeTab === index && <span className="w-2 h-2 rounded-full bg-[#D2B48C] animate-pulse" />}
+                    {activeTab === index && <span className="w-2 h-2 rounded-full bg-gold-400 animate-pulse" />}
                     {feature.title}
                   </h3>
                   <div 

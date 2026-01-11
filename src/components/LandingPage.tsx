@@ -36,7 +36,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
       <header className="relative z-50 pl-4 pr-6 sm:px-6 py-4 sm:py-6 flex items-center justify-between max-w-7xl mx-auto">
         <div className="flex items-center gap-2 sm:gap-3">
           <img src="/logo.svg" alt="ThesisLens Logo" className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl shadow-lg flex-shrink-0" />
-          <span className="font-bold text-xs sm:text-lg tracking-tight whitespace-nowrap">ThesisLens</span>
+          <span className="font-serif font-bold text-xs sm:text-lg tracking-tight whitespace-nowrap">ThesisLens</span>
         </div>
         
         <div className="flex items-center gap-1.5 sm:gap-4">
@@ -93,7 +93,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                     </div>
 
                     {/* Headline */}
-                    <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter leading-[1.1] animate-fade-in-up [animation-delay:200ms] opacity-0 fill-mode-forwards">
+                    <h1 className="text-5xl lg:text-7xl font-serif font-bold tracking-tighter leading-[1.1] animate-fade-in-up [animation-delay:200ms] opacity-0 fill-mode-forwards">
                         <span className={theme === 'dark' ? 'text-white' : 'text-[#2D2D2D]'}>ACADEMIC</span>
                         <br />
                         <span className={theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}>
@@ -163,7 +163,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
                     <div className={`h-full w-[100%] rounded-full ${theme === 'dark' ? 'bg-[#F2E8CF]' : 'bg-[#85683F]'}`}></div>
                 </div>
                 <div className="mt-2 flex justify-between items-end">
-                    <span className="text-2xl font-bold">Verified</span>
+                    <span className="text-2xl font-serif font-bold">Verified</span>
                     <span className={`text-xs font-medium ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`}>Academic Preprint</span>
                 </div>
                 
@@ -209,7 +209,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onLoginClick, onS
             }`} style={{ animationDelay: '0.8s' }}>
                 <div className="flex items-center gap-2 mb-3">
                     <ShieldAlert className={`w-5 h-5 ${theme === 'dark' ? 'text-[#F2E8CF]' : 'text-[#85683F]'}`} />
-                    <span className="text-sm font-bold">Defense Status</span>
+                    <span className="text-sm font-serif font-bold">Defense Status</span>
                 </div>
                 <div className={`space-y-2 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                     <div className="flex justify-between">

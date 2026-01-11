@@ -40,27 +40,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }, timeoutDuration)
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('[AuthContext] Session error, clearing state:', error)
-        setSession(null)
-        setUser(null)
-      } else {
-        setSession(session)
-        setUser(session?.user ?? null)
-      }
-      setLoading(false)
-      clearTimeout(authTimeout)
-    }).catch((err) => {
-      console.error('[AuthContext] Failed to get session:', err)
-      setSession(null)
-      setUser(null)
-      setLoading(false)
-      clearTimeout(authTimeout)
-    })
+    // Unified Session Initialization
+    const initSession = async () => {
+        // [SOVEREIGN KEY] Dev Auth Bypass
+        if (import.meta.env.DEV) {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('dev_auto_login') === 'true') {
+                console.log('[AuthContext] 🛡️ Sovereign Key Activated: Initiating Real Session');
+                
+                // Use environment variables for dev credentials (secure - not in repo)
+                const devEmail = import.meta.env.VITE_DEV_EMAIL || 'dev@sovereign.ai';
+                const devPassword = import.meta.env.VITE_DEV_PASSWORD || 'devpassword123';
+                
+                // Real auth triggers onAuthStateChange -> sets user -> creates profile
+                const { error } = await supabase.auth.signInWithPassword({
+                    email: devEmail,
+                    password: devPassword
+                });
+                
+                if (error) {
+                     console.log('[AuthContext] Sovereign Key: Sign In failed, attempting Sign Up (First Run)...');
+                     // Fallback: Create the dev user if it doesn't exist (clean slate)
+                     const { error: signUpError } = await supabase.auth.signUp({
+                        email: devEmail,
+                        password: devPassword,
+                        options: {
+                            data: {
+                                full_name: 'Sovereign Observer'
+                            }
+                        }
+                     });
+                     
+                     if (signUpError) {
+                        console.error('[AuthContext] Sovereign Key Failed (SignUp):', signUpError);
+                        setLoading(false);
+                     } else {
+                        console.log('[AuthContext] Sovereign Key: User Created. Session should initialize.');
+                     }
+                }
+                return; // Exit, let subscription handle the rest
+            }
+        }
 
-    // Listen for auth changes
+        // Standard Session Check (Prod or Non-Bypass Dev)
+        supabase.auth.getSession().then(({ data: { session }, error }) => {
+            if (error) {
+                console.error('[AuthContext] Session error:', error)
+                setSession(null)
+                setUser(null)
+            } else {
+                setSession(session)
+                setUser(session?.user ?? null)
+            }
+            setLoading(false)
+            clearTimeout(authTimeout)
+        }).catch((err) => {
+            console.error('[AuthContext] Failed to get session:', err)
+            setSession(null)
+            setUser(null)
+            setLoading(false)
+            clearTimeout(authTimeout)
+        })
+    };
+
+    initSession();
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {

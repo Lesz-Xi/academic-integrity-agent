@@ -26,7 +26,7 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -41,11 +41,23 @@
                 border: '#3F3E3C',  // Subtle border
                 text: '#E5E3DD',    // Warm white
                 subtext: '#9D9A96'  // Muted text
+              },
+              gold: {
+                400: '#C1A87D',
+                500: '#B8956A',
+                600: '#A67C52'
+              },
+              terracotta: {
+                400: '#CC785C',
+                500: '#B5684E',
+                600: '#9E5841'
               }
             },
             fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              heading: ['Outfit', 'sans-serif'],
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+              serif: ["'Playfair Display'", 'Georgia', 'Cambria', 'serif'],
+              heading: ["'Playfair Display'", 'Georgia', 'serif'],
+              mono: ["'JetBrains Mono'", 'SF Mono', 'Monaco', 'monospace'],
             }
           }
         }
@@ -65,11 +77,11 @@
       }
       
       h1, h2, h3, h4, h5, h6 {
-        font-family: 'Outfit', sans-serif;
+        font-family: 'Playfair Display', Georgia, Cambria, serif;
       }
       
       code, pre {
-        font-family: 'Courier New', Courier, monospace;
+        font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
       }
 
       /* Custom Scrollbar */

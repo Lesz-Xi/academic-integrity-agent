@@ -3,7 +3,7 @@ import { Draft } from '../types';
 
 export class AttestationService {
   
-  static async generateCertificate(draft: Draft, score: number, retryCount: number = 0): Promise<void> {
+  static async generateCertificate(draft: Draft, score: number, client: SupabaseClient<Database> = supabase, retryCount: number = 0): Promise<void> {
     try {
         console.log('[Attestation] Requesting forensic certificate for draft:', draft.id);
         console.log('[Attestation] Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
@@ -18,9 +18,10 @@ export class AttestationService {
         }, TIMEOUT_MS);
 
         console.log('[Attestation] Invoking Edge Function (timeout: 90s)...');
-        console.time('[Attestation] Edge Function call');
+        const timerLabel = `[Attestation] Edge Function call ${Date.now()}`;
+        console.time(timerLabel);
         
-        const { data, error } = await supabase.functions.invoke('attest-session', {
+        const { data, error } = await client.functions.invoke('attest-session', {
             body: { 
                 draftId: draft.id,
                 // We could pass client-side score for comparison, but server should calc its own
@@ -29,7 +30,7 @@ export class AttestationService {
         });
         
         clearTimeout(timeoutId);
-        console.timeEnd('[Attestation] Edge Function call');
+        console.timeEnd(timerLabel);
         console.log('[Attestation] Edge Function response received');
         console.log('[Attestation] Data:', data);
         console.log('[Attestation] Error:', error);

@@ -118,7 +118,7 @@ const AlgorithmArchitecture: React.FC<AlgorithmArchitectureProps> = ({ theme, on
         {/* Right: Content Steps */}
         <div className="space-y-10">
           <div className="space-y-4">
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter">
+            <h2 className="text-4xl md:text-6xl font-serif font-bold tracking-tighter">
               From Draft <br />
               <span className="text-[#85683F]">to Verified Integrity</span>
             </h2>

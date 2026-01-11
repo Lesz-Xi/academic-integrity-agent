@@ -33,7 +33,7 @@ const FooterSection: React.FC<FooterSectionProps> = ({ theme }) => {
       
       {/* Background Typography */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full select-none pointer-events-none overflow-hidden">
-        <h1 className="text-[15vw] font-bold text-center leading-none tracking-tighter whitespace-nowrap bg-gradient-to-r from-white/5 via-[#F2E8CF]/20 to-white/5 bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer">
+        <h1 className="text-[15vw] font-serif font-bold text-center leading-none tracking-tighter whitespace-nowrap bg-gradient-to-r from-white/5 via-[#F2E8CF]/20 to-white/5 bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer">
           INTEGRITY
         </h1>
       </div>

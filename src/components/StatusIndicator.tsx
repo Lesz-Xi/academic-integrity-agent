@@ -1,25 +1,24 @@
 import React from 'react';
-import { ShieldCheck, ShieldAlert, Key, Link as LinkIcon, Loader2 } from 'lucide-react';
+import { ShieldCheck, ShieldAlert } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
-export type SecurityStatus = 'secured' | 'pending' | 'gap-detected' | 'offline';
+export type SecurityStatus = 'sovereign' | 'monitored' | 'compromised' | 'offline';
 
 interface StatusIndicatorProps {
   status: SecurityStatus;
-  onClick?: () => void;
+  isPremium: boolean;
   className?: string;
-  theme?: 'light' | 'dark';
 }
 
 export const StatusIndicator: React.FC<StatusIndicatorProps> = ({ 
   status, 
-  onClick, 
-  className = '',
-  theme = 'light' 
+  isPremium, 
+  className = '' 
 }) => {
   
   const getConfig = () => {
     switch (status) {
-      case 'secured':
+      case 'sovereign': // Changed from 'secured'
         return {
           icon: ShieldCheck,
           text: 'Secured',

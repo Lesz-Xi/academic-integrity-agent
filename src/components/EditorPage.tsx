@@ -1,8 +1,8 @@
+```javascript
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon, RotateCcw, Wand2, Flame, Loader2 } from 'lucide-react';
 import { DraftService } from '../services/draftService';
-import { AttestationService } from '../services/attestationService';
-import { AnalysisService, SimplificationSuggestion, ParagraphAnalysis } from '../services/analysisService';
+import { SimplificationSuggestion, ParagraphAnalysis } from '../services/analysisService';
 import { Draft, DraftSnapshot } from '../types';
 import PerplexityBackdrop from './PerplexityBackdrop';
 import { StatusIndicator, SecurityStatus } from './StatusIndicator';
@@ -31,18 +31,17 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   // [SOVEREIGNTY] Persist the client used for initialization (Standard or Emergency)
   // This ensures subsequent saves/attestations use the SAME transport that succeeded.
   const [sovereignClient, setSovereignClient] = useState<SupabaseClient<Database> | null>(null); // New error state
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [sovereigntyScore, setSovereigntyScore] = useState(100);
   const [showHistory, setShowHistory] = useState(true);
   const [showAuditModal, setShowAuditModal] = useState(false);
   
   // Anti-Thesaurus State
   const [showAntiThesaurus, setShowAntiThesaurus] = useState(false);
-  const [simplifications, setSimplifications] = useState<SimplificationSuggestion[]>([]);
+  const [simplifications] = useState<SimplificationSuggestion[]>([]);
 
   // Perplexity Heatmap State
   const [showHeatmap, setShowHeatmap] = useState(false);
-  const [sentenceAnalysis, setSentenceAnalysis] = useState<ParagraphAnalysis[]>([]);
+  const [sentenceAnalysis] = useState<ParagraphAnalysis[]>([]);
 
   // Refs
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -324,7 +323,7 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
                   targetDraft = pendingResult;
                   setDraft(pendingResult);
                   // Draft is now promoted, proceed directly to attestation
-                  await AttestationService.generateCertificate(targetDraft, sovereigntyScore, 0, sovereignClient || undefined);
+                  await AttestationService.generateCertificate(targetDraft, sovereigntyScore, sovereignClient || undefined);
                   return;
               }
           } catch (e) {

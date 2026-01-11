@@ -27,3 +27,5 @@ Goal: Achieve <10% AI score on GPTZero Premium by perfecting the human authorial
     - [x] **Telemetry**: Implement keystroke dynamics capture (Flight time, Paste analysis)
     - [x] **Attestation Loop**: Build PDF generation & signing service
     - [x] **Audit Mode**: Create forensic verification UI
+- [ ] **Phase 7: Design System Integration**
+    - [x] Clone Design OS repository as `academic-integrity-agent-design`
