@@ -1,6 +1,10 @@
 import React from 'react';
-import { X, Award, ShieldCheck, Calendar, Download } from 'lucide-react';
+import { X, Award, ShieldCheck, Calendar, Download, Loader2, Trash2 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import { supabase } from '../lib/supabase';
+import { AttestationService } from '../services/attestationService';
+import { Certificate } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
 interface CertificatesModalProps {
   isOpen: boolean;
@@ -9,36 +13,106 @@ interface CertificatesModalProps {
 }
 
 export default function CertificatesModal({ isOpen, onClose, theme }: CertificatesModalProps) {
-  if (!isOpen) return null;
+  // ALL HOOKS MUST BE CALLED UNCONDITIONALLY BEFORE ANY EARLY RETURNS
+  const [certificates, setCertificates] = React.useState<Certificate[]>([]);
+  const [selectedCert, setSelectedCert] = React.useState<Certificate | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  
+  // Use AuthContext instead of calling getSession (avoids GoTrueClient deadlock)
+  const { user, session, loading: authLoading } = useAuth();
 
   const isDark = theme === 'dark';
   const bgColor = isDark ? 'bg-[#1a1a1a]' : 'bg-[#fff]';
   const textColor = isDark ? 'text-gray-200' : 'text-gray-900';
   const borderColor = isDark ? 'border-gray-800' : 'border-gray-200';
 
-  // Mock data for now
-
-  const certificates = [
-    {
-      id: 1,
-      title: "Adversarial Perturbation Study",
-      date: "Dec 24, 2025",
-      score: 100,
-      hash: "0x7F...3A21"
+  React.useEffect(() => {
+    // Only load when modal is open AND auth is ready AND user exists
+    if (isOpen && !authLoading && user) {
+       loadCertificates();
+    } else if (isOpen && !authLoading && !user) {
+       // Auth is done loading but no user
+       setError('Please log in to view certificates');
+       setLoading(false);
     }
-  ];
+  }, [isOpen, user, authLoading]);
 
-  const [selectedCert, setSelectedCert] = React.useState<typeof certificates[0] | null>(null);
+  // Early return AFTER all hooks
+  if (!isOpen) return null;
 
-  const handleDownload = (cert: typeof certificates[0], e?: React.MouseEvent) => {
+  const loadCertificates = async () => {
+    console.log('[Vault] Step 1: loadCertificates called at', new Date().toISOString());
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Use user from AuthContext (already authenticated, no network call needed)
+      console.log('[Vault] Step 2: Using user from AuthContext:', user?.id);
+      
+      if (!user) {
+        console.warn('[Vault] No user in AuthContext');
+        throw new Error('Please log in to view certificates');
+      }
+
+      console.log('[Vault] Step 3: Fetching certificates for user:', user.id);
+      
+      // Fetch certificates - pass access token to avoid getSession deadlock
+      const accessToken = session?.access_token;
+      console.log('[Vault] Using access token?', !!accessToken);
+      const certs = await AttestationService.getCertificates(user.id, supabase, accessToken);
+      console.log('[Vault] Step 4: Certificates fetched:', certs.length);
+      
+      setCertificates(certs);
+      
+    } catch (err: any) {
+      console.error('[Vault] Error at', new Date().toISOString(), ':', err);
+      setError(err.message || 'Failed to load certificates');
+    } finally {
+      console.log('[Vault] Step 5: Setting loading=false at', new Date().toISOString());
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (certId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // Quick confirmation (can be replaced with UI modal later)
+    if (!confirm('Are you sure you want to delete this certificate? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        // Optimistic update: Remove from list immediately
+        setCertificates(prev => prev.filter(c => c.id !== certId));
+        if (selectedCert?.id === certId) setSelectedCert(null);
+
+        await AttestationService.deleteCertificate(certId, session?.access_token);
+        console.log('[Vault] Certificate deleted:', certId);
+    } catch (err: any) {
+        console.error('[Vault] Failed to delete certificate:', err);
+        // Revert optimization if failed (optional, but good practice would be to reload)
+        alert('Failed to delete certificate');
+        loadCertificates(); 
+    }
+  };
+
+  const handleDownload = (cert: Certificate, e?: React.MouseEvent) => {
     e?.stopPropagation(); // Prevent opening detail view when clicking download
+    
+    // If we have a direct PDF URL from storage, use it (Checking if it's a full URL)
+    if (cert.pdf_url && (cert.pdf_url.startsWith('http') || cert.pdf_url.startsWith('blob:'))) {
+        window.open(cert.pdf_url, '_blank');
+        return;
+    }
+
+    // Fallback: Generate client-side PDF matching the server one (for resilience)
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
       format: 'a4'
     });
 
-    // ... (Keep existing PDF generation logic, it is good) ...
     // Background
     doc.setFillColor(253, 251, 247); // #FDFBF7
     doc.rect(0, 0, 297, 210, 'F');
@@ -116,7 +190,12 @@ export default function CertificatesModal({ isOpen, onClose, theme }: Certificat
 
         {/* Content */}
         <div className={`p-6 ${isDark ? 'bg-[#111]' : 'bg-gray-50/50'} min-h-[400px]`}>
-            {selectedCert ? (
+            {loading ? (
+                <div className="h-full flex flex-col items-center justify-center min-h-[300px]">
+                    <Loader2 className={`w-8 h-8 animate-spin ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+                    <p className={`mt-4 text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Loading vault...</p>
+                </div>
+            ) : selectedCert ? (
                // Detail View (Certificate Preview)
                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
                   <button 
@@ -209,6 +288,13 @@ export default function CertificatesModal({ isOpen, onClose, theme }: Certificat
                                     >
                                         <Download className="w-4 h-4" />
                                     </button>
+                                    <button 
+                                      onClick={(e) => handleDelete(cert.id, e)}
+                                      className={`p-2 rounded-lg ${isDark ? 'hover:bg-red-500/10 text-red-400' : 'hover:bg-red-50 text-red-500'} transition-colors`}
+                                      title="Delete Certificate"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -220,6 +306,7 @@ export default function CertificatesModal({ isOpen, onClose, theme }: Certificat
                         <p className={`text-xs mt-1 max-w-[200px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                             Complete a draft and click "Attest" to mint your first Sovereignty Certificate.
                         </p>
+                        {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
                     </div>
                 )
             )}

@@ -60,8 +60,19 @@ Deno.serve(async (req: Request) => {
       }
 
       const draftId = payload?.draftId;
+      const clientScore = payload?.clientScore; // Score calculated by frontend
+      
       if (!draftId) {
         return new Response(JSON.stringify({ error: "Missing draftId" }), { status: 400, headers: corsHeaders });
+      }
+      
+      // Validate clientScore (must be 0-100)
+      const validatedScore = typeof clientScore === 'number' && clientScore >= 0 && clientScore <= 100 
+        ? Math.round(clientScore) 
+        : null;
+      
+      if (validatedScore === null) {
+        console.warn("Invalid or missing clientScore, using 0 as fallback");
       }
 
       // 1) Fetch draft
@@ -101,7 +112,10 @@ Deno.serve(async (req: Request) => {
       const startTime = totalEdits > 0 ? snapshots[0]?.timestamp : null;
       const endTime = totalEdits > 0 ? snapshots[totalEdits - 1]?.timestamp : null;
       const finalHash = totalEdits > 0 ? snapshots[totalEdits - 1]?.integrity_hash ?? "N/A" : "N/A";
-      const integrityScore = 100;
+      
+      // Use clientScore from frontend (already validated above)
+      // TODO: Implement server-side sovereignty score recalculation for additional security
+      const integrityScore = validatedScore ?? 0;
 
       // 2) Generate PDF (bounded work)
       const pdfDoc = await PDFDocument.create();

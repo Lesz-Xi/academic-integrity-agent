@@ -83,6 +83,16 @@ export interface HistoryItem {
   timestamp: number;
 }
 
+export interface Certificate {
+  id: string;
+  draft_id: string;
+  title: string;
+  score: number;
+  hash: string;
+  date: string;
+  pdf_url?: string;
+}
+
 export interface Draft {
   id: string;
   userId: string;

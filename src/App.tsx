@@ -371,7 +371,9 @@ function AppContent() {
       }
       
       console.error('Generation error:', error);
-      alert('Failed to generate content. Please check your API key in .env.local');
+      // Show the actual error message from the API for better debugging
+      const errorMessage = error.message || 'Unknown error occurred';
+      alert(`Generation failed: ${errorMessage}`);
     } finally {
       abortControllerRef.current = null;
       setIsGenerating(false);

@@ -1,0 +1,1 @@
+/Users/lesz/.gemini/GEMINI.md

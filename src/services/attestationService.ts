@@ -89,4 +89,123 @@ export class AttestationService {
         alert('An unexpected error occurred during attestation. Please try again.');
     }
   }
+
+  static async getCertificates(userId: string, _client: SupabaseClient<Database> = supabase, accessToken?: string) {
+    console.log('[Attestation] getCertificates called for user:', userId);
+    console.log('[Attestation] Query start time:', new Date().toISOString());
+    
+    try {
+      // BYPASS Supabase client - use direct REST API to avoid client deadlock
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      // Use passed accessToken, fallback to anon key
+      const authToken = accessToken || supabaseAnonKey;
+      
+      console.log('[Attestation] Using direct REST API fetch with token?', !!accessToken);
+      
+      // AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
+      const response = await fetch(
+        `${supabaseUrl}/rest/v1/attestation_certificates?select=*&user_id=eq.${userId}&order=created_at.desc`,
+        {
+          headers: {
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        }
+      );
+      
+      clearTimeout(timeoutId);
+      
+      console.log('[Attestation] Query end time:', new Date().toISOString());
+      console.log('[Attestation] Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[Attestation] REST API Error:', errorText);
+        throw new Error(`Database error: ${response.status}`);
+      }
+      
+      const certs = await response.json();
+      console.log('[Attestation] Database response:', { count: certs?.length });
+
+      if (!certs || certs.length === 0) {
+          return [];
+      }
+
+    // Map DB rows to strict Certificate interface
+    return (certs || []).map((cert: any) => {
+       // Attempt to extract hash from metadata if available, otherwise fallback to ID fragment
+       const metadata = cert.metadata as { hash?: string } | null;
+       // Format date cleanly
+       const dateStr = cert.created_at ? new Date(cert.created_at).toLocaleDateString('en-US', {
+           month: 'short', day: 'numeric', year: 'numeric'
+       }) : 'Unknown Date';
+
+       return {
+           id: cert.id,
+           draft_id: cert.draft_id,
+           title: 'Untitled Draft', // TODO: Re-add draft title lookup later
+           score: cert.integrity_score || 0,
+           hash: metadata?.hash || `0x${cert.id.slice(0, 8)}...`, // Fallback hash
+           date: dateStr,
+           pdf_url: cert.verification_url // or verify logic using pdf_path
+       };
+    });
+    } catch (err: any) {
+      console.error('[Attestation] getCertificates error:', err);
+      if (err.name === 'AbortError') {
+        throw new Error('Request timed out - please try again');
+      }
+      throw err;
+    }
+  }
+
+  static async deleteCertificate(certificateId: string, accessToken?: string) {
+    console.log('[Attestation] Deleting certificate:', certificateId);
+    
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const authToken = accessToken || supabaseAnonKey;
+    
+    // Use direct REST API to avoid Supabase client deadlock
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
+    try {
+      const response = await fetch(
+        `${supabaseUrl}/rest/v1/attestation_certificates?id=eq.${certificateId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        }
+      );
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[Attestation] Delete API Error:', errorText);
+        throw new Error(`Delete failed: ${response.status}`);
+      }
+      
+      console.log('[Attestation] Certificate deleted successfully');
+    } catch (err: any) {
+      console.error('[Attestation] deleteCertificate error:', err);
+      if (err.name === 'AbortError') {
+        throw new Error('Delete timed out - please try again');
+      }
+      throw err;
+    }
+  }
 }
