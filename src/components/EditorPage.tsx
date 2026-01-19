@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Clock, ShieldCheck, Download, X, AlertTriangle, Sun, Moon, RotateCcw, Wand2, Flame, Loader2 } from 'lucide-react';
 import { DraftService } from '../services/draftService';
 import { AttestationService } from '../services/attestationService';
-import { SimplificationSuggestion, ParagraphAnalysis } from '../services/analysisService';
+import { SimplificationSuggestion, ParagraphAnalysis, AnalysisService } from '../services/analysisService';
 import { telemetryService } from '../services/telemetryService';
 import { Draft, DraftSnapshot } from '../types';
 import PerplexityBackdrop from './PerplexityBackdrop';
@@ -39,11 +39,11 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
   
   // Anti-Thesaurus State
   const [showAntiThesaurus, setShowAntiThesaurus] = useState(false);
-  const [simplifications] = useState<SimplificationSuggestion[]>([]);
+  const [simplifications, setSimplifications] = useState<SimplificationSuggestion[]>([]);
 
   // Perplexity Heatmap State
   const [showHeatmap, setShowHeatmap] = useState(false);
-  const [sentenceAnalysis] = useState<ParagraphAnalysis[]>([]);
+  const [sentenceAnalysis, setSentenceAnalysis] = useState<ParagraphAnalysis[]>([]);
 
   // Refs
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -91,6 +91,16 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
 
   useEffect(() => {
     adjustTextareaHeight();
+    
+    // [ANALYSIS FIX] Run analysis when content changes (debounced by the same timeline as autosave, or slightly faster)
+    // We can run this immediately for UI responsiveness, it's cheap client-side logic.
+    if (content) {
+        setSimplifications(AnalysisService.scanForSimplification(content));
+        setSentenceAnalysis(AnalysisService.analyzeBurstiness(content));
+    } else {
+        setSimplifications([]);
+        setSentenceAnalysis([]);
+    }
   }, [content]);
 
   // Logic
@@ -617,7 +627,10 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                  <Wand2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                 <h3 className="text-xs font-bold uppercase tracking-wider text-purple-900 dark:text-purple-200">Anti-Thesaurus</h3>
+                 <div className="relative overflow-hidden group">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-purple-900 dark:text-purple-200 transition-transform duration-300 group-hover:-translate-y-full">Anti-Thesaurus</h3>
+                    <h3 className="absolute top-full left-0 text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 transition-transform duration-300 group-hover:-translate-y-full">Simplify Mode</h3>
+                 </div>
               </div>
               <button onClick={() => setShowAntiThesaurus(false)} className="sm:hidden p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5">
                 <X className="w-4 h-4 opacity-50" />
@@ -671,7 +684,10 @@ export default function EditorPage({ onBack, theme, toggleTheme }: EditorPagePro
         {showHistory && (
           <aside className="fixed inset-y-0 right-0 z-50 w-80 border-l border-black/5 dark:border-white/5 bg-white/95 dark:bg-black/95 backdrop-blur p-6 overflow-y-auto shadow-2xl sm:relative sm:w-80 sm:bg-white/50 sm:dark:bg-black/50 sm:shadow-none sm:h-auto top-16 sm:top-0">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xs font-bold uppercase tracking-wider opacity-50">Timeline</h3>
+              <div className="relative overflow-hidden group">
+                  <h3 className="text-xs font-bold uppercase tracking-wider opacity-50 transition-transform duration-300 group-hover:-translate-y-full">Timeline</h3>
+                  <h3 className="absolute top-full left-0 text-xs font-bold uppercase tracking-wider opacity-100 transition-transform duration-300 group-hover:-translate-y-full">Version History</h3>
+              </div>
               <button onClick={() => setShowHistory(false)} className="sm:hidden p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5">
                 <X className="w-4 h-4 opacity-50" />
               </button>
