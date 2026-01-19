@@ -492,7 +492,7 @@ export async function generateContent(
               temperature: dynamicTemperature,
               topK: 80,
               topP: 0.95,
-              maxOutputTokens: 4096
+              maxOutputTokens: 8192
             }
           });
           
@@ -597,7 +597,7 @@ export async function generateContent(
 
       const stream = await anthropic.messages.stream({
         model: 'claude-sonnet-4-20250514', // Using Claude 3.5 Sonnet (mapped via proxy/Shim)
-        max_tokens: 4096,
+        max_tokens: 8192,
         system: systemInstruction,
         messages: messages,
         temperature: dynamicTemperature
