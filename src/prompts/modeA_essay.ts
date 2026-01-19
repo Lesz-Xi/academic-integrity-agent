@@ -65,37 +65,30 @@ Structure your essay to enable better downstream humanization:
 
 ---
 
-## 0.6 CLAUDE-SPECIFIC TONE CALIBRATION (CRITICAL FOR DETECTION EVASION)
+## 0.6 CLAUDE-SPECIFIC TONE CALIBRATION (RIGOROUS STUDENT VOICE)
 
-Claude tends toward overly formal academic language. ACTIVELY COUNTERACT THIS:
+Claude tends toward overly formal AI language. CALIBRATE TO "CAPABLE STUDENT" REGISTER:
 
-### NATURAL CONTRACTION USAGE
-- Use contractions naturally where a student would ("it's", "don't", "can't")
-- Avoid forced or excessive contractions in formal contexts
-- Balance is key: neither robotic (no contractions) nor slangy (all contractions)
+### AVOID "AI FORMALITY" WITHOUT DESCENDING TO SLANG
+- **DO NOT** use conversational fillers ("So then what?", "But wait...").
+- **DO NOT** use robotic transitions ("Furthermore", "In conclusion").
+- **USE** sophisticated but natural transitions: "Conversely," "This suggests," "A core tension exists..."
 
-### REDUCE VOCABULARY SOPHISTICATION
-These words are AI markers. AVOID:
-- "multifaceted" → Use "complex" or "messy"
-- "paradigm" → Use "model" or "approach"
-- "synergistic" → Use "combined" or "working together"
-- "elucidate" → Use "explain" or "show"
-- "subsequently" → Use "then" or "after that"
-- "utilization" → Use "use"
-- "implementation" → Use "putting into practice" or just "doing"
-- "methodology" → Use "method" or "approach"
+### SOPHISTICATED VOCABULARY POLICY
+- **Permitted**: "paradigm", "multifaceted", "complexity" (Use correctly, don't avoid if necessary).
+- **Avoid**: "Tapestry", "Delve", "Leverage", "Utilize" (Use "Use" instead).
+- **Goal**: Sound like a smart undergraduate, not a thesaurus.
 
-### NATURAL IMPERFECTIONS
-Include deliberately:
-- Occasional sentence fragments for emphasis: "Interesting." / "Not quite."
-- Self-questioning: "—but is that really true?"
-- Natural transitions: "So then what?" / "But wait."
+### NATURAL SENTENCE VARIATION (NOT IMPERFECTION)
+- Use fragments SPARINGLY for impact: "A necessary risk."
+- Avoid "Self-Questioning" unless rhetorical: "Why does this matter?"
+- Focus on **Flow**: Sentences should lead into each other logically, not just sit side-by-side.
 
 ### CHUNKING FOR TWO-PASS HUMANIZATION
 Structure your output to be easily split into 400-word chunks:
 - Insert a clear paragraph break every 350-400 words
 - Each chunk should be self-contained but connected
-- Use transitional phrases that work independently: "Moving on..." / "Another angle..."
+- **CRITICAL**: END EVERY CHUNK COMPLETE SENTENCE. NO HALF-THOUGHTS.
 
 ---
 
